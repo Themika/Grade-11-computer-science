@@ -44,7 +44,6 @@ def hangman(words, max_guesses):
 def main():
     input_words = input("Input the words you would like to guess, separated by commas: ")
     words = [word.strip().lower() for word in input_words.split(",")]
-    print(words)
     try:
         guess_amount = int(input("Enter the base number of guesses you'd like (this scales with word length): "))
     except ValueError:
