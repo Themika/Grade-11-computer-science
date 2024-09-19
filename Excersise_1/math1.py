@@ -42,14 +42,10 @@ def main():
         print(f"Error evaluating the expression: {e}")
 
 if __name__ == "__main__":
-    while True: 
+    while True:
         main()
-        continue_loop = input("Would you like to continue (yes/no) ").lower().strip()
-        if continue_loop != "yes" or continue_loop == "no":
-            print("Invalid input! Please enter yes or no")
-        else:
-            if continue_loop == "no":
-                print("Goodbye!")
-                break
-            else:
-                continue
+        make_shape_again = input("Would you like to continue: ").lower().strip()
+        if make_shape_again == "no":
+            exit()
+        elif make_shape_again != "yes" or make_shape_again == "no":
+            print("Invalid input! Please enter yes or no.")
