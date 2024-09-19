@@ -12,7 +12,6 @@ from time import sleep
 white = "\033[1;37m"
 Green = "\033[1;32m"
 Red = "\033[1;31m"
-
 def rectangle(length, width):
     try:
         letters = ["R", "E", "C", "T", "A", "N", "G", "L", "E"]
@@ -26,7 +25,7 @@ def rectangle(length, width):
             matrix[row][0] = letters[row % len(letters)]
             matrix[row][width - 1] = reverse_letters[row % len(reverse_letters)]
         for row in matrix:
-            print(white + "".join(row))
+            print("".join(row))
     except Exception as e:
         print(f"Error evaluating the expression: {e}")
 
@@ -66,8 +65,8 @@ def diamond(custom_length, custom_width):
                 matrix[i][start + j] = letters_diamond[i % len(letters_diamond)]
 
         for row in matrix:
-            print(white + " ".join(row))
-    except Exception as e:
+            print(" ".join(row))
+    except IndexError as e:
         print(f"Error evaluating the expression: {e}")
 
 #This function will get the user input for the shape type, the length and width of the shape. Checking whether it is valud 
@@ -95,11 +94,17 @@ def main():
         length = get_positive_integer(white +"Enter the length of the shape: ")
         width = get_positive_integer(white +"Enter the width of the shape: ")
         if type_shape == 0:
-            if length == width:
+            if length == width and length != 0:
                 print("Please do not create a square")
+                exit()
+            elif length == 0 or width ==0:
+                print("Enter a non zero value")
                 exit()
             rectangle(length, width)
         elif type_shape == 2:
+            if length > width:
+                print("Make the width greater then length")
+                exit()
             diamond(length, width)
     if type_shape == 1:
         trapazoid()
@@ -107,11 +112,16 @@ def main():
         parralagram()
 
 
+
 if __name__ == "__main__":
     while True:
         main()
         make_shape_again = input(white + "Would you like to continue making shapes (yes/no): ").lower().strip()
-        if make_shape_again == "no":
-            exit()
-        elif make_shape_again != "yes" or make_shape_again == "no":
+        if make_shape_again != "yes" or make_shape_again == "no":
             print("Invalid input! Please enter yes or no.")
+        else:
+            if make_shape_again == "no":
+                print("Goodbye!")
+                break
+            else:
+                continue
