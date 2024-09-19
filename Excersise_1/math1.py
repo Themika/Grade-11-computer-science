@@ -44,8 +44,8 @@ def main():
 if __name__ == "__main__":
     while True:
         main()
-        make_shape_again = input("Would you like to continue: ").lower().strip()
-        if make_shape_again == "no":
+        continue_program = input("Would you like to continue: ").lower().strip()
+        if continue_program == "no":
             exit()
-        elif make_shape_again != "yes" or make_shape_again == "no":
+        elif continue_program != "yes" or continue_program == "no":
             print("Invalid input! Please enter yes or no.")

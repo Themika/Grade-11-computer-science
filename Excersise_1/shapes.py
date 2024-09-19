@@ -80,7 +80,7 @@ def get_positive_integer(prompt):
                 print("ERROR: Enter a positive integer value.")
         except ValueError:
             print("ERROR: Enter a valid positive integer.")
-    
+
 #Main method where all the logic is don basically gets all the input from the user 
 def main():
     print(white + "Welcome to shape maker. Enter any of these 4 shapes:")
@@ -116,12 +116,8 @@ def main():
 if __name__ == "__main__":
     while True:
         main()
-        make_shape_again = input(white + "Would you like to continue making shapes (yes/no): ").lower().strip()
-        if make_shape_again != "yes" or make_shape_again == "no":
-            print("Invalid input! Please enter yes or no.")
-        else:
-            if make_shape_again == "no":
-                print("Goodbye!")
-                break
-            else:
-                continue
+        make_shape_again = input("Would you like to continue (yes/no): ").lower().strip()
+        if make_shape_again == "no":
+            exit()
+        elif make_shape_again != "yes" or make_shape_again == "no":
+            print(white+ "Invalid input! Please enter yes or no.")
