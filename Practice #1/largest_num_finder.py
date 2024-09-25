@@ -3,11 +3,8 @@ def main():
     numbers = []
     for i in range(amount):
         numbers.append(int(input(f"Input {i + 1}: ")))
-    numbers.sort()
+    print(f"The largest number is: {max(numbers)}")
 
-    for i in range(len(numbers)):
-        print(numbers[i], end=" ")
-    print()  
 
 def get_positive_integer(prompt):
     while True:
@@ -19,6 +16,7 @@ def get_positive_integer(prompt):
                 print("ERROR: Enter a positive integer value.")
         except ValueError:
             print("ERROR: Enter a valid positive integer.")
+
 if __name__ == "__main__":
     while True:
         main()

@@ -1,14 +1,12 @@
 def main():
-    amount = get_positive_integer("Enter the amount of numbers you want to input: ")
-    numbers = []
-    for i in range(amount):
-        numbers.append(int(input(f"Input {i + 1}: ")))
-    numbers.sort()
+    angle1 = get_positive_integer("Enter the first angle: ")
+    angle2 = get_positive_integer("Enter the second angle: ")
+    angle3 = get_positive_integer("Enter the third angle: ")
 
-    for i in range(len(numbers)):
-        print(numbers[i], end=" ")
-    print()  
-
+    if angle1 + angle2 + angle3 == 180:
+        print("This is a valid triangle.")
+    else:
+        print("This is not a valid triangle.")
 def get_positive_integer(prompt):
     while True:
         try:
