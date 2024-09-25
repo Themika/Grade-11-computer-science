@@ -1,5 +1,5 @@
 def main():
-    amount = int(input("Enter the amount of numbers you want to input: "))
+    amount = get_positive_integer("Enter the amount of numbers you want to input: ")
     numbers = []
     for i in range(amount):
         numbers.append(int(input(f"Input {i + 1}: ")))
@@ -8,7 +8,16 @@ def main():
     for i in range(len(numbers)):
         print(numbers[i], end=" ")
     print()  
-
+def get_positive_integer(prompt):
+    while True:
+        try:
+            value = int(input(prompt))
+            if value >= 0:
+                return value
+            else:
+                print("ERROR: Enter a positive integer value.")
+        except ValueError:
+            print("ERROR: Enter a valid positive integer.")
 if __name__ == "__main__":
     while True:
         main()
