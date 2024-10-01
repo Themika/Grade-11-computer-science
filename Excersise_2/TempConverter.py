@@ -49,6 +49,17 @@ def convert_temp(temp, from_unit, to_unit):
     elif from_unit == "f" and to_unit == "c":
         return (temp - 32) * 5/9
 
+    elif from_unit == "f" and to_unit == "k":
+        return (temp - 32) * 5/9 +273.15
+    elif from_unit == "k" and to_unit == "f":
+        return (temp - 273.15) * 9/5 + 32
+
+    elif from_unit == "c" and to_unit == "k":
+        return temp + 273.15
+    elif from_unit == "k" and to_unit == "c":
+        return temp - 273.15
+    
+
 def main():
     global displayed, run_count, skip_display
     if not displayed or (run_count >= 0 and not skip_display):
@@ -68,22 +79,39 @@ def main():
     start_value = get_positive_integer("")
     ghostWriter(f"{green}Input the ending value of the range: ", 0.05)
     end_value = get_positive_integer("")
-
+    starting_unit = []
+    ending_values = []
     while True:
         # Ask for the unit to convert from and to
-        ghostWriter(f"{green}Input the unit you are converting from (C/F): ", 0.05)
+        ghostWriter(f"{green}Input the unit you are converting from (C/F/K): ", 0.05)
         from_unit = input().strip().lower()
-        ghostWriter(f"{green}Input the unit you are converting to (C/F): ", 0.05)
+        starting_unit.append(from_unit)
+        ghostWriter(f"{green}Input the unit you are converting to (C/F/K): ", 0.05)
         to_unit = input().strip().lower()
+        ending_values.append(to_unit)
         
         if from_unit == to_unit:
             ghostWriter(f"\n{white}ERROR: The starting unit and the converted unit cannot be the same. Please enter different units.\n", 0.05)
-        elif from_unit not in ["c", "f"] or to_unit not in ["c", "f"]:
+        elif from_unit not in ["c", "f", "k"] or to_unit not in ["c", "f","k"]:
             ghostWriter(f"\n{white}ERROR: Enter a valid unit to convert to.\n", 0.05)
         else:
             break
-
-    ghostWriter(f"\n{green}Converting from {from_unit} to {to_unit}\n", 0.05)
+    for i in range(len(starting_unit)):
+        if starting_unit[i] == "c":
+            from_unit_string = "Celsius"
+        elif starting_unit[i] == "f":
+            from_unit_string = "Fahrenheit"
+        else:
+            from_unit_string = "Kelvin"
+    for i in range(len(ending_values)):
+        if ending_values[i] == "c":
+            to_unit_string = "Celsius"
+        elif ending_values[i] == "f":
+            to_unit_string = "Fahrenheit"
+        else:
+            to_unit_string = "Kelvin"
+    
+    ghostWriter(f"\n{green}Converting from {from_unit_string} to {to_unit_string}\n", 0.05)
     ghostWriter(f"{'Value':<10} | {'Converted':<10}\n", 0.05)
     ghostWriter(f"{'-'*10}-+-{'-'*10}\n", 0.05)
 
