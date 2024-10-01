@@ -3,12 +3,12 @@ from time import sleep
 white = "\033[0;37m"
 green = "\033[0;32m"
 blue = "\033[0;34m"
-
+#Ghost Writer method
 def ghostWriter(sentence: str, pause: float):
     for i in range(len(sentence)):
         print(sentence[i], end='', flush=True)
         sleep(pause)
-
+#Displays the welcome program with a cool ghostwriter affect.
 def display_program():
     display_lines = [r"__        __   _                            _                           ",
                      r"\ \      / /__| | ___ ___  _ __ ___   ___  | |_ ___    _ __ ___  _   _  ",
@@ -23,6 +23,7 @@ def display_program():
     for line in display_lines:
         ghostWriter(f"{green}  {line}\n", 0.05)
 
+#Converts the tempreture from either Celsius to Farinhiet. 
 def convert_temp(temp, from_unit, to_unit):
     if from_unit == "C" and to_unit == "F":
         return temp * 9/5 + 32
@@ -32,6 +33,7 @@ def convert_temp(temp, from_unit, to_unit):
         return temp
 
 def main():
+    #This chunk of code displays the welcom message 
     global displayed, run_count, skip_display
     if not displayed or (run_count >= 0 and not skip_display):
         display_program()
@@ -44,38 +46,39 @@ def main():
                 skip_display = True
             elif skip_display_input != "no":
                 ghostWriter(f"{white}Invalid input! Please enter yes or no.\n", 0.05)
-    
+    #Input is taken here
     ghostWriter("Input the value you are starting with: ", 0.05)
     starting_value = input().lower()
     
     digits = []
     letters = []
-    
+    #Parses the input from the digit and starting conversion unit
     for char in starting_value:
         if char.isdigit():
             digits.append(char)
         elif char.isalpha():
             letters.append(char)
-    
+    #Joins the numbers together 
     # Join digits to form the number
     number = ''.join(digits)
-    
+    #Joins the units together
     # Join letters to form the unit
     unit = ''.join(letters)
     
     # Convert the number to a float
     if number:
         number = float(number)
-    
+    #Displays the values and unit 
     ghostWriter(f"{green}Number: {number}\n", 0.05)
     ghostWriter(f"{green}Unit: {unit} \n", 0.05)
     
-    # Example usage of convert_temp
+    # Uage of convert_temp method
     if unit in ["c", "f"]:
         to_unit = "f" if unit == "c" else "c"
         converted_temp = convert_temp(number, unit.upper(), to_unit.upper())
         ghostWriter(f"\n{blue}Converted temperature: {converted_temp} {to_unit.upper()}\n", 0.05)
 
+#Runs the main method continously 
 if __name__ == "__main__":
     displayed = False
     run_count = 0
