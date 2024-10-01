@@ -69,10 +69,10 @@ def main():
         from_unit = input().strip().lower()
         ghostWriter(f"{green}Input the unit you are converting to (C/F): ", 0.05)
         to_unit = input().strip().lower()
-
+        
         if from_unit == to_unit:
             ghostWriter(f"\n{white}ERROR: The starting unit and the converted unit cannot be the same. Please enter different units.\n", 0.05)
-        elif from_unit != "c" or to_unit != "c" or from_unit != "f" or to_unit != "f":
+        elif from_unit not in ["c", "f"] or to_unit not in ["c", "f"]:
             ghostWriter(f"\n{white}ERROR: Enter a valid unit to convert to.\n", 0.05)
         else:
             break
