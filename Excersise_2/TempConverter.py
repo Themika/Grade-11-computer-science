@@ -33,7 +33,7 @@ def convert_temp(temp, from_unit, to_unit):
 
 def main():
     global displayed, run_count, skip_display
-    if not displayed or (run_count >= 2 and not skip_display):
+    if not displayed or (run_count >= 0 and not skip_display):
         display_program()
         displayed = True
         run_count += 1
