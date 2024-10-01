@@ -3,12 +3,25 @@ from time import sleep
 white = "\033[0;37m"
 green = "\033[0;32m"
 blue = "\033[0;34m"
-#Ghost Writer method
+
+# Ghost writer method
 def ghostWriter(sentence: str, pause: float):
     for i in range(len(sentence)):
         print(sentence[i], end='', flush=True)
         sleep(pause)
-#Displays the welcome program with a cool ghostwriter affect.
+
+def get_positive_integer(prompt):
+    while True:
+        try:
+            value = float(input(prompt).strip().upper())
+            if value >= 0:
+                return value
+            else:
+                print("ERROR: Enter a positive integer value.")
+        except ValueError:
+            print("ERROR: Enter a valid positive integer.")
+
+# Display method to print out the welcome message
 def display_program():
     display_lines = [r"__        __   _                            _                           ",
                      r"\ \      / /__| | ___ ___  _ __ ___   ___  | |_ ___    _ __ ___  _   _  ",
@@ -17,23 +30,20 @@ def display_program():
                      r"   \_/\_/ \___|_|\___\___/|_| |_| |_|\___|  \__\___/  |_| |_| |_|\__, | ",
                      r"            | '_ \| '__/ _ \ / _` | '__/ _` | '_ ` _ \           |___/  ",
                      r"            | |_) | | | (_) | (_| | | | (_| | | | | | |                 ",
-                     r"            | .__/|_|  \___/ \__, |_|  \__,_|_| |_| |_|                ",
-                     r"            |_|              |___/                                     "
+                     r"            | .__/|_|  \___/ \__, |_|  \__,_|_| |_| |_|                 ",
+                     r"            |_|              |___/                                      "
                      ]
     for line in display_lines:
-        ghostWriter(f"{green}  {line}\n", 0.05)
+        ghostWriter(f"{green}{line}\n", 0.05)
 
-#Converts the tempreture from either Celsius to Farinhiet. 
+# Converts the temperature from either Celsius to Fahrenheit or vice versa
 def convert_temp(temp, from_unit, to_unit):
-    if from_unit == "C" and to_unit == "F":
+    if from_unit == "c" and to_unit == "f":
         return temp * 9/5 + 32
-    elif from_unit == "F" and to_unit == "C":
+    elif from_unit == "f" and to_unit == "c":
         return (temp - 32) * 5/9
-    else:
-        return temp
 
 def main():
-    #This chunk of code displays the welcom message 
     global displayed, run_count, skip_display
     if not displayed or (run_count >= 0 and not skip_display):
         display_program()
@@ -46,39 +56,37 @@ def main():
                 skip_display = True
             elif skip_display_input != "no":
                 ghostWriter(f"{white}Invalid input! Please enter yes or no.\n", 0.05)
-    #Input is taken here
-    ghostWriter("Input the value you are starting with: ", 0.05)
-    starting_value = input().lower()
-    
-    digits = []
-    letters = []
-    #Parses the input from the digit and starting conversion unit
-    for char in starting_value:
-        if char.isdigit():
-            digits.append(char)
-        elif char.isalpha():
-            letters.append(char)
-    #Joins the numbers together 
-    # Join digits to form the number
-    number = ''.join(digits)
-    #Joins the units together
-    # Join letters to form the unit
-    unit = ''.join(letters)
-    
-    # Convert the number to a float
-    if number:
-        number = float(number)
-    #Displays the values and unit 
-    ghostWriter(f"{green}Number: {number}\n", 0.05)
-    ghostWriter(f"{green}Unit: {unit} \n", 0.05)
-    
-    # Uage of convert_temp method
-    if unit in ["c", "f"]:
-        to_unit = "f" if unit == "c" else "c"
-        converted_temp = convert_temp(number, unit.upper(), to_unit.upper())
-        ghostWriter(f"\n{blue}Converted temperature: {converted_temp} {to_unit.upper()}\n", 0.05)
 
-#Runs the main method continously 
+    # Ask for the starting and ending values of the range
+    ghostWriter(f"{green}Input the starting value of the range: ", 0.05)
+    start_value = get_positive_integer("")
+    ghostWriter(f"{green}Input the ending value of the range: ", 0.05)
+    end_value = get_positive_integer("")
+
+    while True:
+        # Ask for the unit to convert from and to
+        ghostWriter(f"{green}Input the unit you are converting from (C/F): ", 0.05)
+        from_unit = input().strip().lower()
+        ghostWriter(f"{green}Input the unit you are converting to (C/F): ", 0.05)
+        to_unit = input().strip().lower()
+
+        if from_unit == to_unit:
+            ghostWriter(f"\n{white}ERROR: The starting unit and the converted unit cannot be the same. Please enter different units.\n", 0.05)
+        elif from_unit != "c" or to_unit != "c" or from_unit != "f" or to_unit != "f":
+            ghostWriter(f"\n{white}ERROR: Enter a valid unit to convert to.\n", 0.05)
+        else:
+            break
+
+    ghostWriter(f"\n{green}Converting from {from_unit} to {to_unit}\n", 0.05)
+    ghostWriter(f"{'Value':<10} | {'Converted':<10}\n", 0.05)
+    ghostWriter(f"{'-'*10}-+-{'-'*10}\n", 0.05)
+
+    # Calculate and print the conversion for each value in the range
+    for value in range(int(start_value), int(end_value) + 1):
+        converted_value = convert_temp(value, from_unit, to_unit)
+        ghostWriter(f"{value:<10} | {converted_value:<10.2f}\n", 0.05)
+
+# Runs the main method continuously
 if __name__ == "__main__":
     displayed = False
     run_count = 0
@@ -86,8 +94,8 @@ if __name__ == "__main__":
     while True:
         main()
         ghostWriter(f"\n{white}Would you like to continue (yes/no)\n", 0.05)
-        seperate_digit_continue = input().lower().strip()
-        if seperate_digit_continue == "no":
+        continue_choice = input().lower().strip()
+        if continue_choice == "no":
             exit()
-        elif seperate_digit_continue != "yes":
+        elif continue_choice != "yes":
             ghostWriter(f"{white}Invalid input! Please enter yes or no.\n", 0.05)
