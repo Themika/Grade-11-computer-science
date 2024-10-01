@@ -49,7 +49,7 @@ def main():
         
         # Calculate median
         med = median(int_output)
-        ghostWriter(f"The median of the digits is: {med}\n", 0.05)
+        ghostWriter(f"\nThe median of the digits is: {med}\n", 0.05)
         
         # Calculate mode
         try:
