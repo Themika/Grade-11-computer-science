@@ -1,5 +1,11 @@
 from time import sleep
 
+"""
+    Name: Themika Weerasuriya
+    Date: 2024-10-01
+    Description: This program takes in any floating point number.Converts it between both celsisus and Farinheit It has error handeling 
+"""
+
 white = "\033[0;37m"
 green = "\033[0;32m"
 blue = "\033[0;34m"
@@ -34,7 +40,7 @@ def display_program():
                      r"            |_|              |___/                                      "
                      ]
     for line in display_lines:
-        ghostWriter(f"{green}{line}\n", 0.05)
+        ghostWriter(f"{green}{line}\n", 0.0005)
 
 # Converts the temperature from either Celsius to Fahrenheit or vice versa
 def convert_temp(temp, from_unit, to_unit):

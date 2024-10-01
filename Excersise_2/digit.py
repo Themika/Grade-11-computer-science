@@ -2,6 +2,13 @@ from time import sleep
 from statistics import median, mode, StatisticsError
 from collections import Counter
 
+
+"""
+    Name: Themika Weerasuriya
+    Date: 2024-10-01
+    Description: This program takes in any floating point digit and displays the digits, the median value and the mode of the digits. It has error handeling 
+"""
+
 white = "\033[0;37m"
 codder_green = "\033[0;32m"
 
@@ -24,7 +31,7 @@ def display_program():
                      r"            |_|              |___/                                     "
                      ]
     for line in display_lines:
-        ghostWriter(f"{codder_green}  {line}\n", 0.05)
+        ghostWriter(f"{codder_green}{line}\n", 0.00000005)
 
 def main():
     # Displays the message 
@@ -38,9 +45,9 @@ def main():
     # Parses the inputs and separates them 
     for i, digit in enumerate(output):
         if i == len(output) - 1:
-            ghostWriter(f"and {digit}. ", 0.1)
+            ghostWriter(f"and {digit}. ", 0.005)
         else:
-            ghostWriter(f"{digit}, ", 0.1)
+            ghostWriter(f"{digit}, ", 0.005)
 
     # Calculate and display the median and mode
     if output:
