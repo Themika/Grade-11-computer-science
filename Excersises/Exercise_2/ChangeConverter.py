@@ -73,8 +73,8 @@ if __name__ == "__main__":
         # Ask user if they want to continue
         ghostWriter(f"\n{white}Would you like to continue (yes/no)? ", 0.05)
         continue_response = input().lower().strip()
-        if continue_response == "no":
+        if continue_response != "yes":
+            if continue_response != "no":
+                ghostWriter("Invalid input! Please enter yes or no.\n", 0.05)
             exit()
-        elif continue_response != "yes":
-            ghostWriter("Invalid input! Please enter yes or no.\n", 0.05)
 
