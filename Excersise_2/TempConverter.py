@@ -68,7 +68,8 @@ def main():
         display_program()
         displayed = True
         run_count += 1
-        if run_count == 2:
+        if run_count == 1:
+            #Checks if the user wants to skip
             ghostWriter(f"\n{white}Would you like to skip the display in future runs (yes/no)?\n", 0.05)
             skip_display_input = input().lower().strip()
             if skip_display_input == "yes":
@@ -81,6 +82,7 @@ def main():
     start_value = get_positive_integer("")
     ghostWriter(f"{green}Input the ending value of the range: ", 0.05)
     end_value = get_positive_integer("")
+
     #This is where i keep track of the valyes for later
     starting_unit = []
     ending_values = []
@@ -97,6 +99,7 @@ def main():
         ghostWriter(f"{green}Input the unit you are converting to (C/F/K): ", 0.05)
         to_unit = input().strip().lower()
         ending_values.append(to_unit)
+
         #Error handleing to check whether the units are the same not inclcuded in the converted units and if the starting value is greater then the end value
         if from_unit == to_unit:
             ghostWriter(f"\n{white}ERROR: The starting unit and the converted unit cannot be the same. Please enter different units.\n", 0.05)
@@ -106,9 +109,11 @@ def main():
             ghostWriter(f"\n{white}ERROR: The starting value should be less then the end value.\n", 0.05)
         else:
             break
+
     #Display the full names of the units
     from_unit_string = unit_mapping.get(starting_unit[0], "Unknown")
     to_unit_string = unit_mapping.get(ending_values[0], "Unknown")
+
     #Printing out the table 
     ghostWriter(f"\n{green}Converting from {from_unit_string} to {to_unit_string}\n", 0.05)
     ghostWriter(f"{'Value':<10} | {'Converted':<10}\n", 0.05)
