@@ -1,12 +1,12 @@
 from time import sleep
 from statistics import median, mode, StatisticsError
 from collections import Counter
-
+import matplotlib.pyplot as plt
 
 """
     Name: Themika Weerasuriya
     Date: 2024-10-01
-    Description: This program takes in any floating point digit and displays the digits, the median value and the mode of the digits. It has error handeling 
+    Description: This program takes in any floating point digit and displays the digits, the median value and the mode of the digits. It has error handling 
 """
 
 white = "\033[0;37m"
@@ -31,7 +31,15 @@ def display_program():
                      r"            |_|              |___/                                     "
                      ]
     for line in display_lines:
-        ghostWriter(f"{codder_green}{line}\n", 0.00000005)
+        ghostWriter(f"{codder_green}{line}\n", 0.005)
+
+def display_chart(digit_counts):
+    digits, counts = zip(*digit_counts.items())
+    plt.bar(digits, counts, color='tab:blue')
+    plt.xlabel('Digits')
+    plt.ylabel('Frequency')
+    plt.title('Frequency of Each Digit')
+    plt.show()
 
 def main():
     # Displays the message 
@@ -71,6 +79,9 @@ def main():
         ghostWriter("Digits ordered from most to least common:\n", 0.05)
         for digit, count in sorted_digits:
             ghostWriter(f"Digit {digit} appears {count} times.\n", 0.05)
+        
+        # Display the bar chart
+        display_chart(counter)
 
     print()  
 
@@ -78,9 +89,11 @@ def main():
 if __name__ == "__main__":
     while True:
         main()
+        # Asks user for input 
         ghostWriter(f"\n{white}Would you like to continue (yes/no)? ", 0.05)
         seperate_digit_continue = input().lower().strip()
         if seperate_digit_continue == "no":
             exit()
+        # Checks user input if it is a yes or no
         elif seperate_digit_continue != "yes":
             ghostWriter("Invalid input! Please enter yes or no.", 0.05)
