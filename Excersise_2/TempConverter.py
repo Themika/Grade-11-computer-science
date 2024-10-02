@@ -44,16 +44,17 @@ def display_program():
 
 # Converts the temperature from either Celsius to Fahrenheit or vice versa
 def convert_temp(temp, from_unit, to_unit):
+    #Converting between celsius and farienheit respectivly 
     if from_unit == "c" and to_unit == "f":
         return temp * 9/5 + 32
     elif from_unit == "f" and to_unit == "c":
         return (temp - 32) * 5/9
-
+    #Converting between kelvin and farienheit respectivly 
     elif from_unit == "f" and to_unit == "k":
         return (temp - 32) * 5/9 +273.15
     elif from_unit == "k" and to_unit == "f":
         return (temp - 273.15) * 9/5 + 32
-
+    #Converting between celsius and kelvin respectivly 
     elif from_unit == "c" and to_unit == "k":
         return temp + 273.15
     elif from_unit == "k" and to_unit == "c":
@@ -61,6 +62,7 @@ def convert_temp(temp, from_unit, to_unit):
     
 
 def main():
+    #This handles the display method checking whether the user wants to see it again for furture runs
     global displayed, run_count, skip_display
     if not displayed or (run_count >= 0 and not skip_display):
         display_program()
@@ -79,6 +81,7 @@ def main():
     start_value = get_positive_integer("")
     ghostWriter(f"{green}Input the ending value of the range: ", 0.05)
     end_value = get_positive_integer("")
+    #This is where i keep track of the valyes for later
     starting_unit = []
     ending_values = []
     unit_mapping = {
@@ -94,7 +97,7 @@ def main():
         ghostWriter(f"{green}Input the unit you are converting to (C/F/K): ", 0.05)
         to_unit = input().strip().lower()
         ending_values.append(to_unit)
-        
+        #Error handleing to check whether the units are the same not inclcuded in the converted units and if the starting value is greater then the end value
         if from_unit == to_unit:
             ghostWriter(f"\n{white}ERROR: The starting unit and the converted unit cannot be the same. Please enter different units.\n", 0.05)
         elif from_unit not in ["c", "f", "k"] or to_unit not in ["c", "f","k"]:
@@ -103,10 +106,10 @@ def main():
             ghostWriter(f"\n{white}ERROR: The starting value should be less then the end value.\n", 0.05)
         else:
             break
-    
+    #Display the full names of the units
     from_unit_string = unit_mapping.get(starting_unit[0], "Unknown")
     to_unit_string = unit_mapping.get(ending_values[0], "Unknown")
-    
+    #Printing out the table 
     ghostWriter(f"\n{green}Converting from {from_unit_string} to {to_unit_string}\n", 0.05)
     ghostWriter(f"{'Value':<10} | {'Converted':<10}\n", 0.05)
     ghostWriter(f"{'-'*10}-+-{'-'*10}\n", 0.05)
@@ -123,10 +126,13 @@ if __name__ == "__main__":
     skip_display = False
     while True:
         main()
+        #Checks for the users input on whether they want to continue
         ghostWriter(f"\n{white}Would you like to continue (yes/no)\n", 0.05)
         continue_choice = input().lower().strip()
+        #Ends the code 
         if continue_choice == "no":
             exit()
+        #Checks if the answer is not yes or no
         elif continue_choice != "yes":
             ghostWriter(f"{white}Invalid input! Please enter yes or no.\n", 0.05)
             continue
