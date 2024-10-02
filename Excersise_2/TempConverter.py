@@ -81,6 +81,11 @@ def main():
     end_value = get_positive_integer("")
     starting_unit = []
     ending_values = []
+    unit_mapping = {
+    "c": "Celsius",
+    "f": "Fahrenheit",
+    "k": "Kelvin"
+    }
     while True:
         # Ask for the unit to convert from and to
         ghostWriter(f"{green}Input the unit you are converting from (C/F/K): ", 0.05)
@@ -99,20 +104,8 @@ def main():
         else:
             break
     
-    for i in range(len(starting_unit)):
-        if starting_unit[i] == "c":
-            from_unit_string = "Celsius"
-        elif starting_unit[i] == "f":
-            from_unit_string = "Fahrenheit"
-        else:
-            from_unit_string = "Kelvin"
-    for i in range(len(ending_values)):
-        if ending_values[i] == "c":
-            to_unit_string = "Celsius"
-        elif ending_values[i] == "f":
-            to_unit_string = "Fahrenheit"
-        else:
-            to_unit_string = "Kelvin"
+    from_unit_string = unit_mapping.get(starting_unit[0], "Unknown")
+    to_unit_string = unit_mapping.get(ending_values[0], "Unknown")
     
     ghostWriter(f"\n{green}Converting from {from_unit_string} to {to_unit_string}\n", 0.05)
     ghostWriter(f"{'Value':<10} | {'Converted':<10}\n", 0.05)
@@ -136,3 +129,4 @@ if __name__ == "__main__":
             exit()
         elif continue_choice != "yes":
             ghostWriter(f"{white}Invalid input! Please enter yes or no.\n", 0.05)
+            continue
