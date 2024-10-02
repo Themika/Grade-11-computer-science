@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 """
     Name: Themika Weerasuriya
     Date: 2024-10-01
-    Description: This program takes in any floating point digit and displays the digits, the median value and the mode of the digits. It has error handling 
+    Description: This program takes in any floating point digit and displays the digits, the median value and the mode of the digits.
+    In addtion there is now CHART VISUALIZATION for most frequent numbers. It has error handling 
 """
 
 white = "\033[0;37m"
