@@ -34,14 +34,25 @@ def display_program():
     for line in display_lines:
         ghostWriter(f"{codder_green}{line}\n", 0.005)
 
-def display_chart(digit_counts):
+def display_chart_frequent(digit_counts):
     digits, counts = zip(*digit_counts.items())
-    plt.bar(digits, counts, color='tab:blue')
-    plt.xlabel('Digits')
-    plt.ylabel('Frequency')
-    plt.title('Frequency of Each Digit')
-    plt.show()
+    
+    fig, ax1 = plt.subplots()
 
+    # Create bar plot
+    ax1.bar(digits, counts, color='tab:blue', alpha=0.6, label='Frequency')
+    ax1.set_xlabel('Digits')
+    ax1.set_ylabel('Frequency', color='tab:blue')
+    ax1.tick_params(axis='y', labelcolor='tab:blue')
+
+    # Create line plot on the same axes
+    ax1.plot(digits, counts, color='tab:red', marker='o', label='Trend')
+    ax1.set_title('Frequency of Each Digit')
+
+    # Add legend
+    ax1.legend(loc='upper right')
+
+    plt.show()
 def main():
     # Displays the message 
     display_program()
@@ -82,7 +93,7 @@ def main():
             ghostWriter(f"Digit {digit} appears {count} times.\n", 0.05)
         
         # Display the bar chart
-        display_chart(counter)
+        display_chart_frequent(counter)
 
     print()  
 
