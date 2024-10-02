@@ -94,8 +94,11 @@ def main():
             ghostWriter(f"\n{white}ERROR: The starting unit and the converted unit cannot be the same. Please enter different units.\n", 0.05)
         elif from_unit not in ["c", "f", "k"] or to_unit not in ["c", "f","k"]:
             ghostWriter(f"\n{white}ERROR: Enter a valid unit to convert to.\n", 0.05)
+        elif start_value > end_value:
+            ghostWriter(f"\n{white}ERROR: The starting value should be less then the end value.\n", 0.05)
         else:
             break
+    
     for i in range(len(starting_unit)):
         if starting_unit[i] == "c":
             from_unit_string = "Celsius"
