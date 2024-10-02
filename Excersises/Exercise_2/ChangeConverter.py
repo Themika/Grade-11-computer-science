@@ -11,10 +11,10 @@ def ghostWriter(sentence: str, pause: float):
 
 # Currency denominations and their names
 money_map = {
-    50: "Fifties",
-    20: "Twenties",
-    10: "Tens",
-    5: "Fives",
+    50: "Fifty Dollars bills",
+    20: "Twenty Dollars bills",
+    10: "Ten Dollars bills",
+    5: "FiveDollars bills",
     2: "Toonies",
     1: "Loonies",
     0.25: "Quarters",
@@ -28,7 +28,7 @@ def get_positive_float(prompt):
     while True:
         try:
             value = float(input(prompt))
-            if 0 <= value <= 100:
+            if 0 < value <= 100:
                 return value
             else:
                 print("ERROR: Enter a value between $0 and $100.")
@@ -61,4 +61,4 @@ if __name__ == "__main__":
         if continue_response == "no":
             exit()
         elif continue_response != "yes":
-            ghostWriter("Invalid input! Please enter yes or no.", 0.05)
+            ghostWriter("Invalid input! Please enter yes or no.\n", 0.05)
