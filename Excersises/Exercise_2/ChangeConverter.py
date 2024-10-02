@@ -2,12 +2,26 @@ from time import sleep
 
 # ANSI color for output
 white = "\033[1;37m"
-
+green  = "\033[0;32m"
 # Ghost writer method
 def ghostWriter(sentence: str, pause: float):
     for i in range(len(sentence)):
         print(sentence[i], end='', flush=True)
         sleep(pause)
+
+def display_program():
+    display_lines = [r"__        __   _                            _                           ",
+                     r"\ \      / /__| | ___ ___  _ __ ___   ___  | |_ ___    _ __ ___  _   _  ",
+                     r" \ \ /\ / / _ \ |/ __/ _ \| '_ ` _ \ / _ \ | __/ _ \  | '_ ` _ \| | | | ",
+                     r"  \ V  V /  __/ | (_| (_) | | | | | |  __/ | || (_) | | | | | | | |_| | ",
+                     r"   \_/\_/ \___|_|\___\___/|_| |_| |_|\___|  \__\___/  |_| |_| |_|\__, | ",
+                     r"            | '_ \| '__/ _ \ / _` | '__/ _` | '_ ` _ \           |___/  ",
+                     r"            | |_) | | | (_) | (_| | | | (_| | | | | | |                 ",
+                     r"            | .__/|_|  \___/ \__, |_|  \__,_|_| |_| |_|                ",
+                     r"            |_|              |___/                                     "
+                     ]
+    for line in display_lines:
+        ghostWriter(f"{green}{line}\n", 0.005)
 
 # Currency denominations and their names
 money_map = {
@@ -37,6 +51,7 @@ def get_positive_float(prompt):
 
 # Main logic to calculate and display change
 def main():
+    display_program()
     amount = get_positive_float("Please enter a dollar amount between $0 and $100: ")
 
     change = {}
@@ -62,3 +77,4 @@ if __name__ == "__main__":
             exit()
         elif continue_response != "yes":
             ghostWriter("Invalid input! Please enter yes or no.\n", 0.05)
+
