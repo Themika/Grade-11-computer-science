@@ -71,6 +71,9 @@ def main():
     # Checks if the input is a digit
     ghostWriter(f"The digits of {intake} are ", 0.05)
     output = [x for x in intake.replace("-", "") if x.isdigit()]
+    if not output:
+        ghostWriter(f"{red}ERROR: {white}There are no digits in the input. Please enter a valid number.\n", 0.05)
+        return
     
     # Parses the inputs and separates them 
     for i, digit in enumerate(output):
@@ -87,14 +90,14 @@ def main():
         
         # Calculate median
         med = median(int_output)
-        ghostWriter(f"\n{red}The median of the digits is: {med}\n", 0.05)
+        ghostWriter(f"\n{blue}The median of the digits is: {med}\n", 0.05)
         
         # Calculate mode
         try:
             most_common = mode(int_output)
             ghostWriter(f"The most common digit is: {most_common}\n", 0.05)
         except StatisticsError:
-            ghostWriter("There is no unique mode (multiple digits appear with the same highest frequency).\n", 0.05)
+            ghostWriter(f"{red}There is no unique mode (multiple digits appear with the same highest frequency).\n", 0.05)
         
         # Calculate and display digits ordered from most to least common
         counter = Counter(int_output)

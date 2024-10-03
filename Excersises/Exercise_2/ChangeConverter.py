@@ -50,14 +50,14 @@ def get_positive_float(prompt):
             if 0 < value <= 100:
                 return value
             else:
-                print("ERROR: Enter a value between $0 and $100.")
+                print(f"{red}ERROR: {white}Enter a value between $0 and $100.")
         except ValueError:
-            print("ERROR: Enter a valid floating-point number.")
+            print(f"{red}ERROR: {white}Enter a valid floating-point number.")
 
 # Main logic to calculate and display change
 def main():
     display_program()
-    amount = get_positive_float(f"{red}Please enter a dollar amount between $0 and $100: ")
+    amount = get_positive_float(f"{green}Please enter a dollar amount between $0 and $100: ")
 
     change = {}
     # Iterate through the changes

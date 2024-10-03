@@ -10,7 +10,7 @@ from time import sleep
 white = "\033[0;37m"
 green = "\033[0;32m"
 blue = "\033[0;34m"
-
+red = "\033[0;31m"
 # Ghost writer method
 def ghostWriter(sentence: str, pause: float):
     for i in range(len(sentence)):
@@ -96,7 +96,7 @@ def main():
                 elif skip_display_input == "no":
                     break
                 else:
-                    ghostWriter(f"{white}Invalid input! Please enter yes or no.\n", 0.05)
+                    ghostWriter(f"{red}ERROR: {white}Invalid input! Please enter yes or no.\n", 0.05)
                     skip_display_input = input().lower().strip()
 
     # Ask for the starting and ending values of the range
@@ -129,13 +129,16 @@ def main():
 
         #Error handleing to check whether the units are the same not inclcuded in the converted units
         if from_unit == to_unit:
-            ghostWriter(f"\n{white}ERROR: The starting unit and the converted unit cannot be the same. Please enter different units.\n", 0.05)
+            ghostWriter(f"\n{red}ERROR: {white}The starting unit and the converted unit cannot be the same. Please enter different units.\n", 0.05)
+            starting_unit.clear()
+            ending_values.clear()
         elif from_unit not in ["c", "f", "k","n","r"] or to_unit not in ["c", "f", "k","n","r"]:
-            ghostWriter(f"\n{white}ERROR: Enter a valid unit to convert to.\n", 0.05)
+            ghostWriter(f"\n{red}ERROR: {white}Enter a valid unit to convert to.\n", 0.05)
             starting_unit.clear()
             ending_values.clear()
         else:
             break
+
     #Display the full names of the units
     from_unit_string = unit_mapping.get(starting_unit[0], "Unknown")
     to_unit_string = unit_mapping.get(ending_values[0], "Unknown")
@@ -175,5 +178,5 @@ if __name__ == "__main__":
             exit()
         #Checks if the answer is not yes or no
         elif continue_choice != "yes":
-            ghostWriter(f"{white}Invalid input! Please enter yes or no.\n", 0.05)
+            ghostWriter(f"{red}ERROR: {white}Invalid input! Please enter yes or no.\n", 0.05)
             break
