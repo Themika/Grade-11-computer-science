@@ -44,18 +44,31 @@ def display_program():
 # Converts the temperature between various units
 def convert_temp(temp, from_unit, to_unit):
     conversions = {
+        #Celsius conversions
         ("c", "f"): lambda t: t * 9/5 + 32,
-        ("f", "c"): lambda t: (t - 32) * 5/9,
-        ("f", "k"): lambda t: (t - 32) * 5/9 + 273.15,
-        ("k", "f"): lambda t: (t - 273.15) * 9/5 + 32,
-        ("c", "k"): lambda t: t + 273.15,
-        ("k", "c"): lambda t: t - 273.15,
-        ("n", "c"): lambda t: t * 100/33,
         ("c", "n"): lambda t: t * 33/100,
-        ("n", "f"): lambda t: t * 60/11 + 32,
+        ("c", "r"): lambda t: t * 9/5 + 491.67,
+        ("c", "k"): lambda t: t + 273.15,
+        #Fahrenheit conversions
         ("f", "n"): lambda t: (t - 32) * 11/60,
+        ("f", "c"): lambda t: (t - 32) * 5/9,
+        ("f", "r"): lambda t: t + 459.67,
+        ("f", "k"): lambda t: (t - 32) * 5/9 + 273.15,
+        #Newton conversions
+        ("n", "c"): lambda t: t * 100/33,
+        ("n", "f"): lambda t: t * 60/11 + 32,
         ("n", "k"): lambda t: t * 100/33 + 273.15,
-        ("k", "n"): lambda t: (t - 273.15) * 33/100
+        ("n", "r"): lambda t: t * 60/11 + 491.67,
+        #Kelvin conversions
+        ("k", "n"): lambda t: (t - 273.15) * 33/100,
+        ("k", "f"): lambda t: (t - 273.15) * 9/5 + 32,
+        ("k", "c"): lambda t: t - 273.15,
+        ("k", "r"): lambda t: t,
+        #Rankine conversions
+        ("r", "n"): lambda t: (t - 491.67) * 11/60,
+        ("r", "c"): lambda t: (t - 491.67) * 5/9,
+        ("r", "f"): lambda t: t - 459.67,
+        ("r", "k"): lambda t: t * 5/9,
     }
     try:
         return conversions[(from_unit, to_unit)](temp)
@@ -100,22 +113,23 @@ def main():
     "f": "Fahrenheit",
     "k": "Kelvin",
     "n": "Newton",
+    "r": "Rankine"
     }
     #This is where the user inputs the units they want to convert between
     while True:
         # Ask for the unit to convert from and to
-        ghostWriter(f"{green}Input the unit you are converting from (C/F/K/N): ", 0.05)
+        ghostWriter(f"{green}Input the unit you are converting from (C/F/K/N/R): ", 0.05)
         from_unit = input().strip().lower()
         starting_unit.append(from_unit)
         #Ask for the unit to convert to
-        ghostWriter(f"{green}Input the unit you are converting to (C/F/K/N): ", 0.05)
+        ghostWriter(f"{green}Input the unit you are converting to (C/F/K/N/R): ", 0.05)
         to_unit = input().strip().lower()
         ending_values.append(to_unit)
 
         #Error handleing to check whether the units are the same not inclcuded in the converted units
         if from_unit == to_unit:
             ghostWriter(f"\n{white}ERROR: The starting unit and the converted unit cannot be the same. Please enter different units.\n", 0.05)
-        elif from_unit not in ["c", "f", "k","n"] or to_unit not in ["c", "f", "k","n"]:
+        elif from_unit not in ["c", "f", "k","n","r"] or to_unit not in ["c", "f", "k","n","r"]:
             ghostWriter(f"\n{white}ERROR: Enter a valid unit to convert to.\n", 0.05)
             starting_unit.clear()
             ending_values.clear()
