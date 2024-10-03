@@ -106,16 +106,15 @@ def main():
         to_unit = input().strip().lower()
         ending_values.append(to_unit)
 
-        #Error handleing to check whether the units are the same not inclcuded in the converted units and if the starting value is greater then the end value
+        #Error handleing to check whether the units are the same not inclcuded in the converted units
         if from_unit == to_unit:
             ghostWriter(f"\n{white}ERROR: The starting unit and the converted unit cannot be the same. Please enter different units.\n", 0.05)
         elif from_unit not in ["c", "f", "k"] or to_unit not in ["c", "f", "k"]:
             ghostWriter(f"\n{white}ERROR: Enter a valid unit to convert to.\n", 0.05)
-        elif start_value > end_value:
-            ghostWriter(f"\n{white}ERROR: The starting value should be less than the end value.\n", 0.05)
+            starting_unit.clear()
+            ending_values.clear()
         else:
             break
-
     #Display the full names of the units
     from_unit_string = unit_mapping.get(starting_unit[0], "Unknown")
     to_unit_string = unit_mapping.get(ending_values[0], "Unknown")
@@ -128,7 +127,12 @@ def main():
     ghostWriter(f"{'-'*10}-+-{'-'*10}\n", 0.05)
 
     # Calculate and print the conversion for each value in the range
-    for value in range(int(start_value), int(end_value) + 1):
+    if start_value <= end_value:
+        step = 1
+    else:
+        step = -1
+
+    for value in range(int(start_value), int(end_value) + step, step):
         #Converting the values
         converted_value = convert_temp(value, from_unit, to_unit)
         #Printing out the values
@@ -151,3 +155,4 @@ if __name__ == "__main__":
         #Checks if the answer is not yes or no
         elif continue_choice != "yes":
             ghostWriter(f"{white}Invalid input! Please enter yes or no.\n", 0.05)
+            break
