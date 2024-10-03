@@ -110,11 +110,11 @@ def main():
     ending_values = []
     #This is where i keep track of the units
     unit_mapping = {
-    "c": "Celsius",
-    "f": "Fahrenheit",
-    "k": "Kelvin",
-    "n": "Newton",
-    "r": "Rankine"
+        "c": "Celsius",
+        "f": "Fahrenheit",
+        "k": "Kelvin",
+        "n": "Newton",
+        "r": "Rankine"
     }
     #This is where the user inputs the units they want to convert between
     while True:
