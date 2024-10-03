@@ -141,7 +141,7 @@ def main():
     to_unit_string = unit_mapping.get(ending_values[0], "Unknown")
 
     #Printing out the table 
-    ghostWriter(f"\n{green}Converting from {from_unit_string} to {to_unit_string}\n", 0.05)
+    ghostWriter(f"\n{blue}Converting from {from_unit_string} to {to_unit_string}\n", 0.05)
     #Printing out the table headers
     ghostWriter(f"{'Value':<10} | {'Converted':<10}\n", 0.05)
     #Printing out the table seperator

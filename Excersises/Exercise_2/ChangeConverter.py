@@ -3,6 +3,8 @@ from time import sleep
 # ANSI color for output
 white = "\033[1;37m"
 green  = "\033[0;32m"
+blue = "\033[0;34m"
+red = "\033[0;31m"
 # Ghost writer method
 def ghostWriter(sentence: str, pause: float):
     for i in range(len(sentence)):
@@ -55,7 +57,7 @@ def get_positive_float(prompt):
 # Main logic to calculate and display change
 def main():
     display_program()
-    amount = get_positive_float("Please enter a dollar amount between $0 and $100: ")
+    amount = get_positive_float(f"{red}Please enter a dollar amount between $0 and $100: ")
 
     change = {}
     # Iterate through the changes
@@ -67,9 +69,10 @@ def main():
             amount = round(amount - count * value, 2)  # Subtract the value and round to avoid floating-point issues
 
     # Display the change
-    ghostWriter("\nHere is your change:\n", 0.05)
+    ghostWriter(f"\n{blue}Here is your change:\n", 0.05)
     for change, count in change.items():
-        print(f"{change}: {count}")
+        ghostWriter(f"{change}: {count}\n",0.05)
+        
 
 # Runs the main method continuously
 if __name__ == "__main__":

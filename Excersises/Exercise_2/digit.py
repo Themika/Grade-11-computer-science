@@ -13,6 +13,8 @@ import operator
 
 white = "\033[0;37m"
 codder_green = "\033[0;32m"
+blue = "\033[0;34m"
+red = "\033[0;31m"
 
 # Ghost writer method
 def ghostWriter(sentence: str, pause: float):
@@ -85,7 +87,7 @@ def main():
         
         # Calculate median
         med = median(int_output)
-        ghostWriter(f"\nThe median of the digits is: {med}\n", 0.05)
+        ghostWriter(f"\n{red}The median of the digits is: {med}\n", 0.05)
         
         # Calculate mode
         try:
@@ -97,10 +99,10 @@ def main():
         # Calculate and display digits ordered from most to least common
         counter = Counter(int_output)
         sorted_digits = sorted(counter.items(), key=operator.itemgetter(1), reverse=True) # Sort by count in descending order
-        ghostWriter("Digits ordered from most to least common:\n", 0.05) # Display the message
+        ghostWriter(f"{codder_green}Digits ordered from most to least common:\n", 0.05) # Display the message
         # Display the digits and their counts
         for digit, count in sorted_digits:
-            ghostWriter(f"Digit {digit} appears {count} times.\n", 0.05)
+            ghostWriter(f"{blue}Digit {digit} appears {count} times.\n", 0.05)
         
         # Display the bar chart
         display_chart_frequent(counter)
