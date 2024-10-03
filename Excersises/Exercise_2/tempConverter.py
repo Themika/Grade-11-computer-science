@@ -91,6 +91,7 @@ def main():
     #This is where i keep track of the valyes for later
     starting_unit = []
     ending_values = []
+    #This is where i keep track of the units
     unit_mapping = {
     "c": "Celsius",
     "f": "Fahrenheit",
@@ -102,6 +103,7 @@ def main():
         ghostWriter(f"{green}Input the unit you are converting from (C/F/K): ", 0.05)
         from_unit = input().strip().lower()
         starting_unit.append(from_unit)
+        #Ask for the unit to convert to
         ghostWriter(f"{green}Input the unit you are converting to (C/F/K): ", 0.05)
         to_unit = input().strip().lower()
         ending_values.append(to_unit)
