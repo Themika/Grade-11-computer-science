@@ -41,23 +41,26 @@ def display_program():
     for line in display_lines:
         ghostWriter(f"{green}{line}\n", 0.0005)
 
-# Converts the temperature from either Celsius to Fahrenheit or vice versa
+# Converts the temperature between various units
 def convert_temp(temp, from_unit, to_unit):
-    #Converting between celsius and farienheit respectivly 
-    if from_unit == "c" and to_unit == "f":
-        return temp * 9/5 + 32
-    elif from_unit == "f" and to_unit == "c":
-        return (temp - 32) * 5/9
-    #Converting between kelvin and farienheit respectivly 
-    elif from_unit == "f" and to_unit == "k":
-        return (temp - 32) * 5/9 +273.15
-    elif from_unit == "k" and to_unit == "f":
-        return (temp - 273.15) * 9/5 + 32
-    #Converting between celsius and kelvin respectivly 
-    elif from_unit == "c" and to_unit == "k":
-        return temp + 273.15
-    elif from_unit == "k" and to_unit == "c":
-        return temp - 273.15
+    conversions = {
+        ("c", "f"): lambda t: t * 9/5 + 32,
+        ("f", "c"): lambda t: (t - 32) * 5/9,
+        ("f", "k"): lambda t: (t - 32) * 5/9 + 273.15,
+        ("k", "f"): lambda t: (t - 273.15) * 9/5 + 32,
+        ("c", "k"): lambda t: t + 273.15,
+        ("k", "c"): lambda t: t - 273.15,
+        ("n", "c"): lambda t: t * 100/33,
+        ("c", "n"): lambda t: t * 33/100,
+        ("n", "f"): lambda t: t * 60/11 + 32,
+        ("f", "n"): lambda t: (t - 32) * 11/60,
+        ("n", "k"): lambda t: t * 100/33 + 273.15,
+        ("k", "n"): lambda t: (t - 273.15) * 33/100
+    }
+    try:
+        return conversions[(from_unit, to_unit)](temp)
+    except KeyError:
+        raise ValueError(f"Conversion from {from_unit} to {to_unit} is not supported.")
 
 def main():
     #This handles the display method checking whether the user wants to see it again for furture runs
@@ -95,23 +98,24 @@ def main():
     unit_mapping = {
     "c": "Celsius",
     "f": "Fahrenheit",
-    "k": "Kelvin"
+    "k": "Kelvin",
+    "n": "Newton",
     }
     #This is where the user inputs the units they want to convert between
     while True:
         # Ask for the unit to convert from and to
-        ghostWriter(f"{green}Input the unit you are converting from (C/F/K): ", 0.05)
+        ghostWriter(f"{green}Input the unit you are converting from (C/F/K/N): ", 0.05)
         from_unit = input().strip().lower()
         starting_unit.append(from_unit)
         #Ask for the unit to convert to
-        ghostWriter(f"{green}Input the unit you are converting to (C/F/K): ", 0.05)
+        ghostWriter(f"{green}Input the unit you are converting to (C/F/K/N): ", 0.05)
         to_unit = input().strip().lower()
         ending_values.append(to_unit)
 
         #Error handleing to check whether the units are the same not inclcuded in the converted units
         if from_unit == to_unit:
             ghostWriter(f"\n{white}ERROR: The starting unit and the converted unit cannot be the same. Please enter different units.\n", 0.05)
-        elif from_unit not in ["c", "f", "k"] or to_unit not in ["c", "f", "k"]:
+        elif from_unit not in ["c", "f", "k","n"] or to_unit not in ["c", "f", "k","n"]:
             ghostWriter(f"\n{white}ERROR: Enter a valid unit to convert to.\n", 0.05)
             starting_unit.clear()
             ending_values.clear()
