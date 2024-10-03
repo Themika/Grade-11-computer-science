@@ -3,7 +3,7 @@ from time import sleep
 """
     Name: Themika Weerasuriya
     Date: 2024-10-01
-    Description: This program takes in any floating point number.Converts it between both celsisus and Farinheit It has error handeling 
+    Description: This program takes in any floating point number.Converts it between three units celsisus, Farinheit and Kelvin. It has error handeling 
 """
 
 white = "\033[0;37m"
@@ -22,10 +22,7 @@ def get_positive_integer(prompt):
         try:
             value = float(input(prompt).strip().upper())
             #Checks if the value is greater then 0
-            if value >= 0:
-                return value
-            else:
-                print("ERROR: Enter a positive integer value.")
+            return value
         #Checks if the value is a number
         except ValueError:
             print("ERROR: Enter a valid positive integer.")
@@ -134,7 +131,7 @@ def main():
         #Converting the values
         converted_value = convert_temp(value, from_unit, to_unit)
         #Printing out the values
-        ghostWriter(f"{value:<10} | {converted_value:<10.3f}\n", 0.05)
+        ghostWriter(f"{value:<10.2f} | {converted_value:<10.2f}\n", 0.05)
 
 # Runs the main method continuously
 if __name__ == "__main__":
