@@ -116,6 +116,7 @@ if __name__ == "__main__":
         seperate_digit_continue = input().lower().strip()
         # Checks if the input is valid
         if seperate_digit_continue != "yes":
+            # Checks if the input is valid
             if seperate_digit_continue != "no":
                 ghostWriter("Invalid input! Please enter yes or no.\n", 0.05)
             exit()

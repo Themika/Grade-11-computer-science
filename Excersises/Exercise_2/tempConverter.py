@@ -3,7 +3,8 @@ from time import sleep
 """
     Name: Themika Weerasuriya
     Date: 2024-10-01
-    Description: This program takes in any floating point number.Converts it between three units celsisus, Farinheit and Kelvin. It has error handeling 
+    Description: This program takes in any floating point number.Converts it between five units Celsisus, Farinheit, Kelvin, Newton, Rankine. 
+    It has error handeling and a display method that can be skipped for future runs.
 """
 
 white = "\033[0;37m"
