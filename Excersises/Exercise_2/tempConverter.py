@@ -55,16 +55,16 @@ def convert_temp(temp, from_unit, to_unit):
         ("f", "c"): lambda t: (t - 32) * 5/9,
         ("f", "r"): lambda t: t + 459.67,
         ("f", "k"): lambda t: (t - 32) * 5/9 + 273.15,
-        #Newton conversions
-        ("n", "c"): lambda t: t * 100/33,
-        ("n", "f"): lambda t: t * 60/11 + 32,
-        ("n", "k"): lambda t: t * 100/33 + 273.15,
-        ("n", "r"): lambda t: t * 60/11 + 491.67,
         #Kelvin conversions
         ("k", "n"): lambda t: (t - 273.15) * 33/100,
         ("k", "f"): lambda t: (t - 273.15) * 9/5 + 32,
         ("k", "c"): lambda t: t - 273.15,
         ("k", "r"): lambda t: t,
+        #Newton conversions
+        ("n", "c"): lambda t: t * 100/33,
+        ("n", "f"): lambda t: t * 60/11 + 32,
+        ("n", "k"): lambda t: t * 100/33 + 273.15,
+        ("n", "r"): lambda t: t * 60/11 + 491.67,
         #Rankine conversions
         ("r", "n"): lambda t: (t - 491.67) * 11/60,
         ("r", "c"): lambda t: (t - 491.67) * 5/9,
