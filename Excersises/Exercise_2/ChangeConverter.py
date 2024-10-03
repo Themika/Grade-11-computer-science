@@ -25,10 +25,10 @@ def display_program():
 
 # Currency denominations and their names
 money_map = {
-    50: "Fifty Dollars bills",
-    20: "Twenty Dollars bills",
-    10: "Ten Dollars bills",
-    5: "FiveDollars bills",
+    50: "Fifty Dollar bills",
+    20: "Twenty Dollar bills",
+    10: "Ten Dollar bills",
+    5: "Five Dollar bills",
     2: "Toonies",
     1: "Loonies",
     0.25: "Quarters",
