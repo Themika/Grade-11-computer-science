@@ -2,6 +2,7 @@ from time import sleep
 from statistics import median, mode, StatisticsError
 from collections import Counter
 import matplotlib.pyplot as plt
+import operator
 
 """
     Name: Themika Weerasuriya
@@ -15,12 +16,15 @@ codder_green = "\033[0;32m"
 
 # Ghost writer method
 def ghostWriter(sentence: str, pause: float):
+    # Loops through the sentence and prints it out
     for i in range(len(sentence)):
+        # Prints out the sentence
         print(sentence[i], end='', flush=True)
         sleep(pause)
 
 # Display method print out the welcome message
 def display_program():
+    # Display the program name
     display_lines = [r"__        __   _                            _                           ",
                      r"\ \      / /__| | ___ ___  _ __ ___   ___  | |_ ___    _ __ ___  _   _  ",
                      r" \ \ /\ / / _ \ |/ __/ _ \| '_ ` _ \ / _ \ | __/ _ \  | '_ ` _ \| | | | ",
@@ -31,10 +35,12 @@ def display_program():
                      r"            | .__/|_|  \___/ \__, |_|  \__,_|_| |_| |_|                ",
                      r"            |_|              |___/                                     "
                      ]
+    # Display the program name
     for line in display_lines:
         ghostWriter(f"{codder_green}{line}\n", 0.005)
 
 def display_chart_frequent(digit_counts):
+    # Extract digits and counts from the dictionary
     digits, counts = zip(*digit_counts.items())
     
     fig, ax1 = plt.subplots()
@@ -53,17 +59,20 @@ def display_chart_frequent(digit_counts):
     ax1.legend(loc='upper right')
 
     plt.show()
+
 def main():
     # Displays the message 
     display_program()
     # Input is taken here
     ghostWriter("Enter the number you want to be separated: ", 0.05)
     intake = input("Enter a number: ")
+    # Checks if the input is a digit
     ghostWriter(f"The digits of {intake} are ", 0.05)
     output = [x for x in intake.replace("-", "") if x.isdigit()]
     
     # Parses the inputs and separates them 
     for i, digit in enumerate(output):
+        # Checks if the digit is the last digit
         if i == len(output) - 1:
             ghostWriter(f"and {digit}. ", 0.005)
         else:
@@ -87,8 +96,9 @@ def main():
         
         # Calculate and display digits ordered from most to least common
         counter = Counter(int_output)
-        sorted_digits = sorted(counter.items(), key=lambda x: x[1], reverse=True)
-        ghostWriter("Digits ordered from most to least common:\n", 0.05)
+        sorted_digits = sorted(counter.items(), key=operator.itemgetter(1), reverse=True) # Sort by count in descending order
+        ghostWriter("Digits ordered from most to least common:\n", 0.05) # Display the message
+        # Display the digits and their counts
         for digit, count in sorted_digits:
             ghostWriter(f"Digit {digit} appears {count} times.\n", 0.05)
         
@@ -104,8 +114,8 @@ if __name__ == "__main__":
         # Asks user for input 
         ghostWriter(f"\n{white}Would you like to continue (yes/no)? ", 0.05)
         seperate_digit_continue = input().lower().strip()
-        if seperate_digit_continue == "no":
+        # Checks if the input is valid
+        if seperate_digit_continue != "yes":
+            if seperate_digit_continue != "no":
+                ghostWriter("Invalid input! Please enter yes or no.\n", 0.05)
             exit()
-        # Checks user input if it is a yes or no
-        elif seperate_digit_continue != "yes":
-            ghostWriter("Invalid input! Please enter yes or no.", 0.05)

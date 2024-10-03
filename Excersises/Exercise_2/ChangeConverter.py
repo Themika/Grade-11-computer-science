@@ -10,6 +10,7 @@ def ghostWriter(sentence: str, pause: float):
         sleep(pause)
 
 def display_program():
+    # Display the program name
     display_lines = [r"__        __   _                            _                           ",
                      r"\ \      / /__| | ___ ___  _ __ ___   ___  | |_ ___    _ __ ___  _   _  ",
                      r" \ \ /\ / / _ \ |/ __/ _ \| '_ ` _ \ / _ \ | __/ _ \  | '_ ` _ \| | | | ",
@@ -20,6 +21,7 @@ def display_program():
                      r"            | .__/|_|  \___/ \__, |_|  \__,_|_| |_| |_|                ",
                      r"            |_|              |___/                                     "
                      ]
+    # Display the program name
     for line in display_lines:
         ghostWriter(f"{green}{line}\n", 0.005)
 
@@ -55,9 +57,11 @@ def main():
     amount = get_positive_float("Please enter a dollar amount between $0 and $100: ")
 
     change = {}
+    # Iterate through the denominations
     for value in money_map.keys():
         count = int(amount // value)  # Get the number of times a denomination fits into the amount
         if count > 0:
+            # Add the denomination to the change dictionary
             change[money_map[value]] = count
             amount = round(amount - count * value, 2)  # Subtract the value and round to avoid floating-point issues
 
@@ -73,7 +77,9 @@ if __name__ == "__main__":
         # Ask user if they want to continue
         ghostWriter(f"\n{white}Would you like to continue (yes/no)? ", 0.05)
         continue_response = input().lower().strip()
+        # Exit if the user does not want to continue
         if continue_response != "yes":
+            # Exit if the user does not want to continue
             if continue_response != "no":
                 ghostWriter("Invalid input! Please enter yes or no.\n", 0.05)
             exit()

@@ -17,13 +17,16 @@ def ghostWriter(sentence: str, pause: float):
         sleep(pause)
 
 def get_positive_integer(prompt):
+    # Get a positive integer value from the user
     while True:
         try:
             value = float(input(prompt).strip().upper())
+            #Checks if the value is greater then 0
             if value >= 0:
                 return value
             else:
                 print("ERROR: Enter a positive integer value.")
+        #Checks if the value is a number
         except ValueError:
             print("ERROR: Enter a valid positive integer.")
 
@@ -39,6 +42,7 @@ def display_program():
                      r"            | .__/|_|  \___/ \__, |_|  \__,_|_| |_| |_|                 ",
                      r"            |_|              |___/                                      "
                      ]
+    # Display the program name
     for line in display_lines:
         ghostWriter(f"{green}{line}\n", 0.0005)
 
@@ -68,12 +72,15 @@ def main():
         display_program()
         displayed = True
         run_count += 1
+        #Checks if the code has run once
         if run_count == 1:
             #Checks if the user wants to skip
             ghostWriter(f"\n{white}Would you like to skip the display in future runs (yes/no)?\n", 0.05)
             skip_display_input = input().lower().strip()
+            #Checks if the input is yes or no
             if skip_display_input == "yes":
                 skip_display = True
+            #Checks if the input is not yes or no
             elif skip_display_input != "no":
                 ghostWriter(f"{white}Invalid input! Please enter yes or no.\n", 0.05)
 
@@ -91,6 +98,7 @@ def main():
     "f": "Fahrenheit",
     "k": "Kelvin"
     }
+    #This is where the user inputs the units they want to convert between
     while True:
         # Ask for the unit to convert from and to
         ghostWriter(f"{green}Input the unit you are converting from (C/F/K): ", 0.05)
@@ -116,13 +124,17 @@ def main():
 
     #Printing out the table 
     ghostWriter(f"\n{green}Converting from {from_unit_string} to {to_unit_string}\n", 0.05)
+    #Printing out the table headers
     ghostWriter(f"{'Value':<10} | {'Converted':<10}\n", 0.05)
+    #Printing out the table seperator
     ghostWriter(f"{'-'*10}-+-{'-'*10}\n", 0.05)
 
     # Calculate and print the conversion for each value in the range
     for value in range(int(start_value), int(end_value) + 1):
+        #Converting the values
         converted_value = convert_temp(value, from_unit, to_unit)
-        ghostWriter(f"{value:<10} | {converted_value:<10.2f}\n", 0.05)
+        #Printing out the values
+        ghostWriter(f"{value:<10} | {converted_value:<10.3f}\n", 0.05)
 
 # Runs the main method continuously
 if __name__ == "__main__":
@@ -133,6 +145,7 @@ if __name__ == "__main__":
         main()
         #Checks for the users input on whether they want to continue
         ghostWriter(f"\n{white}Would you like to continue (yes/no)\n", 0.05)
+        #Checks for the users input
         continue_choice = input().lower().strip()
         #Ends the code 
         if continue_choice == "no":
