@@ -147,7 +147,7 @@ def main():
     #Printing out the table seperator
     ghostWriter(f"{'-'*10}-+-{'-'*10}\n", 0.05)
 
-    # Calculate and print the conversion for each value in the range
+    # Calculate and print the conversion for each value in the range based on the step so we can move back and forth as well
     if start_value <= end_value:
         step = 1
     else:
