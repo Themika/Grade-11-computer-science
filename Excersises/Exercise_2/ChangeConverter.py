@@ -25,7 +25,7 @@ def display_program():
     for line in display_lines:
         ghostWriter(f"{green}{line}\n", 0.005)
 
-# Currency denominations and their names
+# Currency change and their names
 money_map = {
     50: "Fifty Dollar bills",
     20: "Twenty Dollar bills",
@@ -57,18 +57,18 @@ def main():
     amount = get_positive_float("Please enter a dollar amount between $0 and $100: ")
 
     change = {}
-    # Iterate through the denominations
+    # Iterate through the changes
     for value in money_map.keys():
-        count = int(amount // value)  # Get the number of times a denomination fits into the amount
+        count = int(amount // value)  # Get the number of times a change fits into the amount
         if count > 0:
-            # Add the denomination to the change dictionary
-            change[money_map[value]] = count
+            # Add the change to the change dictionary
+            change[money_map[value]] = count # Add the change to the change dictionary
             amount = round(amount - count * value, 2)  # Subtract the value and round to avoid floating-point issues
 
     # Display the change
     ghostWriter("\nHere is your change:\n", 0.05)
-    for denomination, count in change.items():
-        print(f"{denomination}: {count}")
+    for change, count in change.items():
+        print(f"{change}: {count}")
 
 # Runs the main method continuously
 if __name__ == "__main__":
