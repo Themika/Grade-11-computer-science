@@ -16,16 +16,14 @@ def ghostWriter(sentence: str, pause: float):
         print(sentence[i], end='', flush=True)
         sleep(pause)
 
-def get_positive_integer(prompt):
-    # Get a positive integer value from the user
+def get_positive_float(prompt):
+    # Get a positive floating-point value from the user
     while True:
         try:
-            value = float(input(prompt).strip().upper())
-            #Checks if the value is greater then 0
+            value = float(input(prompt).strip())
             return value
-        #Checks if the value is a number
         except ValueError:
-            print("ERROR: Enter a valid positive integer.")
+            print("ERROR: Enter a valid positive number.")
 
 # Display method to print out the welcome message
 def display_program():
@@ -60,7 +58,6 @@ def convert_temp(temp, from_unit, to_unit):
         return temp + 273.15
     elif from_unit == "k" and to_unit == "c":
         return temp - 273.15
-    
 
 def main():
     #This handles the display method checking whether the user wants to see it again for furture runs
@@ -74,18 +71,22 @@ def main():
             #Checks if the user wants to skip
             ghostWriter(f"\n{white}Would you like to skip the display in future runs (yes/no)?\n", 0.05)
             skip_display_input = input().lower().strip()
-            #Checks if the input is yes or no
-            if skip_display_input == "yes":
-                skip_display = True
-            #Checks if the input is not yes or no
-            elif skip_display_input != "no":
-                ghostWriter(f"{white}Invalid input! Please enter yes or no.\n", 0.05)
+            while True:
+                #Checks if the input is yes or no
+                if skip_display_input == "yes":
+                    skip_display = True
+                    break
+                elif skip_display_input == "no":
+                    break
+                else:
+                    ghostWriter(f"{white}Invalid input! Please enter yes or no.\n", 0.05)
+                    skip_display_input = input().lower().strip()
 
     # Ask for the starting and ending values of the range
     ghostWriter(f"{green}Input the starting value of the range: ", 0.05)
-    start_value = get_positive_integer("")
+    start_value = get_positive_float("")
     ghostWriter(f"{green}Input the ending value of the range: ", 0.05)
-    end_value = get_positive_integer("")
+    end_value = get_positive_float("")
 
     #This is where i keep track of the valyes for later
     starting_unit = []
@@ -108,10 +109,10 @@ def main():
         #Error handleing to check whether the units are the same not inclcuded in the converted units and if the starting value is greater then the end value
         if from_unit == to_unit:
             ghostWriter(f"\n{white}ERROR: The starting unit and the converted unit cannot be the same. Please enter different units.\n", 0.05)
-        elif from_unit not in ["c", "f", "k"] or to_unit not in ["c", "f","k"]:
+        elif from_unit not in ["c", "f", "k"] or to_unit not in ["c", "f", "k"]:
             ghostWriter(f"\n{white}ERROR: Enter a valid unit to convert to.\n", 0.05)
         elif start_value > end_value:
-            ghostWriter(f"\n{white}ERROR: The starting value should be less then the end value.\n", 0.05)
+            ghostWriter(f"\n{white}ERROR: The starting value should be less than the end value.\n", 0.05)
         else:
             break
 
@@ -150,4 +151,3 @@ if __name__ == "__main__":
         #Checks if the answer is not yes or no
         elif continue_choice != "yes":
             ghostWriter(f"{white}Invalid input! Please enter yes or no.\n", 0.05)
-            continue
