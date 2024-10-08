@@ -1,7 +1,7 @@
 from time import sleep
 
 white = "\033[0;37m"
-codder_green = "\033[0;32m"
+green = "\033[0;32m"
 blue = "\033[0;34m"
 red = "\033[0;31m"
 
@@ -14,15 +14,15 @@ def ghostWriter(sentence: str, pause: float):
 def main():
     string_input = []
     while True:
-        word = input("Enter a Letter: ")
+        word = input(f"\n{white}Enter a Letter: ")
         if word == ".":
             break
         elif len(word) > 1:
             print(f"{red}ERROR: {white}Enter a single letter")
         else:
             string_input.append(word)
-            print(f"Current Word is {''.join(string_input)}")
-    print(f"Final Word is {''.join(string_input)}")
+            ghostWriter(f"{white}Current Word is {blue}{''.join(string_input)}",0.05)
+    ghostWriter(f"\n\n{green}Final Word is {blue}{''.join(string_input)}",0.05) 
     
 
 if __name__ == "__main__":
