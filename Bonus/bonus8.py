@@ -12,16 +12,17 @@ def ghostWriter(sentence: str, pause: float):
         sleep(pause)
 
 def main(total):
-    input_string = input("Enter a number: ").strip()  
-    for i in range(len(input_string) - 1):
-        if int(input_string[i + 1]) >= int(input_string[i]):
-            total += int(input_string[i + 1])
+    input_string = input("Enter a number: ").strip()
+    filtered_input = ''.join(filter(str.isdigit, input_string))
+    for i in range(len(filtered_input) - 1):
+        if int(filtered_input[i + 1]) >= int(filtered_input[i]):
+            total += int(filtered_input[i + 1])
         else:
-            total -= int(input_string[i + 1])
-        print(f"Current total: {total}")  
+            total -= int(filtered_input[i + 1])
+        ghostWriter(f"\n{white}Current total: {blue}{total}",0.05)  
         
-    total += int(input_string[0])
-    print(f"The input {input_string} would give an output of {total}")  
+    total += int(filtered_input[0])
+    ghostWriter(f"\n{white}The input {filtered_input} would give an output of {blue}{total}",0.05)  
 
 if __name__ == "__main__":
     while True:
