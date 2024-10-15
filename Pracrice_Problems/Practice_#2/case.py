@@ -13,7 +13,6 @@ def string_input(prompt):
             except ValueError:
                 print(f"{red}ERROR: {white}Enter a valid string.")
 
-
 def ghostWriter(sentence: str, pause: float):
     for i in range(len(sentence)):
         print(sentence[i], end='', flush=True)
@@ -38,9 +37,6 @@ def check_case(string:str):
 
 # Runs the main method continuously
 if __name__ == "__main__":
-    displayed = False
-    run_count = 0
-    skip_display = False
     while True:
         main()
         #Checks for the users input on whether they want to continue
