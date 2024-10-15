@@ -11,7 +11,7 @@ def float_input(prompt):
                 value = float(input(prompt).strip())
                 return value
             except ValueError:
-                print(f"{red}ERROR: {white}Enter a valid string.")
+                print(f"{red}ERROR: {white}Enter a valid floating point number.")
 
 
 def ghostWriter(sentence: str, pause: float):
@@ -19,23 +19,20 @@ def ghostWriter(sentence: str, pause: float):
         print(sentence[i], end='', flush=True)
         sleep(pause)
 
-def main():
-    ghostWriter("Enter the amount of numbers you want to input: ", 0.05) 
-    input_amount = int(input(""))
-    numbers = []
-    for i in range(input_amount):
-        numbers.append(float(input(f"Enter value {i + 1}: ")))
-    average(numbers)
-
-    
-
-
 def average(numbers):
     total = 0
     for i in range(len(numbers)):
         total += numbers[i]
     ghostWriter(f"\n{green}The average of these numbers is {blue}{total/len(numbers)}",0.05)
-    
+
+def main():
+    ghostWriter("Enter the amount of numbers you want to input: ", 0.05) 
+    input_amount = int(input(""))
+    numbers = []
+    for i in range(input_amount):
+        ghostWriter(f"\nEnter the {i + 1} integer ",0.05)
+        numbers.append(float_input(""))
+    average(numbers)
 
 # Runs the main method continuously
 if __name__ == "__main__":
