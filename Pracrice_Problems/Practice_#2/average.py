@@ -36,9 +36,6 @@ def main():
 
 # Runs the main method continuously
 if __name__ == "__main__":
-    displayed = False
-    run_count = 0
-    skip_display = False
     while True:
         main()
         #Checks for the users input on whether they want to continue
