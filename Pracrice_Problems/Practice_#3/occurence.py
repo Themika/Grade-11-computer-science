@@ -21,7 +21,7 @@ def string_input(prompt):
 def main():
     ghostWriter("Enter digits separated by commas: ", 0.05)
     integer = string_input("")
-    integers = [int(x) for x in integer.replace("-", "") if x.isdigit()]
+    integers = [int(x) for x in integer.replace("-", "").split(",") if x.strip().isdigit()]
     
     # Create a dictionary to store the count of each integer
     integer_counts = {}

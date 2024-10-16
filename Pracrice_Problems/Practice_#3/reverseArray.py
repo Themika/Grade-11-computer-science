@@ -19,9 +19,9 @@ def string_input(prompt):
             print(f"{red}ERROR: {white}Enter a valid floating point number.")
 
 def main():
-    ghostWriter("Enter digits separated by commas: ", 0.05)
-    integer = string_input("")
-    integers = [int(x) for x in integer.replace("-", "") if x.isdigit()]
+    ghostWriter("Enter numbers separated by commas: ", 0.05)
+    integer = input("")
+    integers = [int(x) for x in integer.replace("-", "").split(",") if x.strip().isdigit()]
     sorted_integers = sorted(integers)
     reversed_integers = sorted_integers[::-1]
     sorted_str = ', '.join(map(str, sorted_integers))
