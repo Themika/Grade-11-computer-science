@@ -9,8 +9,8 @@ of painting the room, providing you with 2 payment options.
 """
 # TODO
 # Add an emailing system
+
 # Take in any unit of measurement
-# Add a way to take multiple gallons of paint at once
 # Credit card system
 # Add UI maybe
 
