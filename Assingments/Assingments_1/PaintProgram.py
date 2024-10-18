@@ -1,7 +1,6 @@
 from time import sleep
 from datetime import datetime
 from random import randint
-from colorwheel import ColorWheel
 """
 Date: 2024-09-18
 Name: Themika Weerasuriya
@@ -10,15 +9,16 @@ of painting the room, providing you with 2 payment options.
 Enumerate()
 //https://www.w3schools.com/python/ref_func_enumerate.asp
 """
-# TODO
-# Add an emailing system
-# Take in any unit of measurement
-# Credit card system
-# Add UI maybe
+#TODO do this during the weekend
 #Add sound effects
 #Add discription to the paint 
 #Add random discounts 
 #Make it so you cna pick a custom color gloss amount
+
+# TODO NEXT week
+# Add an emailing system
+# Take in any unit of measurement
+# Credit card system
 
 # ANSI color for output
 white = "\033[1;37m"
@@ -190,9 +190,8 @@ def custom_paint():
 
     ghostWriter("You have picked a custom paint. Let's customize your paint", 0.05)
     for i in range(len(properties)):
-        ghostWriter(f"{i}.) {properties[i]}:",0.05)
-    cw = ColorWheel(color_number=7200, lines=False, center_circle=False) ## colorwheel with 7200 colors
-    cw.show()
+        ghostWriter(f"{i+1}.) {properties[i]}:\n",0.05)
+
 
 
 
