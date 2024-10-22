@@ -23,6 +23,9 @@ isInstance()
 # Add an emailing system
 # Check whetehr the user paid enough
 # ANSI color for output
+#Add user interfece 
+
+
 white = "\033[1;37m"
 green = "\033[0;32m"
 blue = "\033[0;34m"
