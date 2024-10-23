@@ -1,0 +1,439 @@
+import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
+import re
+import tkinter as tk  # Import tkinter as tk
+from tkinter import colorchooser  # Import colorchooser for color selection
+import math
+
+class PaintProgramUI(ttk.Window):
+    def __init__(self):
+        super().__init__(themename="darkly")
+        self.title("Paint Program UI")
+        self.geometry("800x600")  # Increased the window size to accommodate both sections
+        
+        self.pages = {}
+        self.create_widgets()
+        self.color_var = tk.StringVar(value="Red")
+        self.water_resistance_var = tk.StringVar(value="Low")
+        self.finish_type_var = tk.StringVar(value="Matte")
+
+        
+    def create_widgets(self):
+        # Create a notebook (tabbed interface)
+        notebook = ttk.Notebook(self)
+        notebook.pack(fill=BOTH, expand=TRUE)
+        
+        # Create pages
+        self.pages['Main'] = ttk.Frame(notebook)
+        self.pages['Settings'] = ttk.Frame(notebook)
+        
+        # Add pages to notebook
+        notebook.add(self.pages['Main'], text='Home')
+        notebook.add(self.pages['Settings'], text='Settings')
+        
+        # Add widgets to Home page
+        self.create_home_page()
+        
+        # Add widgets to Settings page
+        self.create_settings_page()
+        
+    def create_home_page(self):
+        home_frame = self.pages['Main']
+        
+        # Add a label
+        label = ttk.Label(home_frame, text="Welcome to the Paint Program!", font=("Helvetica", 16, "bold"))
+        label.pack(pady=10)
+        
+        # Add a text entry for name
+        name_label = ttk.Label(home_frame, text="Name:")
+        name_label.pack(pady=5)
+        self.name_entry = ttk.Entry(home_frame, bootstyle="info")
+        self.name_entry.pack(pady=5)
+        self.name_error_label = ttk.Label(home_frame, text="", foreground="red")
+        self.name_error_label.pack(pady=5)
+        
+        # Add a text entry for number of rooms
+        rooms_label = ttk.Label(home_frame, text="Number of Rooms:")
+        rooms_label.pack(pady=5)
+        self.rooms_entry = ttk.Entry(home_frame, bootstyle="info")
+        self.rooms_entry.pack(pady=5)
+        self.rooms_error_label = ttk.Label(home_frame, text="", foreground="red")
+        self.rooms_error_label.pack(pady=5)
+        
+        # Add a text entry for email address
+        email_label = ttk.Label(home_frame, text="Email Address:")
+        email_label.pack(pady=5)
+        self.email_entry = ttk.Entry(home_frame, bootstyle="info")
+        self.email_entry.pack(pady=5)
+        self.email_error_label = ttk.Label(home_frame, text="", foreground="red")
+        self.email_error_label.pack(pady=5)
+        
+        # Add a text entry for age
+        age_label = ttk.Label(home_frame, text="Age:")
+        age_label.pack(pady=5)
+        self.age_entry = ttk.Entry(home_frame, bootstyle="info")
+        self.age_entry.pack(pady=5)
+        self.age_error_label = ttk.Label(home_frame, text="", foreground="red")
+        self.age_error_label.pack(pady=5)
+        
+        # Add a checkbox for membership
+        self.member_var = ttk.BooleanVar()
+        member_check = ttk.Checkbutton(home_frame, text="Member", variable=self.member_var, bootstyle="success-round-toggle")
+        member_check.pack(pady=5)
+        
+        # Add a button
+        button = ttk.Button(home_frame, text="Submit", command=self.on_button_click, bootstyle="success")
+        button.pack(pady=10)
+        
+    def create_settings_page(self):
+        settings_frame = self.pages['Settings']
+        
+        # Add a dropdown (combobox)
+        options = ["Option 1", "Option 2", "Option 3"]
+        combobox = ttk.Combobox(settings_frame, values=options, bootstyle="info")
+        combobox.pack(pady=10)
+        
+        # Add radio buttons
+        radio_var = ttk.StringVar()
+        radio1 = ttk.Radiobutton(settings_frame, text="Radio 1", variable=radio_var, value="1", bootstyle="info")
+        radio2 = ttk.Radiobutton(settings_frame, text="Radio 2", variable=radio_var, value="2", bootstyle="info")
+        radio1.pack(pady=5)
+        radio2.pack(pady=5)
+        
+    def validate_input(self, value, pattern, error_label, error_message):
+        if not re.match(pattern, value):
+            error_label.config(text=error_message)
+            return False
+        else:
+            error_label.config(text="")
+            return True
+
+    def on_button_click(self):
+        name = self.name_entry.get().strip()
+        rooms = self.rooms_entry.get().strip()
+        email = self.email_entry.get().strip()
+        age = self.age_entry.get().strip()
+        member = self.member_var.get()
+
+        valid = True
+        
+        # Validate name
+        if not self.validate_input(name, r"^[A-Za-z]+$", self.name_error_label, "Please enter a valid name (letters only)."):
+            valid = False
+        
+        # Validate number of rooms
+        if not self.validate_input(rooms, r"^[1-5]$", self.rooms_error_label, "Please enter a valid number of rooms (1-5)."):
+            valid = False
+        
+        # Validate email
+        if not self.validate_input(email, r"[^@]+@[^@]+\.[^@]+", self.email_error_label, "Please enter a valid email address."):
+            valid = False
+        
+        # Validate age
+        if not self.validate_input(age, r"^[1-9][0-9]*$", self.age_error_label, "Please enter a valid age (positive number)."):
+            valid = False
+        
+        if valid:
+            print(f"Name: {name}")
+            print(f"Number of Rooms: {rooms}")
+            print(f"Email Address: {email}")
+            print(f"Age: {age}")
+            print(f"Member: {member}")
+            self.create_room_page()
+
+    def create_room_page(self):
+        room_frame = ttk.Frame(self)
+        self.pages['Rooms'] = room_frame
+        notebook = self.nametowidget(self.winfo_children()[0])
+        notebook.add(room_frame, text='Rooms')
+
+        # Add a label
+        label = ttk.Label(room_frame, text="Enter the dimensions of each wall", font=("Helvetica", 16, "bold"))
+        label.grid(row=0, column=0, columnspan=4, pady=10)
+
+        # Get the number of rooms
+        try:
+            num_rooms = int(self.rooms_entry.get().strip())
+        except ValueError:
+            self.rooms_error_label.config(text="Please enter a valid number of rooms (1-5).")
+            return
+
+        self.wall_entries = {}
+        self.square_footage_labels = {}
+
+        row = 1
+        for room in range(1, num_rooms + 1):
+            room_label = ttk.Label(room_frame, text=f"Room {room}", font=("Helvetica", 14, "bold"))
+            room_label.grid(row=row, column=0, columnspan=4, pady=10)
+            row += 1
+
+            self.wall_entries[room] = []
+            self.square_footage_labels[room] = ttk.Label(room_frame, text="Square Footage: 0", font=("Helvetica", 12))
+            self.square_footage_labels[room].grid(row=row, column=4, pady=5, padx=5, sticky=tk.W)
+
+            for wall in range(1, 5):
+                wall_length_label = ttk.Label(room_frame, text=f"Wall {wall} Length:")
+                wall_length_label.grid(row=row, column=0, pady=5, padx=5, sticky=tk.W)
+                wall_length_entry = ttk.Entry(room_frame, bootstyle="info")
+                wall_length_entry.grid(row=row, column=1, pady=5, padx=5)
+                self.wall_entries[room].append(wall_length_entry)
+
+                wall_width_label = ttk.Label(room_frame, text=f"Wall {wall} Width:")
+                wall_width_label.grid(row=row, column=2, pady=5, padx=5, sticky=tk.W)
+                wall_width_entry = ttk.Entry(room_frame, bootstyle="info")
+                wall_width_entry.grid(row=row, column=3, pady=5, padx=5)
+                self.wall_entries[room].append(wall_width_entry)
+
+                row += 1
+
+        # Add a button to submit wall dimensions
+        submit_button = ttk.Button(room_frame, text="Submit Wall Dimensions", command=self.on_submit_walls, bootstyle="success")
+        submit_button.grid(row=row, column=0, columnspan=4, pady=10)
+
+    def on_submit_walls(self):
+        wall_dimensions = {}
+        total_square_footage = 0
+        for room, entries in self.wall_entries.items():
+            wall_dimensions[room] = []
+            room_square_footage = 0
+            for i in range(0, len(entries), 2):
+                length = entries[i].get().strip()
+                width = entries[i+1].get().strip()
+                if length.isdigit() and width.isdigit():
+                    length = int(length)
+                    width = int(width)
+                    wall_dimensions[room].append((length, width))
+                    room_square_footage += length * width
+                else:
+                    print(f"Invalid dimensions for Room {room}, Wall {i//2 + 1}")
+                    return
+            self.square_footage_labels[room].config(text=f"Square Footage: {room_square_footage}")
+            total_square_footage += room_square_footage
+        
+        # Calculate the number of paint cans needed
+        paint_cans_needed = math.ceil(total_square_footage / 400)
+        
+        # Display the total square footage and paint cans needed
+        total_label = ttk.Label(self.pages['Rooms'], text=f"Total Square Footage: {total_square_footage}", font=("Helvetica", 12, "bold"))
+        total_label.grid(row=len(self.wall_entries) * 5 + 1, column=0, columnspan=4, pady=10)
+        
+        paint_cans_label = ttk.Label(self.pages['Rooms'], text=f"Paint Cans Needed: {paint_cans_needed}", font=("Helvetica", 12, "bold"))
+        paint_cans_label.grid(row=len(self.wall_entries) * 5 + 2, column=0, columnspan=4, pady=10)
+        
+        print(f"Total Square Footage: {total_square_footage}")
+        print(f"Paint Cans Needed: {paint_cans_needed}")
+        print("Wall dimensions:", wall_dimensions)
+        
+        # Open the paint options page
+        self.create_paint_options_page()
+
+    def create_paint_options_page(self):
+        paint_options_frame = ttk.Frame(self)
+        self.pages['PaintOptions'] = paint_options_frame
+        notebook = self.nametowidget(self.winfo_children()[0])
+        notebook.add(paint_options_frame, text='Paint Options')
+
+        # Add a label
+        label = ttk.Label(paint_options_frame, text="Select Your Paint", font=("Helvetica", 16, "bold"))
+        label.grid(row=0, column=0, columnspan=2, pady=10)
+
+        # Paint options
+        self.paints = {
+            "Custom Paint": 250,
+            "Luxury Paint": 200,
+            "Designer Paint": 150,
+            "Premium Paint": 105,
+            "Low Odor Paint": 90,
+            "Regular Paint": 75,
+            "Value Paint": 40,
+        }
+
+        self.paint_choice_var = tk.StringVar(value="Custom Paint")
+
+        row = 1
+        for paint, price in self.paints.items():
+            ttk.Radiobutton(paint_options_frame, text=f"{paint}: ${price} per gallon", variable=self.paint_choice_var, value=paint).grid(row=row, column=0, sticky=tk.W, pady=5, padx=50)
+            row += 1
+
+        # Add a button to confirm paint selection
+        confirm_button = ttk.Button(paint_options_frame, text="Confirm Paint Selection", command=self.on_confirm_paint, bootstyle="success")
+        confirm_button.grid(row=row, column=0, columnspan=2, pady=10)
+
+    def on_confirm_paint(self):
+        selected_paint = self.paint_choice_var.get()
+        paint_price = self.paints[selected_paint]
+        paint_cans_needed = int(self.pages['Rooms'].grid_slaves(row=len(self.wall_entries) * 5 + 2, column=0)[0].cget("text").split(":")[1].strip())
+        
+        # Calculate cost before and after tax
+        cost_before_tax = paint_cans_needed * paint_price
+        cost_after_tax = cost_before_tax * 1.13  # Assuming a tax rate of 13%
+        
+        # Display the costs
+        cost_label_before_tax = ttk.Label(self.pages['PaintOptions'], text=f"Cost Before Tax: ${round(cost_before_tax,2)}", font=("Helvetica", 12, "bold"))
+        cost_label_before_tax.grid(row=len(self.paints) + 2, column=0, columnspan=2, pady=10, padx=50)
+        
+        cost_label_after_tax = ttk.Label(self.pages['PaintOptions'], text=f"Cost After Tax: ${round(cost_after_tax,2)}", font=("Helvetica", 12, "bold"))
+        cost_label_after_tax.grid(row=len(self.paints) + 3, column=0, columnspan=2, pady=10, padx=50)
+        
+        print(f"Selected Paint: {selected_paint}")
+        print(f"Cost Before Tax: ${round(cost_before_tax,2)}")
+        print(f"Cost After Tax: ${round(cost_after_tax,2)}")
+
+        if selected_paint == "Custom Paint":
+            self.create_custom_paint_panel()
+
+    def create_custom_paint_panel(self):
+        custom_paint_frame = ttk.Frame(self.pages['PaintOptions'])
+        custom_paint_frame.grid(row=0, column=2, rowspan=len(self.paints) + 4, padx=20, pady=10, sticky=tk.N)
+
+        # Add a label for the paint preview
+        label = ttk.Label(custom_paint_frame, text="Custom Paint Options", font=("Helvetica", 16, "bold"))
+        label.grid(row=0, column=0, columnspan=2, pady=10)
+
+        # Add a canvas for paint preview
+        self.preview_canvas = tk.Canvas(custom_paint_frame, width=200, height=300, bg="white")
+        self.preview_canvas.grid(row=0, column=2, rowspan=10, padx=10, pady=10)
+        
+        # Initial preview
+        self.update_paint_preview()
+
+        # Add options for paint color
+        color_label = ttk.Label(custom_paint_frame, text="Choose Paint Color:")
+        color_label.grid(row=1, column=0, pady=5, padx=5, sticky=tk.W)
+        self.color_var = tk.StringVar(value="Red")
+        color_button = ttk.Button(custom_paint_frame, text="Select Color", command=self.choose_color, bootstyle="info")
+        color_button.grid(row=1, column=1, pady=5, padx=5)
+
+        # Add options for water resistance amount
+        water_resistance_label = ttk.Label(custom_paint_frame, text="Water Resistance Amount:")
+        water_resistance_label.grid(row=2, column=0, pady=5, padx=5, sticky=tk.W)
+        self.water_resistance_var = tk.StringVar(value="Low")
+        water_resistance_options = ["Low", "Medium", "High"]
+        water_resistance_combobox = ttk.Combobox(custom_paint_frame, values=water_resistance_options, textvariable=self.water_resistance_var, bootstyle="info", state="readonly")
+        water_resistance_combobox.grid(row=2, column=1, pady=5, padx=5)
+        water_resistance_combobox.bind("<<ComboboxSelected>>", lambda e: self.update_paint_preview())
+
+        # Add options for finish type
+        finish_type_label = ttk.Label(custom_paint_frame, text="Choose Finish Type:")
+        finish_type_label.grid(row=3, column=0, pady=5, padx=5, sticky=tk.W)
+        self.finish_type_var = tk.StringVar(value="Matte")
+        finish_type_options = ["Matte", "Glossy", "Satin"]
+        finish_type_combobox = ttk.Combobox(custom_paint_frame, values=finish_type_options, textvariable=self.finish_type_var, bootstyle="info", state="readonly")
+        finish_type_combobox.grid(row=3, column=1, pady=5, padx=5)
+        finish_type_combobox.bind("<<ComboboxSelected>>", lambda e: self.update_paint_preview())
+
+
+    
+        # Add options for durability level
+        durability_label = ttk.Label(custom_paint_frame, text="Choose Durability Level:")
+        durability_label.grid(row=4, column=0, pady=5, padx=5, sticky=tk.W)
+        self.durability_var = tk.StringVar(value="Standard")
+        durability_options = ["Standard", "Premium", "Ultra"]
+        durability_combobox = ttk.Combobox(custom_paint_frame, values=durability_options, textvariable=self.durability_var, bootstyle="info")
+        durability_combobox.grid(row=4, column=1, pady=5, padx=5)
+    
+        # Add options for UV protection level
+        uv_protection_label = ttk.Label(custom_paint_frame, text="UV Protection Level:")
+        uv_protection_label.grid(row=5, column=0, pady=5, padx=5, sticky=tk.W)
+        self.uv_protection_var = tk.StringVar(value="Low")
+        uv_protection_options = ["Low", "Medium", "High"]
+        uv_protection_combobox = ttk.Combobox(custom_paint_frame, values=uv_protection_options, textvariable=self.uv_protection_var, bootstyle="info")
+        uv_protection_combobox.grid(row=5, column=1, pady=5, padx=5)
+    
+        # Add options for scratch resistance
+        scratch_resistance_label = ttk.Label(custom_paint_frame, text="Scratch Resistance:")
+        scratch_resistance_label.grid(row=6, column=0, pady=5, padx=5, sticky=tk.W)
+        self.scratch_resistance_var = tk.StringVar(value="Low")
+        scratch_resistance_options = ["Low", "Medium", "High"]
+        scratch_resistance_combobox = ttk.Combobox(custom_paint_frame, values=scratch_resistance_options, textvariable=self.scratch_resistance_var, bootstyle="info")
+        scratch_resistance_combobox.grid(row=6, column=1, pady=5, padx=5)
+    
+        # Add options for eco-friendly
+        eco_friendly_label = ttk.Label(custom_paint_frame, text="Eco-Friendly:")
+        eco_friendly_label.grid(row=7, column=0, pady=5, padx=5, sticky=tk.W)
+        self.eco_friendly_var = tk.StringVar(value="No")
+        eco_friendly_options = ["No", "Yes"]
+        eco_friendly_combobox = ttk.Combobox(custom_paint_frame, values=eco_friendly_options, textvariable=self.eco_friendly_var, bootstyle="info")
+        eco_friendly_combobox.grid(row=7, column=1, pady=5, padx=5)
+    
+        # Add options for drying time
+        drying_time_label = ttk.Label(custom_paint_frame, text="Drying Time (hours):")
+        drying_time_label.grid(row=8, column=0, pady=5, padx=5, sticky=tk.W)
+        self.drying_time_var = tk.StringVar(value="1")
+        drying_time_entry = ttk.Entry(custom_paint_frame, textvariable=self.drying_time_var, bootstyle="info")
+        drying_time_entry.grid(row=8, column=1, pady=5, padx=5)
+    
+        # Add options for coverage per gallon
+        coverage_label = ttk.Label(custom_paint_frame, text="Coverage per Gallon (sq ft):")
+        coverage_label.grid(row=9, column=0, pady=5, padx=5, sticky=tk.W)
+        self.coverage_var = tk.StringVar(value="400")
+        coverage_entry = ttk.Entry(custom_paint_frame, textvariable=self.coverage_var, bootstyle="info")
+        coverage_entry.grid(row=9, column=1, pady=5, padx=5)
+    
+        # Add options for VOC level
+        voc_label = ttk.Label(custom_paint_frame, text="VOC Level (g/L):")
+        voc_label.grid(row=10, column=0, pady=5, padx=5, sticky=tk.W)
+        self.voc_var = tk.StringVar(value="50")
+        voc_entry = ttk.Entry(custom_paint_frame, textvariable=self.voc_var, bootstyle="info")
+        voc_entry.grid(row=10, column=1, pady=5, padx=5)
+    
+        # Add a button to confirm custom paint options
+        confirm_custom_paint_button = ttk.Button(custom_paint_frame, text="Confirm Custom Paint Options", command=self.on_confirm_custom_paint, bootstyle="success")
+        confirm_custom_paint_button.grid(row=11, column=0, columnspan=2, pady=10)
+
+    def choose_color(self):
+        color_code = colorchooser.askcolor(title="Choose color")[1]
+        if color_code:
+            self.color_var.set(color_code)
+            print(f"Selected Color: {color_code}")
+    def update_paint_preview(self):
+        """Update the paint preview based on selected options."""
+        # Clear previous preview
+        self.preview_canvas.delete("all")
+
+        # Get the selected color and finish type
+        selected_color = self.color_var.get() if self.color_var.get() != "Red" else "#FF0000"  # Default Red
+        selected_finish_type = self.finish_type_var.get()
+        
+        # Draw a rectangle to represent the paint
+        self.preview_canvas.create_rectangle(20, 20, 180, 280, fill=selected_color, outline="")
+
+        # Add effects based on finish type
+        if selected_finish_type == "Glossy":
+            # Simulate gloss with white highlights
+            self.preview_canvas.create_line(20, 20, 180, 100, fill="white", width=5)
+        elif selected_finish_type == "Satin":
+            # Add some sheen with a lighter shade
+            lighter_color = self.lighter_color(selected_color)
+            self.preview_canvas.create_rectangle(20, 20, 180, 280, fill=lighter_color, outline="")
+
+    def lighter_color(self, color):
+        """Return a lighter shade of the given color."""
+        rgb = self.hex_to_rgb(color)
+        lighter_rgb = tuple(min(255, int(c * 1.2)) for c in rgb)  # Lighten by 20%
+        return self.rgb_to_hex(lighter_rgb)
+
+    def hex_to_rgb(self, hex_color):
+        """Convert HEX color to RGB."""
+        hex_color = hex_color.lstrip("#")
+        return tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
+
+    def rgb_to_hex(self, rgb):
+        """Convert RGB to HEX color."""
+        return "#{:02x}{:02x}{:02x}".format(*rgb)
+
+
+    def on_confirm_custom_paint(self):
+        selected_color = self.color_var.get()
+        selected_water_resistance = self.water_resistance_var.get()
+        selected_finish_type = self.finish_type_var.get()
+        selected_durability = self.durability_var.get()
+
+        print(f"Selected Color: {selected_color}")
+        print(f"Selected Water Resistance: {selected_water_resistance}")
+        print(f"Selected Finish Type: {selected_finish_type}")
+        print(f"Selected Durability: {selected_durability}")
+
+if __name__ == "__main__":
+    app = PaintProgramUI()
+    app.mainloop()
