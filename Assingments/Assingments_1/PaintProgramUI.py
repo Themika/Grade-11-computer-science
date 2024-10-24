@@ -1,12 +1,17 @@
+import math
+import smtplib
+import re
+import os
+
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
-import re
 import tkinter as tk  # Import tkinter as tk
 from tkinter import colorchooser  # Import colorchooser for color selection
 from tkinter import messagebox
-import math
 
-
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from dotenv import load_dotenv
 """
 Date: 2024-09-18
 Name: Themika Weerasuriya
@@ -35,7 +40,7 @@ class PaintProgramUI(ttk.Window):
         self.color_var = tk.StringVar(value="Red")
         self.water_resistance_var = tk.StringVar(value="Low")
         self.finish_type_var = tk.StringVar(value="Matte")
-
+        load_dotenv()
         
     def create_widgets(self):
         # Create a notebook (tabbed interface)
@@ -605,7 +610,51 @@ class PaintProgramUI(ttk.Window):
     def on_confirm_payment(self):
         selected_payment_method = self.payment_choice_var.get()
         messagebox.showinfo("Payment Confirmation", f"Payment method '{selected_payment_method}' selected.")
+        self.send_email_receipt()
+    def send_email_receipt(self):
+        # Collect the email address entered by the user
+        recipient_email = self.email_entry.get().strip()
+        
+        # Generate the receipt content
+        subject = "Your Paint Program Receipt"
+        body = f"""
+        Thank you for your purchase!
 
+        Here are the details of your transaction:
+        
+        Cost Before Tax: ${round(self.cost_before_tax, 2)}
+        Cost After Tax: ${round(self.cost_after_tax, 2)}
+        Payment Method: {self.payment_choice_var.get()}
+        
+        If you have any questions, please contact us.
+
+        Best regards,
+        Paint Program Team
+        """
+
+        # Email credentials and SMTP server details
+        sender_email = os.getenv("SENDER_EMAIL")
+        sender_password = os.getenv("SENDER_PASSWORD")
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+
+        # Create the email message
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = recipient_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'plain'))
+
+        try:
+            # Connect to the SMTP server and send the email
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, recipient_email, msg.as_string())
+            server.quit()
+            messagebox.showinfo("Email Sent", "The receipt has been sent to your email address.")
+        except Exception as e:
+            messagebox.showerror("Email Error", f"Failed to send email: {e}")
 
 if __name__ == "__main__":
     app = PaintProgramUI()

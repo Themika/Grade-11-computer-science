@@ -5,7 +5,8 @@ from random import randint
 import tkinter as tk
 from tkinter import colorchooser
 from tkinter import ttk
-
+from dotenv import load_dotenv
+import os
 """
 Date: 2024-09-18
 Name: Themika Weerasuriya
