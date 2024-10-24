@@ -12,6 +12,8 @@ from tkinter import messagebox
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from dotenv import load_dotenv
+from datetime import datetime
+from random import randint
 """
 Date: 2024-09-18
 Name: Themika Weerasuriya
@@ -235,17 +237,17 @@ class PaintProgramUI(ttk.Window):
             total_square_footage += room_square_footage
         
         # Calculate the number of paint cans needed
-        paint_cans_needed = math.ceil(total_square_footage / 400)
+        self.paint_cans_needed = math.ceil(total_square_footage / 400)
         
         # Display the total square footage and paint cans needed
         total_label = ttk.Label(self.pages['Rooms'], text=f"Total Square Footage: {total_square_footage}", font=("Helvetica", 12, "bold"))
         total_label.grid(row=len(self.wall_entries) * 5 + 1, column=0, columnspan=4, pady=10)
         
-        paint_cans_label = ttk.Label(self.pages['Rooms'], text=f"Paint Cans Needed: {paint_cans_needed}", font=("Helvetica", 12, "bold"))
+        paint_cans_label = ttk.Label(self.pages['Rooms'], text=f"Paint Cans Needed: {self.paint_cans_needed}", font=("Helvetica", 12, "bold"))
         paint_cans_label.grid(row=len(self.wall_entries) * 5 + 2, column=0, columnspan=4, pady=10)
         
         print(f"Total Square Footage: {total_square_footage}")
-        print(f"Paint Cans Needed: {paint_cans_needed}")
+        print(f"Paint Cans Needed: {self.paint_cans_needed}")
         print("Wall dimensions:", wall_dimensions)
         
         # Open the paint options page
@@ -294,10 +296,10 @@ class PaintProgramUI(ttk.Window):
     def on_confirm_paint(self):
         selected_paint = self.paint_choice_var.get()
         paint_price = self.paints[selected_paint]
-        paint_cans_needed = int(self.pages['Rooms'].grid_slaves(row=len(self.wall_entries) * 5 + 2, column=0)[0].cget("text").split(":")[1].strip())
+        self.paint_cans_needed = int(self.pages['Rooms'].grid_slaves(row=len(self.wall_entries) * 5 + 2, column=0)[0].cget("text").split(":")[1].strip())
         
         # Calculate cost before and after tax
-        cost_before_tax = paint_cans_needed * paint_price
+        cost_before_tax = self.paint_cans_needed * paint_price
         cost_after_tax = cost_before_tax * 1.13  # Assuming a tax rate of 13%
         
         # Display the costs
@@ -616,20 +618,35 @@ class PaintProgramUI(ttk.Window):
         recipient_email = self.email_entry.get().strip()
         
         # Generate the receipt content
-        subject = "Your Paint Program Receipt"
-        body = f"""
-        Thank you for your purchase!
-
-        Here are the details of your transaction:
+        name = self.name_entry.get().strip()
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        paint_choice = self.paint_choice_var.get()
+        amount_of_paint = self.paint_cans_needed
+        paint_cost = self.paints[paint_choice]
+        subtotal = round(self.cost_before_tax, 2)
+        tax = round(self.cost_after_tax - self.cost_before_tax, 2)
+        total = round(self.cost_after_tax, 2)
+        subject = "Paint Order Receipt"
+        custom_details = f"Color: {self.color_var.get()}, Finish: {self.finish_type_var.get()}"
         
-        Cost Before Tax: ${round(self.cost_before_tax, 2)}
-        Cost After Tax: ${round(self.cost_after_tax, 2)}
-        Payment Method: {self.payment_choice_var.get()}
-        
-        If you have any questions, please contact us.
-
-        Best regards,
-        Paint Program Team
+        receipt = f"""
+        *****************************************************
+        SIR MIXALOT PAINT
+        5353 Fake street, Burlington ON, N4C 4M2
+        invoice #: {randint(100000, 999999)}
+        Receiver Name: {name}
+        Date: {date_str}
+        Description: {paint_choice if paint_choice == "Custom Paint" else paint_choice}
+        Quantity: {amount_of_paint}
+        Price per gallon: ${paint_cost}
+        Subtotal: ${subtotal}
+        Tax (13%): ${tax}
+        Total: ${total}
+            Custom Properties:
+                {custom_details}
+        Balance Due: $0.00
+        Thank you for your business!
+        *****************************************************
         """
 
         # Email credentials and SMTP server details
@@ -643,7 +660,7 @@ class PaintProgramUI(ttk.Window):
         msg['From'] = sender_email
         msg['To'] = recipient_email
         msg['Subject'] = subject
-        msg.attach(MIMEText(body, 'plain'))
+        msg.attach(MIMEText(receipt, 'plain'))
 
         try:
             # Connect to the SMTP server and send the email
