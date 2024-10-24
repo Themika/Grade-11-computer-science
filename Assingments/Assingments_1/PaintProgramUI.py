@@ -18,7 +18,7 @@ from random import randint
 Date: 2024-09-18
 Name: Themika Weerasuriya
 This program is a simple program that will allow a user to choose from various interior paint options. Then give you an invoice on the cost
-of painting the room, providing you with 2 payment options.
+of painting the room, providing you with multiple payment options.
 
 Functions used
 Enumerate()
@@ -29,7 +29,17 @@ Regex
 //https://www.w3schools.com/python/python_regex.asp
 Custom String Propoerties
 //https://docs.python.org/3/library/string.html
+Email
+//https://docs.python.org/3/library/smtplib.html
+//https://www.youtube.com/watch?v=JRCJ6RtE3xU
 """
+
+#TODO
+# Add sound effect 
+# Add a progress bar
+# Add one more big feature (e.g. a game, a chatbot, a calculator, etc.) for memebers
+# Add a feature to save the invoice as a PDF and meber ids
+# Error handling 
 
 class PaintProgramUI(ttk.Window):
     def __init__(self):
@@ -110,7 +120,6 @@ class PaintProgramUI(ttk.Window):
         # Add a button
         button = ttk.Button(home_frame, text="Submit", command=self.on_button_click, bootstyle="success")
         button.pack(pady=10)
-        
     def create_settings_page(self):
         settings_frame = self.pages['Settings']
         
@@ -125,7 +134,23 @@ class PaintProgramUI(ttk.Window):
         radio2 = ttk.Radiobutton(settings_frame, text="Radio 2", variable=radio_var, value="2", bootstyle="info")
         radio1.pack(pady=5)
         radio2.pack(pady=5)
-        
+
+        # Add member-specific content
+        self.member_content_frame = ttk.Frame(settings_frame)
+        self.member_content_frame.pack(pady=10)
+        self.update_member_content()
+
+    def update_member_content(self):
+        # Clear previous member-specific content
+        for widget in self.member_content_frame.winfo_children():
+            widget.destroy()
+
+        if self.member_var.get():
+            member_label = ttk.Label(self.member_content_frame, text="Member Exclusive Content", font=("Helvetica", 14, "bold"))
+            member_label.pack(pady=5)
+            self.custom_chat_bot()
+            # Add more member-specific widgets here
+
     def validate_input(self, value, pattern, error_label, error_message):
         if not re.match(pattern, value):
             error_label.config(text=error_message)
@@ -166,6 +191,8 @@ class PaintProgramUI(ttk.Window):
             print(f"Age: {age}")
             print(f"Member: {member}")
             self.create_room_page()
+            self.update_member_content()
+
 
     def create_room_page(self):
         room_frame = ttk.Frame(self)
@@ -317,7 +344,31 @@ class PaintProgramUI(ttk.Window):
         
         # Pass the costs to the payment page
         self.create_payment_page(cost_before_tax, cost_after_tax)
-    
+
+    def custom_chat_bot(self):
+        chat_bot_frame = ttk.Frame(self)
+        self.pages['ChatBot'] = chat_bot_frame
+        notebook = self.nametowidget(self.winfo_children()[0])
+        notebook.add(chat_bot_frame, text='ChatBot')
+        
+        # Add a label
+        label = ttk.Label(chat_bot_frame, text="ChatBot", font=("Helvetica", 16, "bold"))
+        label.grid(row=0, column=0, columnspan=2, pady=10)
+        
+        # Add a text entry for the user to enter their message
+        message_label = ttk.Label(chat_bot_frame, text="Enter your message:")
+        message_label.grid(row=1, column=0, pady=5)
+        self.message_entry = ttk.Entry(chat_bot_frame, bootstyle="info")
+        self.message_entry.grid(row=1, column=1, pady=5)
+        
+        # Add a button to submit the message
+        submit_button = ttk.Button(chat_bot_frame, text="Submit", command=self.on_submit_message, bootstyle="success")
+        submit_button.grid(row=2, column=0, columnspan=2, pady=10)
+        
+        # Add a text widget to display the chat history
+        self.chat_history_text = tk.Text(chat_bot_frame, height=10, width=50)
+        self.chat_history_text.grid(row=3, column=0, columnspan=2, pady=10)
+
     def create_custom_paint_panel(self, selected_paint):
         if hasattr(self, 'custom_paint_frame'):
             self.custom_paint_frame.grid_remove()
@@ -420,11 +471,13 @@ class PaintProgramUI(ttk.Window):
         # Add a button to confirm custom paint options
         confirm_custom_paint_button = ttk.Button(self.custom_paint_frame, text="Confirm Custom Paint Options", command=self.on_confirm_custom_paint, bootstyle="success")
         confirm_custom_paint_button.grid(row=12, column=0, columnspan=2, pady=10)
+    
     def choose_color(self):
         color_code = colorchooser.askcolor(title="Choose color")[1]
         if color_code:
             self.color_var.set(color_code)
             print(f"Selected Color: {color_code}")
+    
     def update_paint_preview(self):
         """Update the paint preview based on selected options."""
         # Clear previous preview
@@ -458,6 +511,7 @@ class PaintProgramUI(ttk.Window):
     def rgb_to_hex(self, rgb):
         """Convert RGB to HEX color."""
         return "#{:02x}{:02x}{:02x}".format(*rgb)
+    
     def on_confirm_custom_paint(self):
         selected_color = self.color_var.get()
         selected_water_resistance = self.water_resistance_var.get()
@@ -613,6 +667,7 @@ class PaintProgramUI(ttk.Window):
         selected_payment_method = self.payment_choice_var.get()
         messagebox.showinfo("Payment Confirmation", f"Payment method '{selected_payment_method}' selected.")
         self.send_email_receipt()
+    
     def send_email_receipt(self):
         # Collect the email address entered by the user
         recipient_email = self.email_entry.get().strip()
