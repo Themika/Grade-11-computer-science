@@ -72,7 +72,6 @@ class PaintProgramUI(ttk.Window):
         
         # Add widgets to Settings page
         self.create_settings_page()
-        
     def create_home_page(self):
         home_frame = self.pages['Main']
         
@@ -139,7 +138,54 @@ class PaintProgramUI(ttk.Window):
         self.member_content_frame = ttk.Frame(settings_frame)
         self.member_content_frame.pack(pady=10)
         self.update_member_content()
+    def create_room_page(self):
+            room_frame = ttk.Frame(self)
+            self.pages['Rooms'] = room_frame
+            notebook = self.nametowidget(self.winfo_children()[0])
+            notebook.add(room_frame, text='Rooms')
 
+            # Add a label
+            label = ttk.Label(room_frame, text="Enter the dimensions of each wall", font=("Helvetica", 16, "bold"))
+            label.grid(row=0, column=0, columnspan=4, pady=10)
+
+            # Get the number of rooms
+            try:
+                num_rooms = int(self.rooms_entry.get().strip())
+            except ValueError:
+                self.rooms_error_label.config(text="Please enter a valid number of rooms (1-5).")
+                return
+
+            self.wall_entries = {}
+            self.square_footage_labels = {}
+
+            row = 1
+            for room in range(1, num_rooms + 1):
+                room_label = ttk.Label(room_frame, text=f"Room {room}", font=("Helvetica", 14, "bold"))
+                room_label.grid(row=row, column=0, columnspan=4, pady=10)
+                row += 1
+
+                self.wall_entries[room] = []
+                self.square_footage_labels[room] = ttk.Label(room_frame, text="Square Footage: 0", font=("Helvetica", 12))
+                self.square_footage_labels[room].grid(row=row, column=4, pady=5, padx=5, sticky=tk.W)
+
+                for wall in range(1, 5):
+                    wall_length_label = ttk.Label(room_frame, text=f"Wall {wall} Length:")
+                    wall_length_label.grid(row=row, column=0, pady=5, padx=5, sticky=tk.W)
+                    wall_length_entry = ttk.Entry(room_frame, bootstyle="info")
+                    wall_length_entry.grid(row=row, column=1, pady=5, padx=5)
+                    self.wall_entries[room].append(wall_length_entry)
+
+                    wall_width_label = ttk.Label(room_frame, text=f"Wall {wall} Width:")
+                    wall_width_label.grid(row=row, column=2, pady=5, padx=5, sticky=tk.W)
+                    wall_width_entry = ttk.Entry(room_frame, bootstyle="info")
+                    wall_width_entry.grid(row=row, column=3, pady=5, padx=5)
+                    self.wall_entries[room].append(wall_width_entry)
+
+                    row += 1
+
+            # Add a button to submit wall dimensions
+            submit_button = ttk.Button(room_frame, text="Submit Wall Dimensions", command=self.on_submit_walls, bootstyle="success")
+            submit_button.grid(row=row, column=0, columnspan=4, pady=10)
     def update_member_content(self):
         # Clear previous member-specific content
         for widget in self.member_content_frame.winfo_children():
@@ -150,6 +196,83 @@ class PaintProgramUI(ttk.Window):
             member_label.pack(pady=5)
             self.custom_chat_bot()
             # Add more member-specific widgets here
+    def create_paint_options_page(self):
+        paint_options_frame = ttk.Frame(self)
+        self.pages['PaintOptions'] = paint_options_frame
+        notebook = self.nametowidget(self.winfo_children()[0])
+        notebook.add(paint_options_frame, text='Paint Options')
+    
+        # Add a label
+        label = ttk.Label(paint_options_frame, text="Select Your Paint", font=("Helvetica", 16, "bold"))
+        label.grid(row=0, column=0, columnspan=2, pady=10)
+    
+        # Paint options
+        self.paints = {
+            "Custom Paint": 250,
+            "Luxury Paint": 200,
+            "Designer Paint": 150,
+            "Premium Paint": 105,
+            "Low Odor Paint": 90,
+            "Regular Paint": 75,
+            "Value Paint": 40,
+        }
+    
+        self.paint_choice_var = tk.StringVar(value="Custom Paint")
+        self.paint_choice_var.trace("w", self.on_paint_selection_change)
+    
+        row = 1
+        for paint, price in self.paints.items():
+            ttk.Radiobutton(paint_options_frame, text=f"{paint}: ${price} per gallon", variable=self.paint_choice_var, value=paint).grid(row=row, column=0, sticky=tk.W, pady=5, padx=50)
+            row += 1
+    
+        # Add a button to confirm paint selection
+        confirm_button = ttk.Button(paint_options_frame, text="Confirm Paint Selection", command=self.on_confirm_paint, bootstyle="success")
+        confirm_button.grid(row=row, column=0, columnspan=2, pady=10)
+    def custom_chat_bot(self):
+        chat_bot_frame = ttk.Frame(self)
+        self.pages['ChatBot'] = chat_bot_frame
+        notebook = self.nametowidget(self.winfo_children()[0])
+        notebook.add(chat_bot_frame, text='ChatBot')
+        
+        # Set background color
+        chat_bot_frame.configure(background="#f0f0f0")
+        
+        # Add a label for the title
+        label = ttk.Label(chat_bot_frame, text="ChatBot", font=("Helvetica", 20, "bold"), background="#f0f0f0")
+        label.grid(row=0, column=0, columnspan=2, pady=10)
+        
+        # Create a frame for chat history to enhance appearance
+        self.chat_history_frame = ttk.Frame(chat_bot_frame)
+        self.chat_history_frame.grid(row=1, column=0, columnspan=2, pady=10)
+        
+        # Add a text widget to display the chat history
+        self.chat_history_text = tk.Text(self.chat_history_frame, height=15, width=50, wrap=tk.WORD, bg="#ffffff", fg="#000000", font=("Helvetica", 12))
+        self.chat_history_text.grid(row=0, column=0, pady=5)
+        self.chat_history_text.config(state=tk.DISABLED)  # Make it read-only
+        
+        # Add a scrollbar to the chat history
+        scrollbar = ttk.Scrollbar(self.chat_history_frame, command=self.chat_history_text.yview)
+        scrollbar.grid(row=0, column=1, sticky='ns')
+        self.chat_history_text['yscrollcommand'] = scrollbar.set
+
+        # Add a label for message entry
+        message_label = ttk.Label(chat_bot_frame, text="Type your message:", background="#f0f0f0")
+        message_label.grid(row=2, column=0, pady=5, sticky='w')
+        
+        # Add a text entry for the user to enter their message
+        self.message_entry = ttk.Entry(chat_bot_frame, bootstyle="info", font=("Helvetica", 12))
+        self.message_entry.grid(row=2, column=1, pady=5, sticky='ew')
+        
+        # Add a button to submit the message
+        submit_button = ttk.Button(chat_bot_frame, text="Send", command=self.on_submit_message, bootstyle="success")
+        submit_button.grid(row=3, column=0, columnspan=2, pady=10)
+
+        # Style the chat history text widget with modern fonts and colors
+        self.chat_history_text.tag_configure("user", foreground="#007BFF")  # User messages in blue
+        self.chat_history_text.tag_configure("bot", foreground="#28A745")  # Bot messages in green
+
+        # Adjust layout for better appearance
+        chat_bot_frame.columnconfigure(1, weight=1)  # Allow message entry to expand
 
     def validate_input(self, value, pattern, error_label, error_message):
         if not re.match(pattern, value):
@@ -158,7 +281,6 @@ class PaintProgramUI(ttk.Window):
         else:
             error_label.config(text="")
             return True
-
     def on_button_click(self):
         name = self.name_entry.get().strip()
         rooms = self.rooms_entry.get().strip()
@@ -192,57 +314,6 @@ class PaintProgramUI(ttk.Window):
             print(f"Member: {member}")
             self.create_room_page()
             self.update_member_content()
-
-
-    def create_room_page(self):
-        room_frame = ttk.Frame(self)
-        self.pages['Rooms'] = room_frame
-        notebook = self.nametowidget(self.winfo_children()[0])
-        notebook.add(room_frame, text='Rooms')
-
-        # Add a label
-        label = ttk.Label(room_frame, text="Enter the dimensions of each wall", font=("Helvetica", 16, "bold"))
-        label.grid(row=0, column=0, columnspan=4, pady=10)
-
-        # Get the number of rooms
-        try:
-            num_rooms = int(self.rooms_entry.get().strip())
-        except ValueError:
-            self.rooms_error_label.config(text="Please enter a valid number of rooms (1-5).")
-            return
-
-        self.wall_entries = {}
-        self.square_footage_labels = {}
-
-        row = 1
-        for room in range(1, num_rooms + 1):
-            room_label = ttk.Label(room_frame, text=f"Room {room}", font=("Helvetica", 14, "bold"))
-            room_label.grid(row=row, column=0, columnspan=4, pady=10)
-            row += 1
-
-            self.wall_entries[room] = []
-            self.square_footage_labels[room] = ttk.Label(room_frame, text="Square Footage: 0", font=("Helvetica", 12))
-            self.square_footage_labels[room].grid(row=row, column=4, pady=5, padx=5, sticky=tk.W)
-
-            for wall in range(1, 5):
-                wall_length_label = ttk.Label(room_frame, text=f"Wall {wall} Length:")
-                wall_length_label.grid(row=row, column=0, pady=5, padx=5, sticky=tk.W)
-                wall_length_entry = ttk.Entry(room_frame, bootstyle="info")
-                wall_length_entry.grid(row=row, column=1, pady=5, padx=5)
-                self.wall_entries[room].append(wall_length_entry)
-
-                wall_width_label = ttk.Label(room_frame, text=f"Wall {wall} Width:")
-                wall_width_label.grid(row=row, column=2, pady=5, padx=5, sticky=tk.W)
-                wall_width_entry = ttk.Entry(room_frame, bootstyle="info")
-                wall_width_entry.grid(row=row, column=3, pady=5, padx=5)
-                self.wall_entries[room].append(wall_width_entry)
-
-                row += 1
-
-        # Add a button to submit wall dimensions
-        submit_button = ttk.Button(room_frame, text="Submit Wall Dimensions", command=self.on_submit_walls, bootstyle="success")
-        submit_button.grid(row=row, column=0, columnspan=4, pady=10)
-
     def on_submit_walls(self):
         wall_dimensions = {}
         total_square_footage = 0
@@ -279,39 +350,6 @@ class PaintProgramUI(ttk.Window):
         
         # Open the paint options page
         self.create_paint_options_page()
-
-    def create_paint_options_page(self):
-        paint_options_frame = ttk.Frame(self)
-        self.pages['PaintOptions'] = paint_options_frame
-        notebook = self.nametowidget(self.winfo_children()[0])
-        notebook.add(paint_options_frame, text='Paint Options')
-    
-        # Add a label
-        label = ttk.Label(paint_options_frame, text="Select Your Paint", font=("Helvetica", 16, "bold"))
-        label.grid(row=0, column=0, columnspan=2, pady=10)
-    
-        # Paint options
-        self.paints = {
-            "Custom Paint": 250,
-            "Luxury Paint": 200,
-            "Designer Paint": 150,
-            "Premium Paint": 105,
-            "Low Odor Paint": 90,
-            "Regular Paint": 75,
-            "Value Paint": 40,
-        }
-    
-        self.paint_choice_var = tk.StringVar(value="Custom Paint")
-        self.paint_choice_var.trace("w", self.on_paint_selection_change)
-    
-        row = 1
-        for paint, price in self.paints.items():
-            ttk.Radiobutton(paint_options_frame, text=f"{paint}: ${price} per gallon", variable=self.paint_choice_var, value=paint).grid(row=row, column=0, sticky=tk.W, pady=5, padx=50)
-            row += 1
-    
-        # Add a button to confirm paint selection
-        confirm_button = ttk.Button(paint_options_frame, text="Confirm Paint Selection", command=self.on_confirm_paint, bootstyle="success")
-        confirm_button.grid(row=row, column=0, columnspan=2, pady=10)
     
     def on_paint_selection_change(self, *args):
         selected_paint = self.paint_choice_var.get()
@@ -345,29 +383,6 @@ class PaintProgramUI(ttk.Window):
         # Pass the costs to the payment page
         self.create_payment_page(cost_before_tax, cost_after_tax)
 
-    def custom_chat_bot(self):
-        chat_bot_frame = ttk.Frame(self)
-        self.pages['ChatBot'] = chat_bot_frame
-        notebook = self.nametowidget(self.winfo_children()[0])
-        notebook.add(chat_bot_frame, text='ChatBot')
-        
-        # Add a label
-        label = ttk.Label(chat_bot_frame, text="ChatBot", font=("Helvetica", 16, "bold"))
-        label.grid(row=0, column=0, columnspan=2, pady=10)
-        
-        # Add a text entry for the user to enter their message
-        message_label = ttk.Label(chat_bot_frame, text="Enter your message:")
-        message_label.grid(row=1, column=0, pady=5)
-        self.message_entry = ttk.Entry(chat_bot_frame, bootstyle="info")
-        self.message_entry.grid(row=1, column=1, pady=5)
-        
-        # Add a button to submit the message
-        submit_button = ttk.Button(chat_bot_frame, text="Submit", command=self.on_submit_message, bootstyle="success")
-        submit_button.grid(row=2, column=0, columnspan=2, pady=10)
-        
-        # Add a text widget to display the chat history
-        self.chat_history_text = tk.Text(chat_bot_frame, height=10, width=50)
-        self.chat_history_text.grid(row=3, column=0, columnspan=2, pady=10)
 
     def create_custom_paint_panel(self, selected_paint):
         if hasattr(self, 'custom_paint_frame'):
