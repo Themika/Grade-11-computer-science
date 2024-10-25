@@ -40,7 +40,18 @@ Email
 # Add one more big feature (e.g. a game, a chatbot, a calculator, etc.) for memebers
 # Add a feature to save the invoice as a PDF and meber ids
 # Error handling 
-
+def lighter_color(self, color):
+    """Return a lighter shade of the given color."""
+    rgb = self.hex_to_rgb(color)
+    lighter_rgb = tuple(min(255, int(c * 1.2)) for c in rgb)  # Lighten by 20%
+    return self.rgb_to_hex(lighter_rgb)
+def hex_to_rgb(self, hex_color):
+    """Convert HEX color to RGB."""
+    hex_color = hex_color.lstrip("#")
+    return tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
+def rgb_to_hex(self, rgb):
+    """Convert RGB to HEX color."""
+    return "#{:02x}{:02x}{:02x}".format(*rgb)
 class PaintProgramUI(ttk.Window):
     def __init__(self):
         super().__init__(themename="darkly")
@@ -53,7 +64,6 @@ class PaintProgramUI(ttk.Window):
         self.water_resistance_var = tk.StringVar(value="Low")
         self.finish_type_var = tk.StringVar(value="Matte")
         load_dotenv()
-        
     def create_widgets(self):
         # Create a notebook (tabbed interface)
         notebook = ttk.Notebook(self)
@@ -273,7 +283,6 @@ class PaintProgramUI(ttk.Window):
 
         # Adjust layout for better appearance
         chat_bot_frame.columnconfigure(1, weight=1)  # Allow message entry to expand
-
     def validate_input(self, value, pattern, error_label, error_message):
         if not re.match(pattern, value):
             error_label.config(text=error_message)
@@ -349,15 +358,13 @@ class PaintProgramUI(ttk.Window):
         print("Wall dimensions:", wall_dimensions)
         
         # Open the paint options page
-        self.create_paint_options_page()
-    
+        self.create_paint_options_page()  
     def on_paint_selection_change(self, *args):
         selected_paint = self.paint_choice_var.get()
         if selected_paint != "Custom Paint" and hasattr(self, 'custom_paint_frame'):
             self.custom_paint_frame.grid_remove()
         elif selected_paint == "Custom Paint" and hasattr(self, 'custom_paint_frame'):
             self.custom_paint_frame.grid()
-    
     def on_confirm_paint(self):
         selected_paint = self.paint_choice_var.get()
         paint_price = self.paints[selected_paint]
@@ -382,8 +389,6 @@ class PaintProgramUI(ttk.Window):
         
         # Pass the costs to the payment page
         self.create_payment_page(cost_before_tax, cost_after_tax)
-
-
     def create_custom_paint_panel(self, selected_paint):
         if hasattr(self, 'custom_paint_frame'):
             self.custom_paint_frame.grid_remove()
@@ -485,14 +490,12 @@ class PaintProgramUI(ttk.Window):
     
         # Add a button to confirm custom paint options
         confirm_custom_paint_button = ttk.Button(self.custom_paint_frame, text="Confirm Custom Paint Options", command=self.on_confirm_custom_paint, bootstyle="success")
-        confirm_custom_paint_button.grid(row=12, column=0, columnspan=2, pady=10)
-    
+        confirm_custom_paint_button.grid(row=12, column=0, columnspan=2, pady=10)    
     def choose_color(self):
         color_code = colorchooser.askcolor(title="Choose color")[1]
         if color_code:
             self.color_var.set(color_code)
-            print(f"Selected Color: {color_code}")
-    
+            print(f"Selected Color: {color_code}")  
     def update_paint_preview(self):
         """Update the paint preview based on selected options."""
         # Clear previous preview
@@ -513,20 +516,6 @@ class PaintProgramUI(ttk.Window):
             # Add some sheen with a lighter shade
             lighter_color = self.lighter_color(selected_color)
             self.preview_canvas.create_rectangle(20, 20, 180, 280, fill=lighter_color, outline="")
-
-    def lighter_color(self, color):
-        """Return a lighter shade of the given color."""
-        rgb = self.hex_to_rgb(color)
-        lighter_rgb = tuple(min(255, int(c * 1.2)) for c in rgb)  # Lighten by 20%
-        return self.rgb_to_hex(lighter_rgb)
-    def hex_to_rgb(self, hex_color):
-        """Convert HEX color to RGB."""
-        hex_color = hex_color.lstrip("#")
-        return tuple(int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
-    def rgb_to_hex(self, rgb):
-        """Convert RGB to HEX color."""
-        return "#{:02x}{:02x}{:02x}".format(*rgb)
-    
     def on_confirm_custom_paint(self):
         selected_color = self.color_var.get()
         selected_water_resistance = self.water_resistance_var.get()
@@ -538,7 +527,6 @@ class PaintProgramUI(ttk.Window):
         print(f"Selected Finish Type: {selected_finish_type}")
         print(f"Selected Durability: {selected_durability}")
         self.create_payement_page()
-    
     def create_payment_page(self, cost_before_tax, cost_after_tax):
         payment_frame = ttk.Frame(self)
         self.pages['Payment'] = payment_frame
@@ -616,8 +604,7 @@ class PaintProgramUI(ttk.Window):
         
         # Add a frame to display the change
         self.change_frame = ttk.Frame(payment_frame)
-        self.change_frame.grid(row=row + 1, column=0, columnspan=2, pady=10, padx=5)
-    
+        self.change_frame.grid(row=row + 1, column=0, columnspan=2, pady=10, padx=5) 
     def apply_discount(self, event):
         discount_percentage = int(self.discount_var.get().strip('%'))
         discount_amount = self.cost_before_tax * (discount_percentage / 100)
@@ -627,7 +614,6 @@ class PaintProgramUI(ttk.Window):
         # Update the displayed costs
         self.cost_label_before_tax.config(text=f"Cost Before Tax: ${round(discounted_cost_before_tax, 2)}")
         self.cost_label_after_tax.config(text=f"Cost After Tax: ${round(self.cost_after_tax, 2)}")
-    
     def on_confirm_amount(self, cost_after_tax):
         try:
             entered_amount = float(self.amount_entry.get().strip())
@@ -641,7 +627,6 @@ class PaintProgramUI(ttk.Window):
         except ValueError:
             print("Invalid amount entered.")
             messagebox.showerror("Error", "Invalid amount entered.")
-    
     def process_change(self, difference):
         money_map = {
             50: "Fifty Dollar bills",
@@ -677,12 +662,10 @@ class PaintProgramUI(ttk.Window):
         for name, count in change.items():
             ttk.Label(self.change_frame, text=f"{name}: {count}", font=("Helvetica", 12)).grid(row=row, column=0, columnspan=2, pady=2)
             row += 1
-    
     def on_confirm_payment(self):
         selected_payment_method = self.payment_choice_var.get()
         messagebox.showinfo("Payment Confirmation", f"Payment method '{selected_payment_method}' selected.")
         self.send_email_receipt()
-    
     def send_email_receipt(self):
         # Collect the email address entered by the user
         recipient_email = self.email_entry.get().strip()
