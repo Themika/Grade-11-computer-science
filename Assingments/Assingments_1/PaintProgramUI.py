@@ -2,6 +2,7 @@ import math
 import smtplib
 import re
 import os
+import requests
 
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
@@ -239,50 +240,9 @@ class PaintProgramUI(ttk.Window):
         confirm_button = ttk.Button(paint_options_frame, text="Confirm Paint Selection", command=self.on_confirm_paint, bootstyle="success")
         confirm_button.grid(row=row, column=0, columnspan=2, pady=10)
     def custom_chat_bot(self):
-        chat_bot_frame = ttk.Frame(self)
-        self.pages['ChatBot'] = chat_bot_frame
-        notebook = self.nametowidget(self.winfo_children()[0])
-        notebook.add(chat_bot_frame, text='ChatBot')
+        """Initialize the ChatBot tab within the PaintProgramUI."""
+        chat_bot_ui = ChatBotUI(self)
         
-        # Set background color
-        chat_bot_frame.configure(background="#f0f0f0")
-        
-        # Add a label for the title
-        label = ttk.Label(chat_bot_frame, text="ChatBot", font=("Helvetica", 20, "bold"), background="#f0f0f0")
-        label.grid(row=0, column=0, columnspan=2, pady=10)
-        
-        # Create a frame for chat history to enhance appearance
-        self.chat_history_frame = ttk.Frame(chat_bot_frame)
-        self.chat_history_frame.grid(row=1, column=0, columnspan=2, pady=10)
-        
-        # Add a text widget to display the chat history
-        self.chat_history_text = tk.Text(self.chat_history_frame, height=15, width=50, wrap=tk.WORD, bg="#ffffff", fg="#000000", font=("Helvetica", 12))
-        self.chat_history_text.grid(row=0, column=0, pady=5)
-        self.chat_history_text.config(state=tk.DISABLED)  # Make it read-only
-        
-        # Add a scrollbar to the chat history
-        scrollbar = ttk.Scrollbar(self.chat_history_frame, command=self.chat_history_text.yview)
-        scrollbar.grid(row=0, column=1, sticky='ns')
-        self.chat_history_text['yscrollcommand'] = scrollbar.set
-
-        # Add a label for message entry
-        message_label = ttk.Label(chat_bot_frame, text="Type your message:", background="#f0f0f0")
-        message_label.grid(row=2, column=0, pady=5, sticky='w')
-        
-        # Add a text entry for the user to enter their message
-        self.message_entry = ttk.Entry(chat_bot_frame, bootstyle="info", font=("Helvetica", 12))
-        self.message_entry.grid(row=2, column=1, pady=5, sticky='ew')
-        
-        # Add a button to submit the message
-        submit_button = ttk.Button(chat_bot_frame, text="Send", command=self.on_submit_message, bootstyle="success")
-        submit_button.grid(row=3, column=0, columnspan=2, pady=10)
-
-        # Style the chat history text widget with modern fonts and colors
-        self.chat_history_text.tag_configure("user", foreground="#007BFF")  # User messages in blue
-        self.chat_history_text.tag_configure("bot", foreground="#28A745")  # Bot messages in green
-
-        # Adjust layout for better appearance
-        chat_bot_frame.columnconfigure(1, weight=1)  # Allow message entry to expand
     def validate_input(self, value, pattern, error_label, error_message):
         if not re.match(pattern, value):
             error_label.config(text=error_message)
@@ -725,6 +685,116 @@ class PaintProgramUI(ttk.Window):
             messagebox.showinfo("Email Sent", "The receipt has been sent to your email address.")
         except Exception as e:
             messagebox.showerror("Email Error", f"Failed to send email: {e}")
+
+
+class ChatBotAI:
+    def __init__(self):
+        """Initialize the ChatBotAI instance."""
+        load_dotenv()
+        
+    def get_response(self, user_message):
+        """Generate a response based on user input."""
+        if "hello" in user_message.lower():
+            return "Hello! How can I assist you today?"
+        elif "help" in user_message.lower():
+            return "I'm here to help! What do you need assistance with?"
+        elif "bye" in user_message.lower():
+            return "Goodbye! Have a great day."
+        elif user_message.lower() != " ":  # Corrected condition
+            return self.get_api_responce(user_message).json()["response"]
+        else:
+            return "I'm not sure how to respond to that. Could you rephrase?"
+    def get_api_responce(self,response):
+        """Get a response from an API."""
+        url = "https://chatgpt-gpt4-ai-chatbot.p.rapidapi.com/ask"
+
+        payload = { "query": f"{response}" }
+        headers = {
+            "x-rapidapi-key": f"{os.getenv('API_KEY')}",
+            "x-rapidapi-host": "chatgpt-gpt4-ai-chatbot.p.rapidapi.com",
+            "Content-Type": "application/json"
+        }
+        response = requests.post(url, json=payload, headers=headers)
+        if not response.ok:
+            return self.loading_response()
+        return response
+    def loading_response(self):
+        """Generate a loading response."""
+        return "Please wait a moment while I process your request..."
+        
+
+class ChatBotUI:
+    def __init__(self, root):
+        """Initialize ChatBotUI with a reference to the parent widget and ChatBotAI instance."""
+        self.root = root  # Assign the parent widget correctly
+        self.chat_bot_ai = ChatBotAI()
+        self.add_chatbot_tab()  # Corrected method name
+
+    def add_chatbot_tab(self):
+        """Create the main chat bot tab interface within the provided notebook."""
+        style = ttk.Style()
+        style.configure("Custom.TFrame", background="#f0f0f0")
+        
+        # Create main chat frame as a new tab in the notebook
+        notebook = self.root.nametowidget(self.root.winfo_children()[0])
+        chat_bot_frame = ttk.Frame(notebook, style="Custom.TFrame")
+        notebook.add(chat_bot_frame, text='ChatBot')
+
+        # Add label for the title
+        label = ttk.Label(chat_bot_frame, text="ChatBot", font=("Helvetica", 20, "bold"), background="#f0f0f0")
+        label.grid(row=0, column=0, columnspan=2, pady=10)
+        
+        # Create a frame for chat history
+        self.chat_history_frame = tk.Frame(chat_bot_frame, background="#f0f0f0")
+        self.chat_history_frame.grid(row=1, column=0, columnspan=2, pady=10)
+        
+        # Add chat history text widget
+        self.chat_history_text = tk.Text(self.chat_history_frame, height=15, width=50, wrap=tk.WORD, bg="#ffffff", fg="#000000", font=("Helvetica", 12))
+        self.chat_history_text.grid(row=0, column=0, pady=5)
+        self.chat_history_text.config(state=tk.DISABLED)
+        
+        # Add scrollbar to chat history
+        scrollbar = ttk.Scrollbar(self.chat_history_frame, command=self.chat_history_text.yview)
+        scrollbar.grid(row=0, column=1, sticky='ns')
+        self.chat_history_text['yscrollcommand'] = scrollbar.set
+
+        # Add message entry label
+        message_label = ttk.Label(chat_bot_frame, text="Type your message:", background="#f0f0f0")
+        message_label.grid(row=2, column=0, pady=5, sticky='w')
+        
+        # Add text entry for message input
+        self.message_entry = ttk.Entry(chat_bot_frame, font=("Helvetica", 12))
+        self.message_entry.grid(row=2, column=1, pady=5, sticky='ew')
+        
+        # Add submit button
+        submit_button = ttk.Button(chat_bot_frame, text="Send", command=self.on_submit_message, style="Accent.TButton")
+        submit_button.grid(row=3, column=0, columnspan=2, pady=10)
+
+        # Tag user and bot messages for color
+        self.chat_history_text.tag_configure("user", foreground="#007BFF")
+        self.chat_history_text.tag_configure("bot", foreground="#28A745")
+        
+        # Allow message entry to expand
+        chat_bot_frame.columnconfigure(1, weight=1)
+        self.message_entry.bind("<Return>", lambda event: self.on_submit_message())
+    
+    def on_submit_message(self):
+        """Send the user's message and display the chatbot's response."""
+        user_message = self.message_entry.get().strip()
+        if user_message:
+            self.display_message("User", user_message, "user")
+            bot_response = self.chat_bot_ai.get_response(user_message)
+            self.display_message("Bot", bot_response, "bot")
+        self.message_entry.delete(0, tk.END)
+
+    def display_message(self, sender, message, tag):
+        """Display a message in the chat history with specified styling."""
+        self.chat_history_text.config(state=tk.NORMAL)
+        self.chat_history_text.insert(tk.END, f"{sender}: {message}\n", tag)
+        self.chat_history_text.config(state=tk.DISABLED)
+        self.chat_history_text.yview(tk.END)
+
+
 
 if __name__ == "__main__":
     app = PaintProgramUI()
