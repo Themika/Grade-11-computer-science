@@ -67,22 +67,23 @@ class PaintProgramUI(ttk.Window):
         load_dotenv()
     def create_widgets(self):
         # Create a notebook (tabbed interface)
-        notebook = ttk.Notebook(self)
-        notebook.pack(fill=BOTH, expand=TRUE)
+        self.notebook = ttk.Notebook(self)
+        self.notebook.pack(fill=BOTH, expand=TRUE)
         
         # Create pages
-        self.pages['Main'] = ttk.Frame(notebook)
-        self.pages['Settings'] = ttk.Frame(notebook)
+        self.pages['Main'] = ttk.Frame(self.notebook)
+        self.pages['Settings'] = ttk.Frame(self.notebook)
         
         # Add pages to notebook
-        notebook.add(self.pages['Main'], text='Home')
-        notebook.add(self.pages['Settings'], text='Settings')
+        self.notebook.add(self.pages['Main'], text='Home')
+        self.notebook.add(self.pages['Settings'], text='Settings')
         
         # Add widgets to Home page
         self.create_home_page()
         
         # Add widgets to Settings page
         self.create_settings_page()
+
     def create_home_page(self):
         home_frame = self.pages['Main']
         
@@ -130,6 +131,10 @@ class PaintProgramUI(ttk.Window):
         # Add a button
         button = ttk.Button(home_frame, text="Submit", command=self.on_button_click, bootstyle="success")
         button.pack(pady=10)
+        
+        # Add a button
+        button = ttk.Button(home_frame, text="Submit", command=self.on_button_click, bootstyle="success")
+        button.pack(pady=10)
     def create_settings_page(self):
         settings_frame = self.pages['Settings']
         
@@ -150,53 +155,114 @@ class PaintProgramUI(ttk.Window):
         self.member_content_frame.pack(pady=10)
         self.update_member_content()
     def create_room_page(self):
-            room_frame = ttk.Frame(self)
-            self.pages['Rooms'] = room_frame
-            notebook = self.nametowidget(self.winfo_children()[0])
-            notebook.add(room_frame, text='Rooms')
+        room_frame = ttk.Frame(self)
+        self.pages['Rooms'] = room_frame
+        notebook = self.nametowidget(self.winfo_children()[0])
+        notebook.add(room_frame, text='Rooms')
 
-            # Add a label
-            label = ttk.Label(room_frame, text="Enter the dimensions of each wall", font=("Helvetica", 16, "bold"))
-            label.grid(row=0, column=0, columnspan=4, pady=10)
+        # Add a label
+        label = ttk.Label(room_frame, text="Enter the dimensions of each wall", font=("Helvetica", 16, "bold"))
+        label.grid(row=0, column=0, columnspan=8, pady=10)
 
-            # Get the number of rooms
+        # Get the number of rooms
+        try:
+            num_rooms = int(self.rooms_entry.get().strip())
+        except ValueError:
+            self.rooms_error_label.config(text="Please enter a valid number of rooms (1-5).")
+            return
+
+        self.wall_entries = {}
+        self.square_footage_labels = {}
+
+        row_left = 1
+        row_right = 1
+        col_offset = 0
+
+        def validate_input(event, entry):
+            """Validate input and change background color accordingly"""
+            value = entry.get().strip()
             try:
-                num_rooms = int(self.rooms_entry.get().strip())
+                num = float(value)
+                if num <= 0:
+                    entry.configure(bootstyle="danger")
+                    return False
+                entry.configure(bootstyle="info")
+                return True
             except ValueError:
-                self.rooms_error_label.config(text="Please enter a valid number of rooms (1-5).")
-                return
+                entry.configure(bootstyle="danger")
+                return False
 
-            self.wall_entries = {}
-            self.square_footage_labels = {}
+        for room in range(1, num_rooms + 1):
+            if room > 3:
+                col_offset = 4  # Move to the right side for rooms 4 and above
+                if room == 4:
+                    row_right = 1  # Reset row for the right side
 
-            row = 1
-            for room in range(1, num_rooms + 1):
-                room_label = ttk.Label(room_frame, text=f"Room {room}", font=("Helvetica", 14, "bold"))
-                room_label.grid(row=row, column=0, columnspan=4, pady=10)
-                row += 1
+            current_row = row_left if room <= 3 else row_right
 
-                self.wall_entries[room] = []
-                self.square_footage_labels[room] = ttk.Label(room_frame, text="Square Footage: 0", font=("Helvetica", 12))
-                self.square_footage_labels[room].grid(row=row, column=4, pady=5, padx=5, sticky=tk.W)
+            room_label = ttk.Label(room_frame, text=f"Room {room}", font=("Helvetica", 14, "bold"))
+            room_label.grid(row=current_row, column=col_offset, columnspan=4, pady=10)
+            current_row += 1
 
-                for wall in range(1, 5):
-                    wall_length_label = ttk.Label(room_frame, text=f"Wall {wall} Length:")
-                    wall_length_label.grid(row=row, column=0, pady=5, padx=5, sticky=tk.W)
-                    wall_length_entry = ttk.Entry(room_frame, bootstyle="info")
-                    wall_length_entry.grid(row=row, column=1, pady=5, padx=5)
-                    self.wall_entries[room].append(wall_length_entry)
+            self.wall_entries[room] = []
+            self.square_footage_labels[room] = ttk.Label(room_frame, text="Square Footage: 0", font=("Helvetica", 12))
+            self.square_footage_labels[room].grid(row=current_row+5, column=col_offset + 4, pady=5, padx=5, sticky=tk.W)
 
-                    wall_width_label = ttk.Label(room_frame, text=f"Wall {wall} Width:")
-                    wall_width_label.grid(row=row, column=2, pady=5, padx=5, sticky=tk.W)
-                    wall_width_entry = ttk.Entry(room_frame, bootstyle="info")
-                    wall_width_entry.grid(row=row, column=3, pady=5, padx=5)
-                    self.wall_entries[room].append(wall_width_entry)
+            for wall in range(1, 5):
+                wall_length_label = ttk.Label(room_frame, text=f"Wall {wall} Length:")
+                wall_length_label.grid(row=current_row, column=col_offset, pady=5, padx=5, sticky=tk.W)
+                wall_length_entry = ttk.Entry(room_frame, bootstyle="info")
+                wall_length_entry.grid(row=current_row, column=col_offset + 1, pady=5, padx=5)
+                # Bind validation to entry
+                wall_length_entry.bind('<KeyRelease>', lambda e, entry=wall_length_entry: validate_input(e, entry))
+                self.wall_entries[room].append(wall_length_entry)
 
-                    row += 1
+                wall_width_label = ttk.Label(room_frame, text=f"Wall {wall} Width:")
+                wall_width_label.grid(row=current_row, column=col_offset + 2, pady=5, padx=5, sticky=tk.W)
+                wall_width_entry = ttk.Entry(room_frame, bootstyle="info")
+                wall_width_entry.grid(row=current_row, column=col_offset + 3, pady=5, padx=5)
+                # Bind validation to entry
+                wall_width_entry.bind('<KeyRelease>', lambda e, entry=wall_width_entry: validate_input(e, entry))
+                self.wall_entries[room].append(wall_width_entry)
 
-            # Add a button to submit wall dimensions
-            submit_button = ttk.Button(room_frame, text="Submit Wall Dimensions", command=self.on_submit_walls, bootstyle="success")
-            submit_button.grid(row=row, column=0, columnspan=4, pady=10)
+                current_row += 1
+
+            if room <= 3:
+                row_left = current_row
+            else:
+                row_right = current_row
+
+        # Determine the row for the submit button
+        submit_row = max(row_left, row_right)
+
+        def validate_all_inputs():
+            """Validate all inputs before submission"""
+            all_valid = True
+            for room_entries in self.wall_entries.values():
+                for entry in room_entries:
+                    if not validate_input(None, entry):
+                        all_valid = False
+            if all_valid:
+                self.on_submit_walls()
+            else:
+                messagebox.showerror("Error", "Please correct the highlighted fields. All dimensions must be positive numbers.")
+
+        # Add a button to submit wall dimensions
+        submit_button = ttk.Button(room_frame, text="Submit Wall Dimensions", 
+                                command=validate_all_inputs, bootstyle="success")
+        submit_button.grid(row=submit_row, column=0, columnspan=8, pady=10)
+    def on_submit_walls(self):
+        """Validate wall dimensions and highlight invalid entries."""
+        valid = True
+        for room, entries in self.wall_entries.items():
+            for entry in entries:
+                entry_value = entry.get().strip()
+                if not entry_value.isdigit():
+                    entry.config(bootstyle="danger")
+                    valid = False
+                else:
+                    entry.config(bootstyle="info")
+    
     def update_member_content(self):
         # Clear previous member-specific content
         for widget in self.member_content_frame.winfo_children():
@@ -205,8 +271,12 @@ class PaintProgramUI(ttk.Window):
         if self.member_var.get():
             member_label = ttk.Label(self.member_content_frame, text="Member Exclusive Content", font=("Helvetica", 14, "bold"))
             member_label.pack(pady=5)
-            self.custom_chat_bot()
-            # Add more member-specific widgets here
+            # Add more member-specific widgets her
+
+    def add_chatbot_tab(self):
+        """Add the ChatBot tab to the notebook."""
+        chat_bot_ui = ChatBotUI(self.notebook)
+        self.notebook.add(chat_bot_ui, text='ChatBot')
     def create_paint_options_page(self):
         paint_options_frame = ttk.Frame(self)
         self.pages['PaintOptions'] = paint_options_frame
@@ -239,10 +309,6 @@ class PaintProgramUI(ttk.Window):
         # Add a button to confirm paint selection
         confirm_button = ttk.Button(paint_options_frame, text="Confirm Paint Selection", command=self.on_confirm_paint, bootstyle="success")
         confirm_button.grid(row=row, column=0, columnspan=2, pady=10)
-    def custom_chat_bot(self):
-        """Initialize the ChatBot tab within the PaintProgramUI."""
-        chat_bot_ui = ChatBotUI(self)
-        
     def validate_input(self, value, pattern, error_label, error_message):
         if not re.match(pattern, value):
             error_label.config(text=error_message)
@@ -283,6 +349,8 @@ class PaintProgramUI(ttk.Window):
             print(f"Member: {member}")
             self.create_room_page()
             self.update_member_content()
+            if member:
+                self.add_chatbot_tab()
     def on_submit_walls(self):
         wall_dimensions = {}
         total_square_footage = 0
@@ -308,10 +376,10 @@ class PaintProgramUI(ttk.Window):
         
         # Display the total square footage and paint cans needed
         total_label = ttk.Label(self.pages['Rooms'], text=f"Total Square Footage: {total_square_footage}", font=("Helvetica", 12, "bold"))
-        total_label.grid(row=len(self.wall_entries) * 5 + 1, column=0, columnspan=4, pady=10)
+        total_label.grid(row=len(self.wall_entries) * 6 + 1, column=0, columnspan=4, pady=10)
         
         paint_cans_label = ttk.Label(self.pages['Rooms'], text=f"Paint Cans Needed: {self.paint_cans_needed}", font=("Helvetica", 12, "bold"))
-        paint_cans_label.grid(row=len(self.wall_entries) * 5 + 2, column=0, columnspan=4, pady=10)
+        paint_cans_label.grid(row=len(self.wall_entries) * 6 + 2, column=0, columnspan=4, pady=10)
         
         print(f"Total Square Footage: {total_square_footage}")
         print(f"Paint Cans Needed: {self.paint_cans_needed}")
@@ -700,99 +768,86 @@ class ChatBotAI:
             return "I'm here to help! What do you need assistance with?"
         elif "bye" in user_message.lower():
             return "Goodbye! Have a great day."
-        elif user_message.lower() != " ":  # Corrected condition
-            return self.get_api_responce(user_message).json()["response"]
+        elif user_message.strip():
+            return self.get_api_response(user_message).json().get("response", "Sorry, I couldn't fetch a response.")
         else:
             return "I'm not sure how to respond to that. Could you rephrase?"
-    def get_api_responce(self,response):
+
+    def get_api_response(self, response):
         """Get a response from an API."""
         url = "https://chatgpt-gpt4-ai-chatbot.p.rapidapi.com/ask"
-
-        payload = { "query": f"{response}" }
+        payload = {"query": response}
         headers = {
-            "x-rapidapi-key": f"{os.getenv('API_KEY')}",
+            "x-rapidapi-key": os.getenv("API_KEY"),
             "x-rapidapi-host": "chatgpt-gpt4-ai-chatbot.p.rapidapi.com",
             "Content-Type": "application/json"
         }
         response = requests.post(url, json=payload, headers=headers)
-        if not response.ok:
-            return self.loading_response()
-        return response
+        return response if response.ok else self.loading_response()
+
     def loading_response(self):
         """Generate a loading response."""
         return "Please wait a moment while I process your request..."
-        
 
-class ChatBotUI:
+class ChatBotUI(ttk.Frame):
     def __init__(self, root):
         """Initialize ChatBotUI with a reference to the parent widget and ChatBotAI instance."""
-        self.root = root  # Assign the parent widget correctly
+        super().__init__(root)
+        self.root = root
         self.chat_bot_ai = ChatBotAI()
-        self.add_chatbot_tab()  # Corrected method name
+        self.create_chat_interface()
 
-    def add_chatbot_tab(self):
-        """Create the main chat bot tab interface within the provided notebook."""
-        style = ttk.Style()
-        style.configure("Custom.TFrame", background="#f0f0f0")
-        
-        # Create main chat frame as a new tab in the notebook
-        notebook = self.root.nametowidget(self.root.winfo_children()[0])
-        chat_bot_frame = ttk.Frame(notebook, style="Custom.TFrame")
-        notebook.add(chat_bot_frame, text='ChatBot')
+    def create_chat_interface(self):
+        """Create a simple chat interface with essential components."""
+        # Configure grid layout to expand
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=0)
 
-        # Add label for the title
-        label = ttk.Label(chat_bot_frame, text="ChatBot", font=("Helvetica", 20, "bold"), background="#f0f0f0")
-        label.grid(row=0, column=0, columnspan=2, pady=10)
-        
-        # Create a frame for chat history
-        self.chat_history_frame = tk.Frame(chat_bot_frame, background="#f0f0f0")
-        self.chat_history_frame.grid(row=1, column=0, columnspan=2, pady=10)
-        
-        # Add chat history text widget
-        self.chat_history_text = tk.Text(self.chat_history_frame, height=15, width=50, wrap=tk.WORD, bg="#ffffff", fg="#000000", font=("Helvetica", 12))
-        self.chat_history_text.grid(row=0, column=0, pady=5)
-        self.chat_history_text.config(state=tk.DISABLED)
-        
-        # Add scrollbar to chat history
-        scrollbar = ttk.Scrollbar(self.chat_history_frame, command=self.chat_history_text.yview)
-        scrollbar.grid(row=0, column=1, sticky='ns')
+        # Chat history display
+        self.chat_history_text = tk.Text(self, height=20, wrap=tk.WORD, state=tk.DISABLED,
+                                         bg="#1D1E33", fg="#E5E5E5", font=("Helvetica", 12), padx=10, pady=10)
+        self.chat_history_text.grid(row=0, column=0, columnspan=2, sticky="nsew")
+
+        # Scrollbar for chat history
+        scrollbar = ttk.Scrollbar(self, command=self.chat_history_text.yview)
+        scrollbar.grid(row=0, column=2, sticky='ns')
         self.chat_history_text['yscrollcommand'] = scrollbar.set
 
-        # Add message entry label
-        message_label = ttk.Label(chat_bot_frame, text="Type your message:", background="#f0f0f0")
-        message_label.grid(row=2, column=0, pady=5, sticky='w')
-        
-        # Add text entry for message input
-        self.message_entry = ttk.Entry(chat_bot_frame, font=("Helvetica", 12))
-        self.message_entry.grid(row=2, column=1, pady=5, sticky='ew')
-        
-        # Add submit button
-        submit_button = ttk.Button(chat_bot_frame, text="Send", command=self.on_submit_message, style="Accent.TButton")
-        submit_button.grid(row=3, column=0, columnspan=2, pady=10)
+        # Message entry field
+        self.message_entry = ttk.Entry(self, width=50, font=("Helvetica", 12))
+        self.message_entry.grid(row=1, column=0, padx=5, pady=10, sticky="ew")
 
-        # Tag user and bot messages for color
-        self.chat_history_text.tag_configure("user", foreground="#007BFF")
-        self.chat_history_text.tag_configure("bot", foreground="#28A745")
-        
-        # Allow message entry to expand
-        chat_bot_frame.columnconfigure(1, weight=1)
-        self.message_entry.bind("<Return>", lambda event: self.on_submit_message())
-    
-    def on_submit_message(self):
+        # Send button
+        send_button = ttk.Button(self, text="Send", command=self.on_send_message)
+        send_button.grid(row=1, column=1, padx=5, pady=10)
+
+        # Allow pressing Enter to send message
+        self.message_entry.bind("<Return>", lambda event: self.on_send_message())
+
+        # Add tags for styling messages
+        self.chat_history_text.tag_configure("user", foreground="#007BFF", justify="right", lmargin1=10, lmargin2=10)
+        self.chat_history_text.tag_configure("bot", foreground="#28A745", justify="left", lmargin1=10, lmargin2=10)
+
+        # Add welcome message
+        self.display_message("Bot", "Welcome! How can I assist you today?", "bot")
+
+    def on_send_message(self):
         """Send the user's message and display the chatbot's response."""
         user_message = self.message_entry.get().strip()
         if user_message:
-            self.display_message("User", user_message, "user")
+            self.display_message("You", user_message, "user")
             bot_response = self.chat_bot_ai.get_response(user_message)
             self.display_message("Bot", bot_response, "bot")
         self.message_entry.delete(0, tk.END)
 
     def display_message(self, sender, message, tag):
-        """Display a message in the chat history with specified styling."""
+        """Display a message in the chat history with simple styling."""
         self.chat_history_text.config(state=tk.NORMAL)
-        self.chat_history_text.insert(tk.END, f"{sender}: {message}\n", tag)
+        self.chat_history_text.insert(tk.END, f"{sender}: {message}\n\n", tag)
         self.chat_history_text.config(state=tk.DISABLED)
         self.chat_history_text.yview(tk.END)
+
 
 
 
