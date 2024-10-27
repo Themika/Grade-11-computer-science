@@ -40,7 +40,7 @@ Email
 # Add a progress bar
 # Add one more big feature (e.g. a game, a chatbot, a calculator, etc.) for memebers
 # Add a feature to save the invoice as a PDF and meber ids
-# Error handling 
+
 def lighter_color(self, color):
     """Return a lighter shade of the given color."""
     rgb = self.hex_to_rgb(color)
@@ -130,54 +130,54 @@ class PaintProgramUI(ttk.Window):
         
         # Add a button
         button = ttk.Button(home_frame, text="Submit", command=self.on_button_click, bootstyle="success")
-        button.pack(pady=10)
-        
-        # Add a button
-        button = ttk.Button(home_frame, text="Submit", command=self.on_button_click, bootstyle="success")
-        button.pack(pady=10)
+        button.pack(pady=10)  
+
     def create_settings_page(self):
         settings_frame = self.pages['Settings']
         
-        # Add a dropdown (combobox)
-        options = ["Option 1", "Option 2", "Option 3"]
-        combobox = ttk.Combobox(settings_frame, values=options, bootstyle="info")
-        combobox.pack(pady=10)
-        
-        # Add radio buttons
-        radio_var = ttk.StringVar()
-        radio1 = ttk.Radiobutton(settings_frame, text="Radio 1", variable=radio_var, value="1", bootstyle="info")
-        radio2 = ttk.Radiobutton(settings_frame, text="Radio 2", variable=radio_var, value="2", bootstyle="info")
-        radio1.pack(pady=5)
-        radio2.pack(pady=5)
-
+    
         # Add member-specific content
         self.member_content_frame = ttk.Frame(settings_frame)
         self.member_content_frame.pack(pady=10)
         self.update_member_content()
+    
+    
+    def contact_support(self):
+        # Implement the logic to contact support
+        support_message = self.support_entry.get().strip()
+        if support_message:
+            messagebox.showinfo("Support", f"Support request sent: {support_message}")
+        else:
+            messagebox.showwarning("Support", "Please enter a message for support.")
     def create_room_page(self):
-        room_frame = ttk.Frame(self)
-        self.pages['Rooms'] = room_frame
-        notebook = self.nametowidget(self.winfo_children()[0])
-        notebook.add(room_frame, text='Rooms')
-
+        if 'Rooms' in self.pages:
+            room_frame = self.pages['Rooms']
+            for widget in room_frame.winfo_children():
+                widget.destroy()
+        else:
+            room_frame = ttk.Frame(self)
+            self.pages['Rooms'] = room_frame
+            notebook = self.nametowidget(self.winfo_children()[0])
+            notebook.add(room_frame, text='Rooms')
+    
         # Add a label
         label = ttk.Label(room_frame, text="Enter the dimensions of each wall", font=("Helvetica", 16, "bold"))
         label.grid(row=0, column=0, columnspan=8, pady=10)
-
+    
         # Get the number of rooms
         try:
             num_rooms = int(self.rooms_entry.get().strip())
         except ValueError:
             self.rooms_error_label.config(text="Please enter a valid number of rooms (1-5).")
             return
-
+    
         self.wall_entries = {}
         self.square_footage_labels = {}
-
+    
         row_left = 1
         row_right = 1
         col_offset = 0
-
+    
         def validate_input(event, entry):
             """Validate input and change background color accordingly"""
             value = entry.get().strip()
@@ -191,23 +191,23 @@ class PaintProgramUI(ttk.Window):
             except ValueError:
                 entry.configure(bootstyle="danger")
                 return False
-
+    
         for room in range(1, num_rooms + 1):
             if room > 3:
-                col_offset = 4  # Move to the right side for rooms 4 and above
+                col_offset = 9  # Move to the right side for rooms 4 and above with a horizontal offset of 5
                 if room == 4:
                     row_right = 1  # Reset row for the right side
-
+    
             current_row = row_left if room <= 3 else row_right
-
+    
             room_label = ttk.Label(room_frame, text=f"Room {room}", font=("Helvetica", 14, "bold"))
             room_label.grid(row=current_row, column=col_offset, columnspan=4, pady=10)
             current_row += 1
-
+    
             self.wall_entries[room] = []
             self.square_footage_labels[room] = ttk.Label(room_frame, text="Square Footage: 0", font=("Helvetica", 12))
-            self.square_footage_labels[room].grid(row=current_row+5, column=col_offset + 4, pady=5, padx=5, sticky=tk.W)
-
+            self.square_footage_labels[room].grid(row=current_row, column=col_offset + 4, pady=5, padx=5, sticky=tk.W)
+    
             for wall in range(1, 5):
                 wall_length_label = ttk.Label(room_frame, text=f"Wall {wall} Length:")
                 wall_length_label.grid(row=current_row, column=col_offset, pady=5, padx=5, sticky=tk.W)
@@ -216,7 +216,7 @@ class PaintProgramUI(ttk.Window):
                 # Bind validation to entry
                 wall_length_entry.bind('<KeyRelease>', lambda e, entry=wall_length_entry: validate_input(e, entry))
                 self.wall_entries[room].append(wall_length_entry)
-
+    
                 wall_width_label = ttk.Label(room_frame, text=f"Wall {wall} Width:")
                 wall_width_label.grid(row=current_row, column=col_offset + 2, pady=5, padx=5, sticky=tk.W)
                 wall_width_entry = ttk.Entry(room_frame, bootstyle="info")
@@ -224,16 +224,20 @@ class PaintProgramUI(ttk.Window):
                 # Bind validation to entry
                 wall_width_entry.bind('<KeyRelease>', lambda e, entry=wall_width_entry: validate_input(e, entry))
                 self.wall_entries[room].append(wall_width_entry)
-
+    
                 current_row += 1
-
+    
             if room <= 3:
                 row_left = current_row
             else:
                 row_right = current_row
-
+    
         # Determine the row for the submit button
         submit_row = max(row_left, row_right)
+    
+        # Add a button to submit wall dimensions
+        submit_button = ttk.Button(room_frame, text="Submit Wall Dimensions", command=self.on_submit_walls, bootstyle="success")
+        submit_button.grid(row=submit_row, column=0, columnspan=8, pady=10)
 
         def validate_all_inputs():
             """Validate all inputs before submission"""
@@ -262,7 +266,6 @@ class PaintProgramUI(ttk.Window):
                     valid = False
                 else:
                     entry.config(bootstyle="info")
-    
     def update_member_content(self):
         # Clear previous member-specific content
         for widget in self.member_content_frame.winfo_children():
@@ -271,7 +274,46 @@ class PaintProgramUI(ttk.Window):
         if self.member_var.get():
             member_label = ttk.Label(self.member_content_frame, text="Member Exclusive Content", font=("Helvetica", 14, "bold"))
             member_label.pack(pady=5)
-            # Add more member-specific widgets her
+
+            # Member-exclusive feature 1: Special Discount Code Entry
+            discount_label = ttk.Label(self.member_content_frame, text="Enter Discount Code:")
+            discount_label.pack(pady=5)
+            self.discount_entry = ttk.Entry(self.member_content_frame, bootstyle="info")
+            self.discount_entry.pack(pady=5)
+            discount_button = ttk.Button(self.member_content_frame, text="Apply Discount", command=self.validate_discount_code, bootstyle="success")
+            discount_button.pack(pady=5)
+
+            # Member-exclusive feature 2: Premium Support Contact Form
+            support_label = ttk.Label(self.member_content_frame, text="Premium Support Contact:")
+            support_label.pack(pady=5)
+            self.support_entry = ttk.Entry(self.member_content_frame, bootstyle="info")
+            self.support_entry.pack(pady=5)
+            support_button = ttk.Button(self.member_content_frame, text="Contact Support", command=self.contact_support, bootstyle="success")
+            support_button.pack(pady=5)
+
+            # Member-exclusive feature 3: Discount Combobox
+            self.discount_var = tk.StringVar(value="5%")
+            discount_options = ["5%", "75%"]
+            discount_combobox = ttk.Combobox(self.member_content_frame, values=discount_options, textvariable=self.discount_var, bootstyle="info", state="readonly")
+            discount_combobox.pack(pady=5)
+            discount_combobox.bind("<<ComboboxSelected>>", self.apply_discount)
+    def validate_discount_code(self):
+        discount_code = self.discount_entry.get().strip()
+        if discount_code == "MRBAWA":
+            self.discount_var.set("75%")
+            self.apply_discount()
+            messagebox.showinfo("Discount", "75% discount applied successfully!")
+        else:
+            self.discount_var.set("5%")
+            self.apply_discount()
+            messagebox.showinfo("Discount", "5% member discount applied.")
+    def apply_discount(self, event=None):
+        discount = self.discount_var.get()
+        if discount == "75%":
+            self.cost_after_tax = self.cost_before_tax * 0.25
+        elif discount == "5%":
+            self.cost_after_tax = self.cost_before_tax * 0.95
+        self.cost_label_after_tax.config(text=f"Cost After Tax: ${round(self.cost_after_tax, 2)}")
 
     def add_chatbot_tab(self):
         """Add the ChatBot tab to the notebook."""
@@ -282,7 +324,6 @@ class PaintProgramUI(ttk.Window):
         self.pages['PaintOptions'] = paint_options_frame
         notebook = self.nametowidget(self.winfo_children()[0])
         notebook.add(paint_options_frame, text='Paint Options')
-    
         # Add a label
         label = ttk.Label(paint_options_frame, text="Select Your Paint", font=("Helvetica", 16, "bold"))
         label.grid(row=0, column=0, columnspan=2, pady=10)
@@ -396,7 +437,7 @@ class PaintProgramUI(ttk.Window):
     def on_confirm_paint(self):
         selected_paint = self.paint_choice_var.get()
         paint_price = self.paints[selected_paint]
-        self.paint_cans_needed = int(self.pages['Rooms'].grid_slaves(row=len(self.wall_entries) * 5 + 2, column=0)[0].cget("text").split(":")[1].strip())
+        self.paint_cans_needed = int(self.pages['Rooms'].grid_slaves(row=len(self.wall_entries) * 6 + 2, column=0)[0].cget("text").split(":")[1].strip())
         
         # Calculate cost before and after tax
         cost_before_tax = self.paint_cans_needed * paint_price
@@ -582,8 +623,8 @@ class PaintProgramUI(ttk.Window):
             discount_label = ttk.Label(discount_frame, text="Select Discount:", font=("Helvetica", 12))
             discount_label.grid(row=0, column=0, pady=5, padx=5, sticky=tk.W)
             
-            self.discount_var = tk.StringVar(value="0%")
-            discount_options = ["0%", "5%", "10%", "15%", "20%"]
+            self.discount_var = tk.StringVar(value="5%")
+            discount_options = ["5%", "75%"]
             discount_combobox = ttk.Combobox(discount_frame, values=discount_options, textvariable=self.discount_var, bootstyle="info", state="readonly")
             discount_combobox.grid(row=0, column=1, pady=5, padx=5)
             discount_combobox.bind("<<ComboboxSelected>>", self.apply_discount)
@@ -632,7 +673,7 @@ class PaintProgramUI(ttk.Window):
         
         # Add a frame to display the change
         self.change_frame = ttk.Frame(payment_frame)
-        self.change_frame.grid(row=row + 1, column=0, columnspan=2, pady=10, padx=5) 
+        self.change_frame.grid(row=row + 1, column=0, columnspan=2, pady=10, padx=5)
     def apply_discount(self, event):
         discount_percentage = int(self.discount_var.get().strip('%'))
         discount_amount = self.cost_before_tax * (discount_percentage / 100)
@@ -753,7 +794,36 @@ class PaintProgramUI(ttk.Window):
             messagebox.showinfo("Email Sent", "The receipt has been sent to your email address.")
         except Exception as e:
             messagebox.showerror("Email Error", f"Failed to send email: {e}")
+    def contact_support(self):
+        # Implement the logic to contact support
+        support_message = self.support_entry.get().strip()
+        if support_message:
+            try:
+                # Email configuration
+                sender_email = "your_email@gmail.com"
+                receiver_email = "support_email@example.com"
+                password = "your_email_password"
 
+                # Create the email content
+                message = MIMEMultipart()
+                message["From"] = sender_email
+                message["To"] = receiver_email
+                message["Subject"] = "Support Request from Member"
+                body = f"Support request message:\n\n{support_message}"
+                message.attach(MIMEText(body, "plain"))
+
+                # Connect to the Gmail SMTP server and send the email
+                server = smtplib.SMTP("smtp.gmail.com", 587)
+                server.starttls()
+                server.login(sender_email, password)
+                server.sendmail(sender_email, receiver_email, message.as_string())
+                server.quit()
+
+                messagebox.showinfo("Support", "Support request sent successfully.")
+            except Exception as e:
+                messagebox.showerror("Support", f"Failed to send support request: {e}")
+        else:
+            messagebox.showwarning("Support", "Please enter a message for support.")
 
 class ChatBotAI:
     def __init__(self):
@@ -847,9 +917,6 @@ class ChatBotUI(ttk.Frame):
         self.chat_history_text.insert(tk.END, f"{sender}: {message}\n\n", tag)
         self.chat_history_text.config(state=tk.DISABLED)
         self.chat_history_text.yview(tk.END)
-
-
-
 
 if __name__ == "__main__":
     app = PaintProgramUI()
