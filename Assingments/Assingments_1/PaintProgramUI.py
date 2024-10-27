@@ -38,7 +38,6 @@ Email
 #TODO
 # Add sound effect 
 # Add a progress bar
-# Add one more big feature (e.g. a game, a chatbot, a calculator, etc.) for memebers
 # Add a feature to save the invoice as a PDF and meber ids
 
 def lighter_color(self, color):
