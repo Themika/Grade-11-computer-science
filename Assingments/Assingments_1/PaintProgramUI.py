@@ -662,12 +662,8 @@ class PaintProgramUI(ttk.Window):
         # Add a button to confirm payment amount
         button_frame = ttk.Frame(payment_frame)
         button_frame.grid(row=row, column=0, columnspan=2, pady=10, padx=5, sticky=tk.W)
-        
-        confirm_amount_button = ttk.Button(button_frame, text="Confirm Amount", command=lambda: self.on_confirm_amount(self.cost_after_tax), bootstyle="success")
-        confirm_amount_button.grid(row=0, column=1, pady=10, padx=5, sticky=tk.E)
-        
-        # Add a button to confirm payment selection
-        confirm_button = ttk.Button(button_frame, text="Confirm Payment Selection", command=self.on_confirm_payment, bootstyle="success")
+        # Add a button to confirm amount and payment selection
+        confirm_button = ttk.Button(button_frame, text="Confirm Payment", command=lambda: [self.on_confirm_amount(self.cost_after_tax), self.on_confirm_payment()], bootstyle="success")
         confirm_button.grid(row=0, column=0, pady=10, padx=5, sticky=tk.W)
         
         # Add a frame to display the change
@@ -684,10 +680,10 @@ class PaintProgramUI(ttk.Window):
         self.cost_label_after_tax.config(text=f"Cost After Tax: ${round(self.cost_after_tax, 2)}")
     def on_confirm_amount(self, cost_after_tax):
         try:
-            entered_amount = float(self.amount_entry.get().strip())
-            if entered_amount >= cost_after_tax:
+            self.entered_amount = float(self.amount_entry.get().strip())
+            if self.entered_amount >= cost_after_tax:
                 print("Payment is sufficient.")
-                change = entered_amount - cost_after_tax
+                change = self.entered_amount - cost_after_tax
                 self.process_change(change)
             else:
                 print("Entered amount is not sufficient.")
@@ -735,64 +731,65 @@ class PaintProgramUI(ttk.Window):
         messagebox.showinfo("Payment Confirmation", f"Payment method '{selected_payment_method}' selected.")
         self.send_email_receipt()
     def send_email_receipt(self):
-        # Collect the email address entered by the user
-        recipient_email = self.email_entry.get().strip()
-        
-        # Generate the receipt content
-        name = self.name_entry.get().strip()
-        date_str = datetime.now().strftime("%Y-%m-%d")
-        paint_choice = self.paint_choice_var.get()
-        amount_of_paint = self.paint_cans_needed
-        paint_cost = self.paints[paint_choice]
-        subtotal = round(self.cost_before_tax, 2)
-        tax = round(self.cost_after_tax - self.cost_before_tax, 2)
-        total = round(self.cost_after_tax, 2)
-        subject = "Paint Order Receipt"
-        custom_details = f"Color: {self.color_var.get()}, Finish: {self.finish_type_var.get()}"
-        
-        receipt = f"""
-        *****************************************************
-        SIR MIXALOT PAINT
-        5353 Fake street, Burlington ON, N4C 4M2
-        invoice #: {randint(100000, 999999)}
-        Receiver Name: {name}
-        Date: {date_str}
-        Description: {paint_choice if paint_choice == "Custom Paint" else paint_choice}
-        Quantity: {amount_of_paint}
-        Price per gallon: ${paint_cost}
-        Subtotal: ${subtotal}
-        Tax (13%): ${tax}
-        Total: ${total}
-            Custom Properties:
-                {custom_details}
-        Balance Due: $0.00
-        Thank you for your business!
-        *****************************************************
-        """
+        if self.entered_amount >= self.cost_after_tax:
+            # Collect the email address entered by the user
+            recipient_email = self.email_entry.get().strip()
+            
+            # Generate the receipt content
+            name = self.name_entry.get().strip()
+            date_str = datetime.now().strftime("%Y-%m-%d")
+            paint_choice = self.paint_choice_var.get()
+            amount_of_paint = self.paint_cans_needed
+            paint_cost = self.paints[paint_choice]
+            subtotal = round(self.cost_before_tax, 2)
+            tax = round(self.cost_after_tax - self.cost_before_tax, 2)
+            total = round(self.cost_after_tax, 2)
+            subject = "Paint Order Receipt"
+            custom_details = f"Color: {self.color_var.get()}, Finish: {self.finish_type_var.get()}"
+            
+            receipt = f"""
+            *****************************************************
+            SIR MIXALOT PAINT
+            5353 Fake street, Burlington ON, N4C 4M2
+            invoice #: {randint(100000, 999999)}
+            Receiver Name: {name}
+            Date: {date_str}
+            Description: {paint_choice if paint_choice == "Custom Paint" else paint_choice}
+            Quantity: {amount_of_paint}
+            Price per gallon: ${paint_cost}
+            Subtotal: ${subtotal}
+            Tax (13%): ${tax}
+            Total: ${total}
+                Custom Properties:
+                    {custom_details}
+            Balance Due: $0.00
+            Thank you for your business!
+            *****************************************************
+            """
 
-        # Email credentials and SMTP server details
-        sender_email = os.getenv("SENDER_EMAIL")
-        sender_password = os.getenv("SENDER_PASSWORD")
-        smtp_server = "smtp.gmail.com"
-        smtp_port = 587
+            # Email credentials and SMTP server details
+            sender_email = os.getenv("SENDER_EMAIL")
+            sender_password = os.getenv("SENDER_PASSWORD")
+            smtp_server = "smtp.gmail.com"
+            smtp_port = 587
 
-        # Create the email message
-        msg = MIMEMultipart()
-        msg['From'] = sender_email
-        msg['To'] = recipient_email
-        msg['Subject'] = subject
-        msg.attach(MIMEText(receipt, 'plain'))
+            # Create the email message
+            msg = MIMEMultipart()
+            msg['From'] = sender_email
+            msg['To'] = recipient_email
+            msg['Subject'] = subject
+            msg.attach(MIMEText(receipt, 'plain'))
 
-        try:
-            # Connect to the SMTP server and send the email
-            server = smtplib.SMTP(smtp_server, smtp_port)
-            server.starttls()
-            server.login(sender_email, sender_password)
-            server.sendmail(sender_email, recipient_email, msg.as_string())
-            server.quit()
-            messagebox.showinfo("Email Sent", "The receipt has been sent to your email address.")
-        except Exception as e:
-            messagebox.showerror("Email Error", f"Failed to send email: {e}")
+            try:
+                # Connect to the SMTP server and send the email
+                server = smtplib.SMTP(smtp_server, smtp_port)
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.sendmail(sender_email, recipient_email, msg.as_string())
+                server.quit()
+                messagebox.showinfo("Email Sent", "The receipt has been sent to your email address.")
+            except Exception as e:
+                messagebox.showerror("Email Error", f"Failed to send email: {e}")
     def contact_support(self):
         # Implement the logic to contact support
         support_message = self.support_entry.get().strip()
