@@ -325,7 +325,6 @@ class PaymentPage(ttk.Frame):
         # Generate the receipt content
         name = user_data["name"]
         email = user_data["email"]
-        print(email)
 
         """Send an email receipt to the user."""
         # Get the current date
