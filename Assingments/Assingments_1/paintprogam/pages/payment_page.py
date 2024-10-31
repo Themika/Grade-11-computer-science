@@ -325,6 +325,7 @@ class PaymentPage(ttk.Frame):
         # Generate the receipt content
         name = user_data["name"]
         email = user_data["email"]
+        print(email)
 
         """Send an email receipt to the user."""
         # Get the current date
@@ -345,12 +346,12 @@ class PaymentPage(ttk.Frame):
         custom_details = (
             f"Color: {user_data['color']}, "
             f"Finish: {user_data['finish_type']}\n, "
-            f"Water Resistance: {user_data['water_resistance']}\n, "
-            f"Durability: {user_data['durability']}\n"
-            f"UV Protection: {user_data['uv_protection']}\n"
+            f"\tWater Resistance: {user_data['water_resistance']}\n, "
+            f"\tDurability: {user_data['durability']}\n"
+            f"\tUV Protection: {user_data['uv_protection']}\n"
             if paint_choice == "Custom Paint"
             else f"Color: {user_data['color']}\n, "
-            f"Finish: {user_data['finish_type']}," 
+            f"\tFinish: {user_data['finish_type']}," 
         )
 
         send_email(

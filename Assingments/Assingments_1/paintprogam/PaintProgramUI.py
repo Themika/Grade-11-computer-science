@@ -30,6 +30,7 @@ of painting the room, providing you with 2 payment options.
     The AI assistant will also help you with any questions you have about the program.
 5.) Email:
     The program will also allow you to send an email to the support team.
+I reccomend checking out the settings page first to see all the features of the program. Such as langaueg translation, theme changing, Dicount codes, font size changing, and support.
 Functions used
     Enumerate()
         https://www.w3schools.com/python/ref_func_enumerate.asp
