@@ -3,25 +3,92 @@ from ttkbootstrap.constants import *
 import tkinter as tk
 from tkinter import colorchooser
 
+translations = {
+    "English": {
+        "select_paint": "Select Your Paint",
+        "confirm_paint_selection": "Confirm Paint Selection",
+        "custom_paint_options": "Custom Paint Options",
+        "choose_paint_color": "Choose Paint Color:",
+        "select_color": "Select Color",
+        "confirm_color": "Confirm Color",
+        "choose_finish_type": "Choose Finish Type:",
+        "water_resistance_amount": "Water Resistance Amount:",
+        "choose_durability_level": "Choose Durability Level:",
+        "uv_protection_level": "UV Protection Level:",
+        "scratch_resistance": "Scratch Resistance:",
+        "eco_friendly": "Eco-Friendly:",
+        "drying_time": "Drying Time (hours):",
+        "coverage_per_gallon": "Coverage per Gallon (sq ft):",
+        "voc_level": "VOC Level (g/L):",
+        "confirm_custom_paint_options": "Confirm Custom Paint Options",
+        "cost_before_tax": "Cost Before Tax",
+        "cost_after_tax": "Cost After Tax",
+        "matte": "Matte",
+        "glossy": "Glossy",
+        "satin": "Satin",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "standard": "Standard",
+        "premium": "Premium",
+        "ultra": "Ultra",
+        "no": "No",
+        "yes": "Yes"
+    },
+    "French": {
+        "select_paint": "Sélectionnez votre peinture",
+        "confirm_paint_selection": "Confirmer la sélection de peinture",
+        "custom_paint_options": "Options de peinture personnalisées",
+        "choose_paint_color": "Choisissez la couleur de la peinture:",
+        "select_color": "Choisir la couleur",
+        "confirm_color": "Confirmer la couleur",
+        "choose_finish_type": "Choisissez le type de finition:",
+        "water_resistance_amount": "Quantité de résistance à l'eau:",
+        "choose_durability_level": "Choisissez le niveau de durabilité:",
+        "uv_protection_level": "Niveau de protection UV:",
+        "scratch_resistance": "Résistance aux rayures:",
+        "eco_friendly": "Écologique:",
+        "drying_time": "Temps de séchage (heures):",
+        "coverage_per_gallon": "Couverture par gallon (pi²):",
+        "voc_level": "Niveau de COV (g/L):",
+        "confirm_custom_paint_options": "Confirmer les options de peinture personnalisées",
+        "cost_before_tax": "Coût avant taxes",
+        "cost_after_tax": "Coût après taxes",
+        "matte": "Mat",
+        "glossy": "Brillant",
+        "satin": "Satiné",
+        "low": "Faible",
+        "medium": "Moyenne",
+        "high": "Haute",
+        "standard": "Standard",
+        "premium": "Premium",
+        "ultra": "Ultra",
+        "no": "Non",
+        "yes": "Oui"
+    }
+}
+
+
 class PaintOptionsPage(ttk.Frame):
     def __init__(self, container, parent):
         super().__init__(container)
         self.parent = parent
+        self.language = parent.current_language
         self.color_var = tk.StringVar(value="Red")
-        self.finish_type_var = tk.StringVar(value="Matte")
-        self.water_resistance_var = tk.StringVar(value="Low")
-        self.durability_var = tk.StringVar(value="Standard")
-        self.uv_protection_var = tk.StringVar(value="Low")
-        self.scratch_resistance_var = tk.StringVar(value="Low")
-        self.eco_friendly_var = tk.StringVar(value="No")
+        self.finish_type_var = tk.StringVar(value=translations[self.language]["matte"])
+        self.water_resistance_var = tk.StringVar(value=translations[self.language]["low"])
+        self.durability_var = tk.StringVar(value=translations[self.language]["standard"])
+        self.uv_protection_var = tk.StringVar(value=translations[self.language]["low"])
+        self.scratch_resistance_var = tk.StringVar(value=translations[self.language]["low"])
+        self.eco_friendly_var = tk.StringVar(value=translations[self.language]["no"])
         self.drying_time_var = tk.StringVar(value="1")
         self.coverage_var = tk.StringVar(value="400")
         self.voc_var = tk.StringVar(value="50")
         self.create_widgets()
     
     def create_widgets(self):
-        label = ttk.Label(self, text="Selet Your Paint", font=("Helvetica", 16, "bold"))
-        label.grid(row=0, column=0, columnspan=2, pady=10)
+        self.label = ttk.Label(self, text=translations[self.language]["select_paint"], font=("Helvetica", 16, "bold"))
+        self.label.grid(row=0, column=0, columnspan=2, pady=10)
     
         self.paints = {
             "Value Paint": 40,
@@ -40,8 +107,8 @@ class PaintOptionsPage(ttk.Frame):
             ttk.Radiobutton(self, text=f"{paint}: ${price} per gallon", variable=self.paint_choice_var, value=paint).grid(row=row, column=0, sticky=tk.W, pady=5, padx=50)
             row += 1
     
-        confirm_button = ttk.Button(self, text="Confirm Paint Selection", command=self.on_confirm_paint, bootstyle="success")
-        confirm_button.grid(row=row, column=0, columnspan=2, pady=10)
+        self.confirm_button = ttk.Button(self, text=translations[self.language]["confirm_paint_selection"], command=self.on_confirm_paint, bootstyle="success")
+        self.confirm_button.grid(row=row, column=0, columnspan=2, pady=10)
 
     def create_custom_paint_panel(self, selected_paint):
         if hasattr(self, 'custom_paint_frame'):
@@ -51,7 +118,7 @@ class PaintOptionsPage(ttk.Frame):
         self.custom_paint_frame.grid(row=0, column=2, rowspan=len(self.paints) + 4, padx=20, pady=10, sticky=tk.N)
     
         # Add a label for the paint preview
-        label = ttk.Label(self.custom_paint_frame, text="Custom Paint Options", font=("Helvetica", 16, "bold"))
+        label = ttk.Label(self.custom_paint_frame, text=translations[self.language]["custom_paint_options"], font=("Helvetica", 16, "bold"))
         label.grid(row=0, column=0, columnspan=2, pady=10)
     
         # Add a canvas for paint preview
@@ -60,19 +127,19 @@ class PaintOptionsPage(ttk.Frame):
         
         self.update_paint_preview()
         # Add options for paint color
-        color_label = ttk.Label(self.custom_paint_frame, text="Choose Paint Color:")
+        color_label = ttk.Label(self.custom_paint_frame, text=translations[self.language]["choose_paint_color"])
         color_label.grid(row=1, column=0, pady=5, padx=5, sticky=tk.W)
-        color_button = ttk.Button(self.custom_paint_frame, text="Select Color", command=self.choose_color, bootstyle="info")
+        color_button = ttk.Button(self.custom_paint_frame, text=translations[self.language]["select_color"], command=self.choose_color, bootstyle="info")
         color_button.grid(row=1, column=1, pady=5, padx=5)
     
-        color_button_confirm = ttk.Button(self.custom_paint_frame, text="Confirm Color", bootstyle="info")
+        color_button_confirm = ttk.Button(self.custom_paint_frame, text=translations[self.language]["confirm_color"], bootstyle="info")
         color_button_confirm.grid(row=2, column=1, pady=5, padx=5)
         color_button_confirm.bind("<ButtonRelease-1>", lambda e: self.update_paint_preview())
         
         # Add options for finish type
-        finish_type_label = ttk.Label(self.custom_paint_frame, text="Choose Finish Type:")
+        finish_type_label = ttk.Label(self.custom_paint_frame, text=translations[self.language]["choose_finish_type"])
         finish_type_label.grid(row=3, column=0, pady=5, padx=5, sticky=tk.W)
-        finish_type_options = ["Matte", "Glossy", "Satin"]
+        finish_type_options = [translations[self.language]["matte"], translations[self.language]["glossy"], translations[self.language]["satin"]]
         finish_type_combobox = ttk.Combobox(self.custom_paint_frame, values=finish_type_options, textvariable=self.finish_type_var, bootstyle="info", state="readonly")
         finish_type_combobox.grid(row=3, column=1, pady=5, padx=5)
         finish_type_combobox.bind("<<ComboboxSelected>>", lambda e: self.update_paint_preview())
@@ -91,66 +158,66 @@ class PaintOptionsPage(ttk.Frame):
     
         if num_options >= 2:
             # Add options for water resistance amount
-            water_resistance_label = ttk.Label(self.custom_paint_frame, text="Water Resistance Amount:")
+            water_resistance_label = ttk.Label(self.custom_paint_frame, text=translations[self.language]["water_resistance_amount"])
             water_resistance_label.grid(row=4, column=0, pady=5, padx=5, sticky=tk.W)
-            water_resistance_options = ["Low", "Medium", "High"]
-            water_resistance_combobox = ttk.Combobox(self.custom_paint_frame, values=water_resistance_options, textvariable=self.water_resistance_var, bootstyle="info", state="readonly")
-            water_resistance_combobox.grid(row=4, column=1, pady=5, padx=5)
-            water_resistance_combobox.bind("<<ComboboxSelected>>", lambda e: self.update_paint_preview())
+            water_resistance_options = [translations[self.language]["low"], translations[self.language]["medium"], translations[self.language]["high"]]
+            self.water_resistance_combobox = ttk.Combobox(self.custom_paint_frame, values=water_resistance_options, textvariable=self.water_resistance_var, bootstyle="info", state="readonly")
+            self.water_resistance_combobox.grid(row=4, column=1, pady=5, padx=5)
+            self.water_resistance_combobox.bind("<<ComboboxSelected>>", lambda e: self.update_paint_preview())
         
         if num_options >= 3:
             # Add options for durability level
-            durability_label = ttk.Label(self.custom_paint_frame, text="Choose Durability Level:")
+            durability_label = ttk.Label(self.custom_paint_frame, text=translations[self.language]["choose_durability_level"])
             durability_label.grid(row=5, column=0, pady=5, padx=5, sticky=tk.W)
-            durability_options = ["Standard", "Premium", "Ultra"]
-            durability_combobox = ttk.Combobox(self.custom_paint_frame, values=durability_options, textvariable=self.durability_var, bootstyle="info")
-            durability_combobox.grid(row=5, column=1, pady=5, padx=5)
+            durability_options = [translations[self.language]["standard"], translations[self.language]["premium"], translations[self.language]["ultra"]]
+            self.durability_combobox = ttk.Combobox(self.custom_paint_frame, values=durability_options, textvariable=self.durability_var, bootstyle="info")
+            self.durability_combobox.grid(row=5, column=1, pady=5, padx=5)
         
         if num_options >= 4:
             # Add options for UV protection level
-            uv_protection_label = ttk.Label(self.custom_paint_frame, text="UV Protection Level:")
+            uv_protection_label = ttk.Label(self.custom_paint_frame, text=translations[self.language]["uv_protection_level"])
             uv_protection_label.grid(row=6, column=0, pady=5, padx=5, sticky=tk.W)
-            uv_protection_options = ["Low", "Medium", "High"]
-            uv_protection_combobox = ttk.Combobox(self.custom_paint_frame, values=uv_protection_options, textvariable=self.uv_protection_var, bootstyle="info")
-            uv_protection_combobox.grid(row=6, column=1, pady=5, padx=5)
+            uv_protection_options = [translations[self.language]["low"], translations[self.language]["medium"], translations[self.language]["high"]]
+            self.uv_protection_combobox = ttk.Combobox(self.custom_paint_frame, values=uv_protection_options, textvariable=self.uv_protection_var, bootstyle="info")
+            self.uv_protection_combobox.grid(row=6, column=1, pady=5, padx=5)
         
         if num_options >= 5:
             # Add options for scratch resistance
-            scratch_resistance_label = ttk.Label(self.custom_paint_frame, text="Scratch Resistance:")
+            scratch_resistance_label = ttk.Label(self.custom_paint_frame, text=translations[self.language]["scratch_resistance"])
             scratch_resistance_label.grid(row=7, column=0, pady=5, padx=5, sticky=tk.W)
-            scratch_resistance_options = ["Low", "Medium", "High"]
-            scratch_resistance_combobox = ttk.Combobox(self.custom_paint_frame, values=scratch_resistance_options, textvariable=self.scratch_resistance_var, bootstyle="info")
-            scratch_resistance_combobox.grid(row=7, column=1, pady=5, padx=5)
+            scratch_resistance_options = [translations[self.language]["low"], translations[self.language]["medium"], translations[self.language]["high"]]
+            self.scratch_resistance_combobox = ttk.Combobox(self.custom_paint_frame, values=scratch_resistance_options, textvariable=self.scratch_resistance_var, bootstyle="info")
+            self.scratch_resistance_combobox.grid(row=7, column=1, pady=5, padx=5)
         
         if num_options >= 6:
             # Add options for eco-friendly
-            eco_friendly_label = ttk.Label(self.custom_paint_frame, text="Eco-Friendly:")
+            eco_friendly_label = ttk.Label(self.custom_paint_frame, text=translations[self.language]["eco_friendly"])
             eco_friendly_label.grid(row=8, column=0, pady=5, padx=5, sticky=tk.W)
-            eco_friendly_options = ["No", "Yes"]
-            eco_friendly_combobox = ttk.Combobox(self.custom_paint_frame, values=eco_friendly_options, textvariable=self.eco_friendly_var, bootstyle="info")
-            eco_friendly_combobox.grid(row=8, column=1, pady=5, padx=5)
+            eco_friendly_options = [translations[self.language]["no"], translations[self.language]["yes"]]
+            self.eco_friendly_combobox = ttk.Combobox(self.custom_paint_frame, values=eco_friendly_options, textvariable=self.eco_friendly_var, bootstyle="info")
+            self.eco_friendly_combobox.grid(row=8, column=1, pady=5, padx=5)
         
         if num_options >= 7:
             # Add options for drying time
-            drying_time_label = ttk.Label(self.custom_paint_frame, text="Drying Time (hours):")
+            drying_time_label = ttk.Label(self.custom_paint_frame, text=translations[self.language]["drying_time"])
             drying_time_label.grid(row=9, column=0, pady=5, padx=5, sticky=tk.W)
             drying_time_entry = ttk.Entry(self.custom_paint_frame, textvariable=self.drying_time_var, bootstyle="info")
             drying_time_entry.grid(row=9, column=1, pady=5, padx=5)
         
             # Add options for coverage per gallon
-            coverage_label = ttk.Label(self.custom_paint_frame, text="Coverage per Gallon (sq ft):")
+            coverage_label = ttk.Label(self.custom_paint_frame, text=translations[self.language]["coverage_per_gallon"])
             coverage_label.grid(row=10, column=0, pady=5, padx=5, sticky=tk.W)
             coverage_entry = ttk.Entry(self.custom_paint_frame, textvariable=self.coverage_var, bootstyle="info")
             coverage_entry.grid(row=10, column=1, pady=5, padx=5)
         
             # Add options for VOC level
-            voc_label = ttk.Label(self.custom_paint_frame, text="VOC Level (g/L):")
+            voc_label = ttk.Label(self.custom_paint_frame, text=translations[self.language]["voc_level"])
             voc_label.grid(row=11, column=0, pady=5, padx=5, sticky=tk.W)
             voc_entry = ttk.Entry(self.custom_paint_frame, textvariable=self.voc_var, bootstyle="info")
             voc_entry.grid(row=11, column=1, pady=5, padx=5)
     
         # Add a button to confirm custom paint options
-        confirm_custom_paint_button = ttk.Button(self.custom_paint_frame, text="Confirm Custom Paint Options", command=self.on_confirm_custom_paint, bootstyle="success")
+        confirm_custom_paint_button = ttk.Button(self.custom_paint_frame, text=translations[self.language]["confirm_custom_paint_options"], command=self.on_confirm_custom_paint, bootstyle="success")
         confirm_custom_paint_button.grid(row=12, column=0, columnspan=2, pady=10)    
 
     def choose_color(self):
@@ -237,11 +304,11 @@ class PaintOptionsPage(ttk.Frame):
         self.parent.user_data.update({"cost_before_tax": cost_before_tax, "cost_after_tax": cost_after_tax})
         
         # Display the costs
-        cost_label_before_tax = ttk.Label(self.parent.pages['PaintOptions'], text=f"{'Cost Before Tax'}: ${round(cost_before_tax, 2)}", font=("Helvetica", 12, "bold"))
-        cost_label_before_tax.grid(row=len(self.paints) + 2, column=0, columnspan=2, pady=10, padx=50)
+        self.cost_label_before_tax = ttk.Label(self.parent.pages['PaintOptions'], text=f"{translations[self.language]['cost_before_tax']}: ${round(cost_before_tax, 2)}", font=("Helvetica", 12, "bold"))
+        self.cost_label_before_tax.grid(row=len(self.paints) + 2, column=0, columnspan=2, pady=10, padx=50)
         
-        cost_label_after_tax = ttk.Label(self.parent.pages['PaintOptions'], text=f"{'Cost After Tax'}: ${round(cost_after_tax, 2)}", font=("Helvetica", 12, "bold"))
-        cost_label_after_tax.grid(row=len(self.paints) + 3, column=0, columnspan=2, pady=10, padx=50)
+        self.cost_label_after_tax = ttk.Label(self.parent.pages['PaintOptions'], text=f"{translations[self.language]['cost_after_tax']}: ${round(cost_after_tax, 2)}", font=("Helvetica", 12, "bold"))
+        self.cost_label_after_tax.grid(row=len(self.paints) + 3, column=0, columnspan=2, pady=10, padx=50)
         
         print(f"Selected Paint: {selected_paint}")
         print(f"Cost Before Tax: ${round(cost_before_tax, 2)}")
@@ -250,5 +317,12 @@ class PaintOptionsPage(ttk.Frame):
         # Create custom paint panel if the selected paint is "Custom Paint"
         self.create_custom_paint_panel(selected_paint)
 
-    def translate(self, text):
-        return self.parent.translate(text)
+    def update_language(self, language):
+        self.language = language
+        self.label.config(text=translations[language]["select_paint"])
+        self.confirm_button.config(text=translations[language]["confirm_paint_selection"])
+        if hasattr(self, 'custom_paint_frame'):
+            self.custom_paint_frame.grid_remove()
+        self.create_custom_paint_panel(self.paint_choice_var.get())
+        self.cost_label_before_tax.config(text=translations[language]["cost_before_tax"])
+        self.cost_label_after_tax.config(text=translations[language]["cost_after_tax"])

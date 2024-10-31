@@ -12,16 +12,16 @@ translations = {
         "email_label": "Email Address:",
         "age_label": "Age:",
         "member_check": "Member",
-        "submit_button": "Submit",
+        "submit_button": "Submit"
     },
     "French": {
         "welcome_label": "Bienvenue dans le programme de peinture!",
         "name_label": "Nom:",
         "rooms_label": "Nombre de chambres:",
         "email_label": "Adresse e-mail:",
-        'age_label': "Âge:",
+        "age_label": "Âge:",
         "member_check": "Membre",
-        "submit_button": "Soumettre",
+        "submit_button": "Soumettre"
     }
 }
 
@@ -29,7 +29,7 @@ class HomePage(ttk.Frame):
     def __init__(self, container, parent):
         super().__init__(container)
         self.parent = parent
-        self.language = parent.language
+        self.language = parent.current_language  # Use current_language instead of language
 
         self.create_widgets()
 
@@ -52,25 +52,26 @@ class HomePage(ttk.Frame):
         self.rooms_error_label = ttk.Label(self, text="", foreground="red")
         self.rooms_error_label.pack(pady=5)
         
-        self.email_label = ttk.Label(self, text="Email Address:")
+        self.email_label = ttk.Label(self, text=translations[self.language]["email_label"])
         self.email_label.pack(pady=5)
         self.email_entry = ttk.Entry(self, bootstyle="info")
         self.email_entry.pack(pady=5)
         self.email_error_label = ttk.Label(self, text="", foreground="red")
         self.email_error_label.pack(pady=5)
         
-        self.age_label = ttk.Label(self, text="Age:")
+        self.age_label = ttk.Label(self, text=translations[self.language]["age_label"])
         self.age_label.pack(pady=5)
         self.age_entry = ttk.Entry(self, bootstyle="info")
         self.age_entry.pack(pady=5)
         self.age_error_label = ttk.Label(self, text="", foreground="red")
         self.age_error_label.pack(pady=5)
         
-        self.member_check = ttk.Checkbutton(self, text="Member", variable=self.parent.member_var, bootstyle="success-round-toggle")
+        self.member_check = ttk.Checkbutton(self, text=translations[self.language]["member_check"], variable=self.parent.member_var, bootstyle="success-round-toggle")
         self.member_check.pack(pady=5)
         
-        self.submit_button = ttk.Button(self, text="Submit", command=self.on_button_click, bootstyle="success")
+        self.submit_button = ttk.Button(self, text=translations[self.language]["submit_button"], command=self.on_button_click, bootstyle="success")
         self.submit_button.pack(pady=10)
+
     def update_language(self, language):
         """Update all labels to the selected language."""
         self.language = language
@@ -79,6 +80,9 @@ class HomePage(ttk.Frame):
         self.rooms_label.config(text=translations[language]["rooms_label"])
         self.email_label.config(text=translations[language]["email_label"])
         self.age_label.config(text=translations[language]["age_label"])
+        self.member_check.config(text=translations[language]["member_check"])
+        self.submit_button.config(text=translations[language]["submit_button"])
+
     def on_button_click(self):
         name = self.name_entry.get().strip()
         rooms = self.rooms_entry.get().strip()
