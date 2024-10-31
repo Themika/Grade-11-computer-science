@@ -1,8 +1,9 @@
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
-import tkinter as tk
-from tkinter import messagebox
 import os
+import tkinter as tk
+
+from ttkbootstrap.constants import *
+from tkinter import messagebox
 from dotenv import load_dotenv
 from utils.email_utils import send_email
 # Translations for different languages

@@ -1,8 +1,9 @@
 import smtplib
+import os
+
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from tkinter import messagebox
-import os
 
 def send_email(sender_email, receiver_email, subject, body, password):
     """Send an email using SMTP."""

@@ -1,11 +1,12 @@
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
 import tkinter as tk
+import os
+
+from ttkbootstrap.constants import *
 from tkinter import messagebox
 from utils.email_utils import send_email
 from datetime import datetime
 from random import randint
-import os
 from dotenv import load_dotenv
 # Translations for different languages
 translations = {

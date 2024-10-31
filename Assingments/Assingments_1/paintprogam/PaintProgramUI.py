@@ -1,6 +1,7 @@
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
 import tkinter as tk
+
+from ttkbootstrap.constants import *
 from dotenv import load_dotenv
 from pages.home_page import HomePage
 from pages.settings_page import SettingsPage
@@ -15,15 +16,35 @@ Date: 2024-09-18
 Name: Themika Weerasuriya
 This program is a simple program that will allow a user to choose from various interior paint options. Then give you an invoice on the cost
 of painting the room, providing you with 2 payment options.
-
+1.) Discount code is MRBAWA:
+    - 75% discount
+2.) Non-member:
+    - 5% discount
+3.) Settings:
+    The program will also allow you to change the language of the program to French.
+    The program will also allow you to change the theme of the program to light or dark.
+    The program will also allow you to change the font size of the program.
+    This program for premium members will allow you to contact support.
+4.) ChatBot:
+    This program for premium members will allow you to enter a discount code and a AI assistant will help you with anything.
+    The AI assistant will also help you with any questions you have about the program.
+5.) Email:
+    The program will also allow you to send an email to the support team.
 Functions used
-Enumerate()
-    https://www.w3schools.com/python/ref_func_enumerate.asp
-isInstance()
-    https://www.w3schools.com/python/ref_func_isinstance.asp
-hasatrr()
-    https://www.w3schools.com/python/ref_func_hasattr.asp
-
+    Enumerate()
+        https://www.w3schools.com/python/ref_func_enumerate.asp
+    isInstance()
+        https://www.w3schools.com/python/ref_func_isinstance.asp
+    hasatrr()
+        https://www.w3schools.com/python/ref_func_hasattr.asp
+    ttkbootstrap
+        https://ttkbootstrap.readthedocs.io/en/latest/
+    smtplib
+        https://docs.python.org/3/library/smtplib.html
+        https://www.youtube.com/watch?v=S465v4mWsRg
+    tkinter 
+        https://docs.python.org/3/library/tkinter.html
+        https://www.youtube.com/watch?v=epDKamC-V-8  
 """
 # Translations for the application
 translations = {
