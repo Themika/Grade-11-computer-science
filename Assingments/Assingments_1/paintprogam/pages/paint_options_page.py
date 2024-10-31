@@ -2,7 +2,7 @@ import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import tkinter as tk
 from tkinter import colorchooser
-
+from tkinter import messagebox
 translations = {
     "English": {
         "select_paint": "Select Your Paint",
@@ -18,7 +18,6 @@ translations = {
         "scratch_resistance": "Scratch Resistance:",
         "eco_friendly": "Eco-Friendly:",
         "drying_time": "Drying Time (hours):",
-        "coverage_per_gallon": "Coverage per Gallon (sq ft):",
         "voc_level": "VOC Level (g/L):",
         "confirm_custom_paint_options": "Confirm Custom Paint Options",
         "cost_before_tax": "Cost Before Tax",
@@ -80,7 +79,7 @@ class PaintOptionsPage(ttk.Frame):
         self.durability_var = tk.StringVar(value=translations[self.language]["standard"])
         self.uv_protection_var = tk.StringVar(value=translations[self.language]["low"])
         self.scratch_resistance_var = tk.StringVar(value=translations[self.language]["low"])
-        self.eco_friendly_var = tk.StringVar(value=translations[self.language]["no"])
+        self.eco_friendly_var = tk.StringVar(value="No")
         self.drying_time_var = tk.StringVar(value="1")
         self.coverage_var = tk.StringVar(value="400")
         self.voc_var = tk.StringVar(value="50")
@@ -203,13 +202,6 @@ class PaintOptionsPage(ttk.Frame):
             drying_time_label.grid(row=9, column=0, pady=5, padx=5, sticky=tk.W)
             drying_time_entry = ttk.Entry(self.custom_paint_frame, textvariable=self.drying_time_var, bootstyle="info")
             drying_time_entry.grid(row=9, column=1, pady=5, padx=5)
-        
-            # Add options for coverage per gallon
-            coverage_label = ttk.Label(self.custom_paint_frame, text=translations[self.language]["coverage_per_gallon"])
-            coverage_label.grid(row=10, column=0, pady=5, padx=5, sticky=tk.W)
-            coverage_entry = ttk.Entry(self.custom_paint_frame, textvariable=self.coverage_var, bootstyle="info")
-            coverage_entry.grid(row=10, column=1, pady=5, padx=5)
-        
             # Add options for VOC level
             voc_label = ttk.Label(self.custom_paint_frame, text=translations[self.language]["voc_level"])
             voc_label.grid(row=11, column=0, pady=5, padx=5, sticky=tk.W)
@@ -261,6 +253,23 @@ class PaintOptionsPage(ttk.Frame):
         selected_water_resistance = self.water_resistance_var.get()
         selected_finish_type = self.finish_type_var.get()
         selected_durability = self.durability_var.get()
+
+        # Validate VOC level, coverage, and drying time
+        try:
+            voc_level = float(self.voc_var.get())
+            coverage = float(self.coverage_var.get())
+            drying_time = float(self.drying_time_var.get())
+
+            if voc_level < 0:
+                messagebox.showerror("Input Error", "VOC Level cannot be negative.")
+                return
+            if drying_time < 0:
+                messagebox.showerror("Input Error", "Drying time cannot be negative.")
+                return
+        except ValueError:
+            messagebox.showerror("Input Error", "Please enter valid numerical values.")
+            return
+
         self.parent.user_data.update({
             "color": selected_color,
             "water_resistance": selected_water_resistance,

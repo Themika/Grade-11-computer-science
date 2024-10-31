@@ -70,17 +70,6 @@ class SettingsPage(ttk.Frame):
         )
         font_size_spinbox.pack(pady=5)
 
-        # Checkbox
-        self.checkbox_var = ttk.BooleanVar()
-        self.checkbox = ttk.Checkbutton(self, text=translations[self.language]["enable_feature"], variable=self.checkbox_var, bootstyle="info-round-toggle")
-        self.checkbox.pack(pady=10)
-
-        # Slider
-        self.slider_var = ttk.IntVar(value=50)
-        self.slider_label = ttk.Label(self, text=translations[self.language]["volume_label"], bootstyle="info")
-        self.slider_label.pack(pady=5)
-        self.slider = ttk.Scale(self, from_=0, to=100, variable=self.slider_var, bootstyle="info")
-        self.slider.pack(pady=5)
 
         self.update_member_content()
 
