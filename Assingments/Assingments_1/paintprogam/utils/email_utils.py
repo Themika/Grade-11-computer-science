@@ -22,5 +22,11 @@ def send_email(sender_email, receiver_email, subject, body, password):
         server.quit()
 
         messagebox.showinfo("Email", "Email sent successfully.")
+    except smtplib.SMTPAuthenticationError:
+        messagebox.showerror("Email", "Failed to authenticate with the SMTP server. Check your email and password.")
+    except smtplib.SMTPConnectError:
+        messagebox.showerror("Email", "Failed to connect to the SMTP server. Check your network connection.")
+    except smtplib.SMTPException as e:
+        messagebox.showerror("Email", f"SMTP error occurred: {e}")
     except Exception as e:
         messagebox.showerror("Email", f"Failed to send email: {e}")

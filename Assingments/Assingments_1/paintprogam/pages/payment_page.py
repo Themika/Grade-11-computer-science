@@ -98,11 +98,11 @@ class PaymentPage(ttk.Frame):
             discount_label = ttk.Label(discount_frame, text=translations[self.language]["select_discount"], font=("Helvetica", 12))
             discount_label.grid(row=0, column=0, pady=5, padx=5, sticky=tk.W)
             # Discount Combobox
-            self.discount_var = tk.StringVar(value="5%")
-            discount_options = ["5%", "75%"]
-            discount_combobox = ttk.Combobox(discount_frame, values=discount_options, textvariable=self.discount_var, bootstyle="info", state="readonly")
-            discount_combobox.grid(row=0, column=1, pady=5, padx=5)
-            discount_combobox.bind("<<ComboboxSelected>>", self.parent.apply_discount)
+            self.discount_var = tk.StringVar(value=f"")
+            discount_options = [f"{self.parent.discount_var.get()}"]
+            self.discount_combobox = ttk.Combobox(discount_frame, values=discount_options, textvariable=self.discount_var, bootstyle="info", state="readonly")
+            self.discount_combobox.grid(row=0, column=1, pady=5, padx=5)
+            self.discount_combobox.bind("<<ComboboxSelected>>", self.apply_discount)
             row = 4
         else:
             row = 3
@@ -145,7 +145,7 @@ class PaymentPage(ttk.Frame):
         self.change_frame.grid(row=row + 1, column=0, columnspan=2, pady=10, padx=5)  
         # Hide amount entry and label for Credit Card payment
         self.update_payment_fields()
-    # Update payment fields based on the selected payment method
+
     def update_payment_fields(self):
         # Clear previous payment fields
         for widget in self.payment_fields_frame.winfo_children():
@@ -188,6 +188,15 @@ class PaymentPage(ttk.Frame):
         elif selected_payment_method == "Cash":
             # Show amount entry and label for Cash payment
             self.amount_frame.grid()
+
+    def apply_discount(self, event=None):
+        """Apply the selected discount and update the cost after tax."""
+        discount = self.discount_var.get()
+        if discount == "75%":
+            self.cost_after_tax = self.cost_before_tax * 0.25
+        elif discount == "5%":
+            self.cost_after_tax = self.cost_before_tax * 0.95
+        self.cost_label_after_tax.config(text=f"{translations[self.language]['cost_after_tax']}: ${round(self.cost_after_tax,1)}")
 
     def on_confirm_amount(self, cost_after_tax):
         try:
@@ -234,7 +243,7 @@ class PaymentPage(ttk.Frame):
             # Update the difference
             if count > 0:
                 change[name] = count
-                difference = round(difference - count * value, 2)
+                difference = round(difference - count * value, 1)
         
         # Ensure change_frame is initialized
         if not hasattr(self, 'change_frame'):
@@ -251,8 +260,9 @@ class PaymentPage(ttk.Frame):
         for name, count in change.items():
             ttk.Label(self.change_frame, text=f"{name}: {count}", font=("Helvetica", 12)).grid(row=row, column=0, columnspan=2, pady=2)
             row += 1
-    """Validate the entered payment amount and process the payment."""
+
     def on_confirm_payment(self):
+        """Validate the entered payment amount and process the payment."""
         if self.payment_choice_var.get() != "Credit Card" and not self.on_confirm_amount(self.cost_after_tax):
             return
         # Get the selected payment method
@@ -314,25 +324,34 @@ class PaymentPage(ttk.Frame):
         # Generate the receipt content
         name = user_data["name"]
         email = user_data["email"]
-        print(email)
+
         """Send an email receipt to the user."""
+        # Get the current date
         date_str = datetime.now().strftime("%Y-%m-%d")
+        # Get the user data
         paint_choice = user_data["paint_choice"]
+        # Custom paint details
         amount_of_paint =  user_data["total_paint_cans"]
+        # Calculate the total cost
         paint_cost = user_data["cost_after_tax"]
-        subtotal = round(self.cost_before_tax, 2)
-        tax = round(self.cost_after_tax - self.cost_before_tax, 2)
-        total = round(self.cost_after_tax, 2)
+        # Calculate the total cost
+        subtotal = round(self.cost_before_tax, 1)
+        # Calculate the tax
+        tax = round(self.cost_after_tax - self.cost_before_tax, 1)
+        total = round(self.cost_after_tax, 1)
         subject = "Paint Order Receipt"
+        # Custom paint details
         custom_details = (
             f"Color: {user_data['color']}, "
             f"Finish: {user_data['finish_type']}\n, "
             f"Water Resistance: {user_data['water_resistance']}\n, "
             f"Durability: {user_data['durability']}\n"
+            f"UV Protection: {user_data['uv_protection']}\n"
             if paint_choice == "Custom Paint"
             else f"Color: {user_data['color']}\n, "
             f"Finish: {user_data['finish_type']}," 
         )
+
         send_email(
             sender_email=os.getenv("SENDER_EMAIL"),
             receiver_email=email,
@@ -346,8 +365,8 @@ class PaymentPage(ttk.Frame):
             Date: {date_str}
             Description: {paint_choice if paint_choice == "Custom Paint" else paint_choice}
             Quantity: {amount_of_paint}
-            Price per gallon: ${paint_cost}
-            Subtotal: ${subtotal}
+            Price per gallon: ${round(paint_cost,2)}
+            Subtotal: ${round(subtotal,2)}
             Tax (13%): ${tax}
             Total: ${total}
                 Custom Properties:
@@ -364,8 +383,8 @@ class PaymentPage(ttk.Frame):
         self.language = language
         # Update all labels with new language
         self.label.config(text=translations[language]["select_payment_method"])
-        self.cost_label_before_tax.config(text=f"{translations[language]['cost_before_tax']}: ${round(self.cost_before_tax, 2)}")
-        self.cost_label_after_tax.config(text=f"{translations[language]['cost_after_tax']}: ${round(self.cost_after_tax, 2)}")
+        self.cost_label_before_tax.config(text=f"{translations[language]['cost_before_tax']}: ${round(self.cost_before_tax, 1)}")
+        self.cost_label_after_tax.config(text=f"{translations[language]['cost_after_tax']}: ${round(self.cost_after_tax, 1)}")
         # Update discount label if it exists
         if hasattr(self, 'discount_frame'):
             self.discount_label.config(text=translations[language]["select_discount"])

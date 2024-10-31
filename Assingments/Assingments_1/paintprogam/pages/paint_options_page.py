@@ -287,6 +287,7 @@ class PaintOptionsPage(ttk.Frame):
             "water_resistance": selected_water_resistance,
             "finish_type": selected_finish_type,
             "durability": selected_durability,
+            "uv_protection": self.uv_protection_var.get(),
         })
         # Display the selected options
         print(f"Selected Color: {selected_color}")
@@ -326,7 +327,8 @@ class PaintOptionsPage(ttk.Frame):
         self.paint_cans_needed = int(total_square_footage / coverage_per_gallon) + (total_square_footage % coverage_per_gallon > 0)
         
         # Calculate cost before and after tax
-        cost_before_tax = self.paint_cans_needed * paint_price
+        cost_before_tax = round(self.paint_cans_needed * paint_price,3)
+        print(f"Cost Before Tax: {cost_before_tax}")
         cost_after_tax = cost_before_tax * 1.13  # Assuming a tax rate of 13%
         self.parent.user_data.update({"cost_before_tax": cost_before_tax, "cost_after_tax": cost_after_tax})
         

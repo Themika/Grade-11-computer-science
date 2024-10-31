@@ -9,11 +9,22 @@ from pages.paint_options_page import PaintOptionsPage
 from pages.payment_page import PaymentPage
 from pages.chatbot_page import ChatBotUI
 from tkinter import messagebox
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-import os
 
+"""
+Date: 2024-09-18
+Name: Themika Weerasuriya
+This program is a simple program that will allow a user to choose from various interior paint options. Then give you an invoice on the cost
+of painting the room, providing you with 2 payment options.
+
+Functions used
+Enumerate()
+    https://www.w3schools.com/python/ref_func_enumerate.asp
+isInstance()
+    https://www.w3schools.com/python/ref_func_isinstance.asp
+hasatrr()
+    https://www.w3schools.com/python/ref_func_hasattr.asp
+
+"""
 # Translations for the application
 translations = {
     "English": {
@@ -27,11 +38,8 @@ translations = {
         "discount": "Discount",
         "discount_applied": "75% discount applied successfully!",
         "member_discount_applied": "5% member discount applied.",
-        "support": "Support",
-        "only_members_support": "Only members can contact support.",
-        "enter_support_message": "Please enter a message for support.",
-        "support_request_sent": "Support request sent successfully.",
-        "failed_to_send_support": "Failed to send support request"
+        "cost_after_tax": "Cost After Tax",
+        "code_activated": "CODE ACTIVATED",
     },
     "French": {
         "home": "Accueil",
@@ -44,11 +52,8 @@ translations = {
         "discount": "Remise",
         "discount_applied": "Remise de 75% appliquée avec succès!",
         "member_discount_applied": "Remise de 5% pour les membres appliquée.",
-        "support": "Support",
-        "only_members_support": "Seuls les membres peuvent contacter le support.",
-        "enter_support_message": "Veuillez entrer un message pour le support.",
-        "support_request_sent": "Demande de support envoyée avec succès.",
-        "failed_to_send_support": "Échec de l'envoi de la demande de support"
+        "cost_after_tax": "Coût après impôt",
+        "code_activated": "CODE ACTIVÉ",
     }
 }
 
@@ -66,6 +71,13 @@ class PaintProgramUI(ttk.Window):
         self.wall_entries = {}  # Initialize wall_entries
         self.member_content_frame = None  # Initialize member_content_frame
         self.current_language = "English"  # Default language to English
+        self.discount_var = tk.StringVar()  # Initialize discount_var
+        self.cost_before_tax = 0  # Initialize cost_before_tax
+        self.cost_after_tax = 0  # Initialize cost_after_tax
+        self.cost_label_after_tax = None  # Initialize cost_label_after_tax
+        self.discount_entry = tk.StringVar()  # Initialize discount_entry
+        self.code_activated_label = None  # Initialize code_activated_label
+        self.support_entry = tk.StringVar()  # Initialize support_entry
         load_dotenv()
         
         self.create_widgets()
@@ -83,6 +95,10 @@ class PaintProgramUI(ttk.Window):
         
         # Start on the home page
         self.notebook.select(self.pages['Main'])
+
+        # Create a label for displaying the cost after tax
+        self.cost_label_after_tax = ttk.Label(self.pages['Main'], text="")
+        self.cost_label_after_tax.pack(pady=10)
 
     def create_home_page(self):
         # Check if the home page already exists and remove it
@@ -127,7 +143,7 @@ class PaintProgramUI(ttk.Window):
         self.pages['Payment'] = payment_page
         self.notebook.add(payment_page, text=translations[self.current_language]['payment'])
         self.notebook.select(self.pages['Payment'])
-    
+
     def add_chatbot_tab(self):
         # Check if the chatbot page already exists and remove it
         if 'ChatBot' in self.pages:
@@ -237,12 +253,12 @@ class PaintProgramUI(ttk.Window):
         else:
             # Apply a 5% discount for non-members
             self.discount_var.set("5%")
-            # Check if the user is a member
+            self.pages['Payment'].update_discount_options(["5%"])
             self.apply_discount()
             messagebox.showinfo(translations[self.current_language]["discount"], translations[self.current_language]["member_discount_applied"])
 
     def apply_discount(self, event=None):
-        # Calculate the cost after applying the discount
+        """Apply the selected discount and update the cost after tax."""
         discount = self.discount_var.get()
         if discount == "75%":
             self.cost_after_tax = self.cost_before_tax * 0.25
@@ -250,43 +266,6 @@ class PaintProgramUI(ttk.Window):
             self.cost_after_tax = self.cost_before_tax * 0.95
         self.cost_label_after_tax.config(text=f"{translations[self.current_language]['cost_after_tax']}: ${round(self.cost_after_tax, 2)}")
 
-    def contact_support(self):
-        # Check if the user is a member
-        if not self.member_var.get():
-            messagebox.showwarning(translations[self.current_language]["support"], translations[self.current_language]["only_members_support"])
-            return
-
-        # Implement the logic to contact support
-        support_message = self.support_entry.get().strip()
-        # Check if the user entered a support message
-        if not support_message:
-            messagebox.showwarning(translations[self.current_language]["support"], translations[self.current_language]["enter_support_message"])
-            return
-
-        try:
-            # Email configuration
-            sender_email = f"{os.getenv('SENDER_EMAIL')}"
-            receiver_email = f"{os.getenv('SENDER_EMAIL')}"
-            password = f"{os.getenv('SENDER_PASSWORD')}"
-
-            # Create the email content
-            message = MIMEMultipart()
-            message["From"] = sender_email
-            message["To"] = receiver_email
-            message["Subject"] = translations[self.current_language]["support_request"]
-            body = f"{translations[self.current_language]['support_request_message']}:\n\n{support_message}"
-            message.attach(MIMEText(body, "plain"))
-
-            # Connect to the Gmail SMTP server and send the email
-            server = smtplib.SMTP("smtp.gmail.com", 587)
-            server.starttls()
-            server.login(sender_email, password)
-            server.sendmail(sender_email, receiver_email, message.as_string())
-            server.quit()
-
-            messagebox.showinfo(translations[self.current_language]["support"], translations[self.current_language]["support_request_sent"])
-        except Exception as e:
-            messagebox.showerror(translations[self.current_language]["support"], f"{translations[self.current_language]['failed_to_send_support']}: {e}")
 
     def on_submit_walls(self, wall_entries):
         """Validate wall dimensions and highlight invalid entries."""

@@ -1,6 +1,10 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import tkinter as tk
+from tkinter import messagebox
+import os
+from dotenv import load_dotenv
+from utils.email_utils import send_email
 # Translations for different languages
 translations = {
     "English": {
@@ -13,7 +17,14 @@ translations = {
         "enter_discount_code": "Enter Discount Code:",
         "apply_discount": "Apply Discount",
         "premium_support_contact": "Premium Support Contact:",
-        "contact_support": "Contact Support"
+        "contact_support": "Contact Support",
+        "support": "Support",
+        "only_members_support": "Only members can contact support.",
+        "enter_support_message": "Please enter a message for support.",
+        "support_request_sent": "Support request sent successfully.",
+        "failed_to_send_support": "Failed to send support request",
+        "support_request": "Support Request",
+        "support_request_message": "Support Request Message",
     },
     "French": {
         "select_language": "Choisir la langue:",
@@ -25,7 +36,14 @@ translations = {
         "enter_discount_code": "Entrer le code de réduction:",
         "apply_discount": "Appliquer la réduction",
         "premium_support_contact": "Contact de support premium:",
-        "contact_support": "Contacter le support"
+        "contact_support": "Contacter le support",
+        "support": "Support",
+        "only_members_support": "Seuls les membres peuvent contacter le support.",
+        "failed_to_send_support": "Échec de l'envoi de la demande de support",
+        "support_request": "Demande de support",
+        "support_request_message": "Message de demande de support",
+        "support_request_sent": "Demande de support envoyée avec succès.",
+        "failed_to_send_support": "Échec de l'envoi de la demande de support",
     }
 }
 class SettingsPage(ttk.Frame):
@@ -37,6 +55,7 @@ class SettingsPage(ttk.Frame):
         self.member_content_frame.pack(pady=10)
 
         self.create_widgets()
+        load_dotenv()
         self.update_member_content()
 
     def create_widgets(self):
@@ -112,8 +131,8 @@ class SettingsPage(ttk.Frame):
             discount_label = ttk.Label(self.member_content_frame, text=translations[self.language]["enter_discount_code"])
             discount_label.pack(pady=5)
             # Entry for discount code
-            self.discount_entry = ttk.Entry(self.member_content_frame, bootstyle="info")
-            self.discount_entry.pack(pady=5)
+            self.controller.discount_entry = ttk.Entry(self.member_content_frame, bootstyle="info")
+            self.controller.discount_entry.pack(pady=5)
             # Button to apply discount code
             discount_button = ttk.Button(self.member_content_frame, text=translations[self.language]["apply_discount"], command=self.controller.validate_discount_code, bootstyle="success")
             discount_button.pack(pady=5)
@@ -123,5 +142,35 @@ class SettingsPage(ttk.Frame):
             # Entry for support contact
             self.support_entry = ttk.Entry(self.member_content_frame, bootstyle="info")
             self.support_entry.pack(pady=5)
-            support_button = ttk.Button(self.member_content_frame, text=translations[self.language]["contact_support"], command=self.controller.contact_support, bootstyle="success")
+            support_button = ttk.Button(self.member_content_frame, text=translations[self.language]["contact_support"], command=self.contact_support, bootstyle="success")
             support_button.pack(pady=5)
+    def contact_support(self):
+        # Check if the user is a member
+        if not self.controller.member_var.get():
+            messagebox.showwarning(translations[self.current_language]["support"], translations[self.current_language]["only_members_support"])
+            return
+    
+        # Implement the logic to contact support
+        support_message = self.support_entry.get().strip()
+        # Check if the user entered a support message
+        if not support_message:
+            messagebox.showwarning(translations[self.current_language]["support"], translations[self.current_language]["enter_support_message"])
+            return
+    
+        try:
+            # Email configuration
+            sender_email = f"{os.getenv('SENDER_EMAIL')}"
+            receiver_email = f"{os.getenv('SENDER_EMAIL')}"
+            password = f"{os.getenv('SENDER_PASSWORD')}"
+    
+            # Create the email content
+            subject = translations[self.controller.current_language]["support_request"]
+            body = f"{translations[self.controller.current_language]['support_request_message']}:\n\n{support_message}"
+    
+            # Send the email
+            send_email(sender_email, receiver_email, subject, body, password)
+    
+            messagebox.showinfo(translations[self.controller.current_language]["support"], translations[self.controller.current_language]["support_request_sent"])
+        except Exception as e:
+            print(e)
+            messagebox.showerror(translations[self.controller.current_language]["support"], f"{translations[self.controller.current_language]['failed_to_send_support']}: {e}")
