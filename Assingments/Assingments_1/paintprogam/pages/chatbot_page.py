@@ -123,21 +123,25 @@ class ChatBotUI(ttk.Frame):
     def get_api_response(self, response):
         """Get a response from an API."""
         # Define the API endpoint and request parameters
-        url = f"{os.getenv('LINK')}"
+        url = f"https://cheapest-gpt-4-turbo-gpt-4-vision-chatgpt-openai-ai-api.p.rapidapi.com/v1/chat/completions"
         # Define the request payload and headers
         payload = {
             "messages": [
                 {
-                    # The user's message
                     "role": "user",
                     "content": f"{response}"
                 }
             ],
-            # The model and parameters for the API request
-            "model": f"{os.getenv('MODEL')}",
-            "max_tokens": {os.getenv('MAX_TOKENS')},
+            "model": "gpt-4o",
+            "max_tokens": 100,
             "temperature": 0.9
         }
+        headers = {
+            "x-rapidapi-key": "21c98ce353msh2e77624f518ce0bp1fb9f3jsn84b6d813ebd7",
+            "x-rapidapi-host": "cheapest-gpt-4-turbo-gpt-4-vision-chatgpt-openai-ai-api.p.rapidapi.com",
+            "Content-Type": "application/json"
+        }
+
         # Define the API request headers
         headers = {
             "x-rapidapi-key": f"{os.getenv('API_KEY')}",
@@ -150,6 +154,7 @@ class ChatBotUI(ttk.Frame):
             response = requests.post(url, json=payload, headers=headers)
             response.raise_for_status()  # Raise an error for bad status codes
             response_json = response.json()
+            print(response_json)
             # Extract the assistant's message content and format it
             message_content = self.format_response(response_json['choices'][0]['message']['content'])
             return {"response": message_content}
