@@ -38,6 +38,7 @@ Functions used
         https://www.w3schools.com/python/ref_func_isinstance.asp
     hasatrr()
         https://www.w3schools.com/python/ref_func_hasattr.asp
+Reasources uses
     ttkbootstrap
         https://ttkbootstrap.readthedocs.io/en/latest/
     smtplib
@@ -47,6 +48,9 @@ Functions used
         https://docs.python.org/3/library/tkinter.html
         https://www.youtube.com/watch?v=epDKamC-V-8  
 """
+
+
+
 # Translations for the application
 translations = {
     "English": {

@@ -136,12 +136,6 @@ class ChatBotUI(ttk.Frame):
             "max_tokens": 100,
             "temperature": 0.9
         }
-        headers = {
-            "x-rapidapi-key": "21c98ce353msh2e77624f518ce0bp1fb9f3jsn84b6d813ebd7",
-            "x-rapidapi-host": "cheapest-gpt-4-turbo-gpt-4-vision-chatgpt-openai-ai-api.p.rapidapi.com",
-            "Content-Type": "application/json"
-        }
-
         # Define the API request headers
         headers = {
             "x-rapidapi-key": f"{os.getenv('API_KEY')}",
