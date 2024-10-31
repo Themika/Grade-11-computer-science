@@ -101,6 +101,11 @@ class HomePage(ttk.Frame):
             valid = False
         
         if valid:
+            if int(age) < 18:
+                messagebox.showerror("Age Restriction", "You must be 18 or older to use this program. Please get an adult to proceed.")
+                self.parent.quit()  # Exit the program
+                return
+
             print(f"Name: {name}")
             print(f"Number of Rooms: {rooms}")
             print(f"Email Address: {email}")

@@ -94,7 +94,7 @@ class RoomPage(ttk.Frame):
             current_row = row_left if room <= 3 else row_right
     
             room_label = ttk.Label(self, text=translations[self.language]["room_label"].format(room), font=("Helvetica", 14, "bold"))
-            room_label.grid(row=current_row, column=col_offset, columnspan=4, pady=10)
+            room_label.grid(row=current_row, column=col_offset+2, columnspan=4, pady=10)
             current_row += 1
     
             self.wall_entries[room] = []

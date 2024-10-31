@@ -33,7 +33,7 @@ translations = {
         "nickels": "Nickels",
         "pennies": "Pennies",
         "error": "Error",
-        "enter_card_number": "Enter Card Number:",
+        "enter_card_number": "Enter Card Number(16 Numbers):",
         "enter_expiration_date": "Enter Expiration Date (MM/YY):",
         "enter_cvv": "Enter CVV:",
         "enter_paypal_email": "Enter PayPal Email:"
@@ -62,7 +62,7 @@ translations = {
         "nickels": "Nickels",
         "pennies": "Sous",
         "error": "Erreur",
-        "enter_card_number": "Entrez le numéro de carte:",
+        "enter_card_number": "Entrez le numéro de carte(16 par nom):",
         "enter_expiration_date": "Entrez la date d'expiration (MM/AA):",
         "enter_cvv": "Entrez le CVV:",
         "enter_paypal_email": "Entrez l'email PayPal:"
@@ -123,15 +123,13 @@ class PaymentPage(ttk.Frame):
         self.payment_fields_frame = ttk.Frame(self)
         self.payment_fields_frame.grid(row=row, column=0, columnspan=2, pady=10, padx=5, sticky=tk.W)
         
-        self.update_payment_fields()
-        
-        amount_frame = ttk.Frame(self)
-        amount_frame.grid(row=row + 1, column=0, columnspan=2, pady=10, padx=5, sticky=tk.W)
+        self.amount_frame = ttk.Frame(self)
+        self.amount_frame.grid(row=row + 1, column=0, columnspan=2, pady=10, padx=5, sticky=tk.W)
 
-        self.amount_label = ttk.Label(amount_frame, text=translations[self.language]["enter_payment_amount"], font=("Helvetica", 12))
+        self.amount_label = ttk.Label(self.amount_frame, text=translations[self.language]["enter_payment_amount"], font=("Helvetica", 12))
         self.amount_label.grid(row=0, column=0, pady=5, padx=259, sticky=tk.W)
         
-        self.amount_entry = ttk.Entry(amount_frame, bootstyle="info")
+        self.amount_entry = ttk.Entry(self.amount_frame, bootstyle="info")
         self.amount_entry.grid(row=1, column=0, pady=5, padx=300, sticky=tk.W)
         
         row += 1
@@ -144,6 +142,7 @@ class PaymentPage(ttk.Frame):
         self.change_frame = ttk.Frame(self)
         self.change_frame.grid(row=row + 1, column=0, columnspan=2, pady=10, padx=5)  
 
+        self.update_payment_fields()
 
     def update_payment_fields(self):
         for widget in self.payment_fields_frame.winfo_children():
@@ -156,6 +155,7 @@ class PaymentPage(ttk.Frame):
             card_number_label.grid(row=0, column=0, pady=5, padx=5, sticky=tk.W)
             self.card_number_entry = ttk.Entry(self.payment_fields_frame, bootstyle="info")
             self.card_number_entry.grid(row=0, column=1, pady=5, padx=5)
+            print("The code has to be 16 numbers")
             
             expiration_date_label = ttk.Label(self.payment_fields_frame, text=translations[self.language]["enter_expiration_date"], font=("Helvetica", 12))
             expiration_date_label.grid(row=1, column=0, pady=5, padx=5, sticky=tk.W)
@@ -166,14 +166,22 @@ class PaymentPage(ttk.Frame):
             cvv_label.grid(row=2, column=0, pady=5, padx=5, sticky=tk.W)
             self.cvv_entry = ttk.Entry(self.payment_fields_frame, bootstyle="info")
             self.cvv_entry.grid(row=2, column=1, pady=5, padx=5)
+            
+            # Hide amount entry and label for Credit Card payment
+            self.amount_frame.grid_remove()
         
         elif selected_payment_method == "PayPal":
             paypal_email_label = ttk.Label(self.payment_fields_frame, text=translations[self.language]["enter_paypal_email"], font=("Helvetica", 12))
             paypal_email_label.grid(row=0, column=0, pady=5, padx=5, sticky=tk.W)
             self.paypal_email_entry = ttk.Entry(self.payment_fields_frame, bootstyle="info")
             self.paypal_email_entry.grid(row=0, column=1, pady=5, padx=5)
+            
+            # Show amount entry and label for PayPal payment
+            self.amount_frame.grid()
         
-        # No additional fields needed for Cash payments
+        elif selected_payment_method == "Cash":
+            # Show amount entry and label for Cash payment
+            self.amount_frame.grid()
 
     def on_confirm_amount(self, cost_after_tax):
         try:
@@ -230,29 +238,47 @@ class PaymentPage(ttk.Frame):
             row += 1
 
     def on_confirm_payment(self):
-        if self.on_confirm_amount(self.cost_after_tax):
-            selected_payment_method = self.payment_choice_var.get()
-            if selected_payment_method == "Credit Card":
-                card_number = self.card_number_entry.get().strip()
-                expiration_date = self.expiration_date_entry.get().strip()
-                cvv = self.cvv_entry.get().strip()
-                if not (card_number.isdigit() and len(card_number) == 16):
-                    messagebox.showerror(translations[self.language]["error"], "Invalid card number.")
-                    return
-                if not (len(expiration_date) == 5 and expiration_date[2] == '/'):
-                    messagebox.showerror(translations[self.language]["error"], "Invalid expiration date.")
-                    return
-                if not (cvv.isdigit() and len(cvv) == 3):
-                    messagebox.showerror(translations[self.language]["error"], "Invalid CVV.")
-                    return
-            elif selected_payment_method == "PayPal":
-                paypal_email = self.paypal_email_entry.get().strip()
-                if not paypal_email:
-                    messagebox.showerror(translations[self.language]["error"], "Invalid PayPal email.")
-                    return
+        if self.payment_choice_var.get() != "Credit Card" and not self.on_confirm_amount(self.cost_after_tax):
+            return
+        
+        selected_payment_method = self.payment_choice_var.get()
+        if selected_payment_method == "Credit Card":
+            card_number = self.card_number_entry.get().strip()
+            expiration_date = self.expiration_date_entry.get().strip()
+            cvv = self.cvv_entry.get().strip()
+            if not (card_number.isdigit() and len(card_number) == 16):
+                messagebox.showerror(translations[self.language]["error"], "Invalid card number.")
+                return
+            if not (len(expiration_date) == 5 and expiration_date[2] == '/'):
+                messagebox.showerror(translations[self.language]["error"], "Invalid expiration date.")
+                return
+            if not self.validate_expiration_date(expiration_date):
+                messagebox.showerror(translations[self.language]["error"], "Expiration date is in the past.")
+                return
+            if not (cvv.isdigit() and len(cvv) == 3):
+                messagebox.showerror(translations[self.language]["error"], "Invalid CVV.")
+                return
+        elif selected_payment_method == "PayPal":
+            paypal_email = self.paypal_email_entry.get().strip()
+            if not paypal_email:
+                messagebox.showerror(translations[self.language]["error"], "Invalid PayPal email.")
+                return
 
-            messagebox.showinfo(translations[self.language]["payment_confirmation"], translations[self.language]["payment_method_selected"].format(selected_payment_method))
-            self.send_email_receipt()
+        messagebox.showinfo(translations[self.language]["payment_confirmation"], translations[self.language]["payment_method_selected"].format(selected_payment_method))
+        self.send_email_receipt()
+
+    def validate_expiration_date(self, expiration_date):
+        try:
+            exp_month, exp_year = expiration_date.split('/')
+            exp_month = int(exp_month)
+            exp_year = int(exp_year) + 2000  # Assuming the year is in YY format
+            if exp_month < 1 or exp_month > 12:
+                return False
+            current_date = datetime.now()
+            exp_date = datetime(exp_year, exp_month, 1)
+            return exp_date >= current_date
+        except ValueError:
+            return False
 
     def send_email_receipt(self):
         # Access user data from the parent class
