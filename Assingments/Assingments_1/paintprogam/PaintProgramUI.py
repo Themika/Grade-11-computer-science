@@ -14,6 +14,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import os
 
+# Translations for the application
 translations = {
     "English": {
         "home": "Home",
@@ -70,9 +71,10 @@ class PaintProgramUI(ttk.Window):
         self.create_widgets()
 
     def create_widgets(self):
+        # Create a style object to customize the appearance of ttk widgets
         self.notebook = ttk.Notebook(self)
         self.notebook.pack(fill=BOTH, expand=TRUE)
-        
+        # Create a style object to customize the appearance of ttk widgets
         self.pages['Main'] = ttk.Frame(self.notebook)
         
         self.notebook.add(self.pages['Main'], text=translations[self.current_language]['home'])
@@ -83,47 +85,58 @@ class PaintProgramUI(ttk.Window):
         self.notebook.select(self.pages['Main'])
 
     def create_home_page(self):
+        # Check if the home page already exists and remove it
         if 'Home' in self.pages:
             old_home_page = self.pages.pop('Home')
             self.notebook.forget(old_home_page)
+        # Create a new home page
         home_page = HomePage(self.pages['Main'], self)
         self.pages['Home'] = home_page
         home_page.pack(fill=tk.BOTH, expand=True)
         self.notebook.select(self.pages['Main'])
     
     def create_room_page(self, num_rooms):
+        # Check if the room page already exists and remove it
         if 'Rooms' in self.pages:
             old_settings_page = self.pages.pop('Rooms')
             self.notebook.forget(old_settings_page)
+        # Create a new room page
         room_page = RoomPage(self.notebook, self, num_rooms)
         self.pages['Rooms'] = room_page
         self.notebook.add(room_page, text=translations[self.current_language]['rooms'])
         self.notebook.select(self.pages['Rooms'])
     
     def create_paint_options_page(self):
+        # Check if the paint options page already exists and remove it
         if 'PaintOptions' in self.pages:
             old_settings_page = self.pages.pop('PaintOptions')
             self.notebook.forget(old_settings_page)
+        # Create a new paint options page
         paint_options_page = PaintOptionsPage(self.notebook, self)
         self.pages['PaintOptions'] = paint_options_page
         self.notebook.add(paint_options_page, text=translations[self.current_language]['paint_options'])
         self.notebook.select(self.pages['PaintOptions'])
     
     def create_payment_page(self, cost_before_tax, cost_after_tax):
+        # Check if the payment page already exists and remove it
         if 'Payment' in self.pages:
             old_settings_page = self.pages.pop('Payment')
             self.notebook.forget(old_settings_page)
+        # Create a new payment page
         payment_page = PaymentPage(self.notebook, self, cost_before_tax, cost_after_tax)
         self.pages['Payment'] = payment_page
         self.notebook.add(payment_page, text=translations[self.current_language]['payment'])
         self.notebook.select(self.pages['Payment'])
     
     def add_chatbot_tab(self):
+        # Check if the chatbot page already exists and remove it
         if 'ChatBot' in self.pages:
             old_settings_page = self.pages.pop('ChatBot')
             self.notebook.forget(old_settings_page)
+        # Create a new chatbot page with the current language
         chatbot_page = ChatBotUI(self.notebook)
         self.pages['ChatBot'] = chatbot_page
+        # Add the chatbot page to the notebook
         self.notebook.add(chatbot_page, text=translations[self.current_language]['chatbot'])
         self.notebook.select(self.pages['ChatBot'])
     
@@ -159,12 +172,14 @@ class PaintProgramUI(ttk.Window):
                 pass
 
     def change_language(self, language):
+        # Update the current language
         self.current_language = language
         self.update_language()
 
     def update_language(self):
         # Update language for each notebook tab and its associated widgets
         for page_name, page in self.pages.items():
+            # Update the tab text for each page
             if page_name == 'Main':
                 self.notebook.tab(page, text=translations[self.current_language]['home'])
             elif page_name == 'Settings':
@@ -184,6 +199,7 @@ class PaintProgramUI(ttk.Window):
                     # Translate the widget's current text and update
                     widget_text = widget.cget("text")
                     for key, value in translations['English'].items():
+                        # Check if the widget text matches the English translation
                         if value == widget_text:
                             translated_text = translations[self.current_language][key]
                             widget.config(text=translated_text)
@@ -192,6 +208,7 @@ class PaintProgramUI(ttk.Window):
             # Re-render page if it has a method to refresh itself (e.g., custom pages with complex layouts)
             if hasattr(page, 'update_language'):
                 page.update_language(self.current_language)
+        # Update member content if the user is a member
         self.update_member_content()
 
     def update_member_content(self):
@@ -210,16 +227,22 @@ class PaintProgramUI(ttk.Window):
 
     def validate_discount_code(self):
         discount_code = self.discount_entry.get().strip()
+        # Check if the user is a member
         if discount_code == "MRBAWA":
+            # Apply a 75% discount for members
             self.discount_var.set("75%")
             self.apply_discount()
+            # Show a success message
             messagebox.showinfo(translations[self.current_language]["discount"], translations[self.current_language]["discount_applied"])
         else:
+            # Apply a 5% discount for non-members
             self.discount_var.set("5%")
+            # Check if the user is a member
             self.apply_discount()
             messagebox.showinfo(translations[self.current_language]["discount"], translations[self.current_language]["member_discount_applied"])
 
     def apply_discount(self, event=None):
+        # Calculate the cost after applying the discount
         discount = self.discount_var.get()
         if discount == "75%":
             self.cost_after_tax = self.cost_before_tax * 0.25
@@ -235,6 +258,7 @@ class PaintProgramUI(ttk.Window):
 
         # Implement the logic to contact support
         support_message = self.support_entry.get().strip()
+        # Check if the user entered a support message
         if not support_message:
             messagebox.showwarning(translations[self.current_language]["support"], translations[self.current_language]["enter_support_message"])
             return
@@ -278,7 +302,7 @@ class PaintProgramUI(ttk.Window):
         if valid:
             self.wall_entries = wall_entries  # Store wall_entries in the PaintProgramUI class
             # You can add further processing logic here
-
+# Run the application
 if __name__ == "__main__":
     app = PaintProgramUI()
     app.mainloop()

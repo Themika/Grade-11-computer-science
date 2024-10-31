@@ -7,7 +7,7 @@ from datetime import datetime
 from random import randint
 import os
 from dotenv import load_dotenv
-
+# Translations for different languages
 translations = {
     "English": {
         "select_payment_method": "Select Your Payment Method",
@@ -80,22 +80,24 @@ class PaymentPage(ttk.Frame):
         load_dotenv()
 
     def create_widgets(self):
+        # Payment Method Selection
         self.label = ttk.Label(self, text=translations[self.language]["select_payment_method"], font=("Helvetica", 16, "bold"))
         self.label.grid(row=0, column=0, columnspan=2, pady=10)
-        
+        # Cost Labels
         self.cost_label_before_tax = ttk.Label(self, text=f"{translations[self.language]['cost_before_tax']}: ${round(self.cost_before_tax, 2)}", font=("Helvetica", 12, "bold"))
         self.cost_label_before_tax.grid(row=1, column=0, columnspan=2, pady=10, padx=0)
-        
+        # Cost After Tax
         self.cost_label_after_tax = ttk.Label(self, text=f"{translations[self.language]['cost_after_tax']}: ${round(self.cost_after_tax, 2)}", font=("Helvetica", 12, "bold"))
         self.cost_label_after_tax.grid(row=2, column=0, columnspan=2, pady=10, padx=0)
-        
+        # Discount Selection
         if self.parent.member_var.get():
+            # Discount Frame
             discount_frame = ttk.Frame(self)
             discount_frame.grid(row=3, column=0, columnspan=2, pady=10, padx=5, sticky=tk.W)
-            
+            # Discount Label
             discount_label = ttk.Label(discount_frame, text=translations[self.language]["select_discount"], font=("Helvetica", 12))
             discount_label.grid(row=0, column=0, pady=5, padx=5, sticky=tk.W)
-            
+            # Discount Combobox
             self.discount_var = tk.StringVar(value="5%")
             discount_options = ["5%", "75%"]
             discount_combobox = ttk.Combobox(discount_frame, values=discount_options, textvariable=self.discount_var, bootstyle="info", state="readonly")
@@ -104,64 +106,67 @@ class PaymentPage(ttk.Frame):
             row = 4
         else:
             row = 3
-        
+        # Payment Method Selection
         payment_frame_inner = ttk.Frame(self)
         payment_frame_inner.grid(row=row, column=0, columnspan=2, pady=10, padx=5, sticky=tk.W)
-        
+        # Payment Options
         payment_options = {
             "Credit Card": "Visa, MasterCard, American Express",
             "Cash": "Cash payment",
             "PayPal": "PayPal account",
         }
-        
+        # Payment Choice Variable
         self.payment_choice_var = tk.StringVar(value="Credit Card")
-        
+        # Payment Radiobuttons
         for payment, description in payment_options.items():
             ttk.Radiobutton(payment_frame_inner, text=(f"{payment}: {description}"), variable=self.payment_choice_var, value=payment, command=self.update_payment_fields).grid(row=row, column=0, sticky=tk.W, pady=5, padx=50)
             row += 1
-        
+        # Payment Fields
         self.payment_fields_frame = ttk.Frame(self)
         self.payment_fields_frame.grid(row=row, column=0, columnspan=2, pady=10, padx=5, sticky=tk.W)
-        
+        # Amount Entry
         self.amount_frame = ttk.Frame(self)
         self.amount_frame.grid(row=row + 1, column=0, columnspan=2, pady=10, padx=5, sticky=tk.W)
-
+        # Amount Label
         self.amount_label = ttk.Label(self.amount_frame, text=translations[self.language]["enter_payment_amount"], font=("Helvetica", 12))
         self.amount_label.grid(row=0, column=0, pady=5, padx=259, sticky=tk.W)
-        
+        # Amount Entry
         self.amount_entry = ttk.Entry(self.amount_frame, bootstyle="info")
         self.amount_entry.grid(row=1, column=0, pady=5, padx=300, sticky=tk.W)
-        
+        # Confirm Button
         row += 1
         button_frame = ttk.Frame(self)
         button_frame.grid(row=row, column=0, columnspan=2, pady=10, padx=5, sticky=tk.W)
-        
+        # Confirm Payment Button
         self.confirm_button = ttk.Button(button_frame, text=translations[self.language]["confirm_payment"], command=self.on_confirm_payment, bootstyle="success")
         self.confirm_button.grid(row=0, column=0, pady=10, padx=5, sticky=tk.W)
-        
+        # Change Frame
         self.change_frame = ttk.Frame(self)
         self.change_frame.grid(row=row + 1, column=0, columnspan=2, pady=10, padx=5)  
-
+        # Hide amount entry and label for Credit Card payment
         self.update_payment_fields()
-
+    # Update payment fields based on the selected payment method
     def update_payment_fields(self):
+        # Clear previous payment fields
         for widget in self.payment_fields_frame.winfo_children():
             widget.destroy()
-        
+        # Get the selected payment method
         selected_payment_method = self.payment_choice_var.get()
-        
+        # Display payment fields based on the selected payment method
         if selected_payment_method == "Credit Card":
+            # Credit Card Fields
             card_number_label = ttk.Label(self.payment_fields_frame, text=translations[self.language]["enter_card_number"], font=("Helvetica", 12))
             card_number_label.grid(row=0, column=0, pady=5, padx=5, sticky=tk.W)
+            # Card Number Entry
             self.card_number_entry = ttk.Entry(self.payment_fields_frame, bootstyle="info")
             self.card_number_entry.grid(row=0, column=1, pady=5, padx=5)
             print("The code has to be 16 numbers")
-            
+            # Expiration Date Entry
             expiration_date_label = ttk.Label(self.payment_fields_frame, text=translations[self.language]["enter_expiration_date"], font=("Helvetica", 12))
             expiration_date_label.grid(row=1, column=0, pady=5, padx=5, sticky=tk.W)
             self.expiration_date_entry = ttk.Entry(self.payment_fields_frame, bootstyle="info")
             self.expiration_date_entry.grid(row=1, column=1, pady=5, padx=5)
-            
+            # CVV Entry
             cvv_label = ttk.Label(self.payment_fields_frame, text=translations[self.language]["enter_cvv"], font=("Helvetica", 12))
             cvv_label.grid(row=2, column=0, pady=5, padx=5, sticky=tk.W)
             self.cvv_entry = ttk.Entry(self.payment_fields_frame, bootstyle="info")
@@ -171,6 +176,7 @@ class PaymentPage(ttk.Frame):
             self.amount_frame.grid_remove()
         
         elif selected_payment_method == "PayPal":
+            # PayPal Email Entry
             paypal_email_label = ttk.Label(self.payment_fields_frame, text=translations[self.language]["enter_paypal_email"], font=("Helvetica", 12))
             paypal_email_label.grid(row=0, column=0, pady=5, padx=5, sticky=tk.W)
             self.paypal_email_entry = ttk.Entry(self.payment_fields_frame, bootstyle="info")
@@ -185,23 +191,29 @@ class PaymentPage(ttk.Frame):
 
     def on_confirm_amount(self, cost_after_tax):
         try:
+            # Get the entered amount
             self.entered_amount = float(self.amount_entry.get().strip())
             if self.entered_amount >= cost_after_tax:
                 print(translations[self.language]["payment_sufficient"])
                 change = self.entered_amount - cost_after_tax
+                # Process change if payment method is Cash
                 if self.payment_choice_var.get() == "Cash":
                     self.process_change(change)
                 return True
+            # Display error message if the entered amount is insufficient
             else:
                 print(translations[self.language]["payment_insufficient"])
+                # Display error message
                 messagebox.showerror(translations[self.language]["error"], translations[self.language]["payment_insufficient"])
                 return False
         except ValueError:
+            # Display error message if the entered amount is invalid
             print(translations[self.language]["invalid_amount"])
             messagebox.showerror(translations[self.language]["error"], translations[self.language]["invalid_amount"])
             return False
 
     def process_change(self, difference):
+        # Map money values to their names
         money_map = {
             50: translations[self.language]["fifty_dollar_bills"],
             20: translations[self.language]["twenty_dollar_bills"],
@@ -214,9 +226,12 @@ class PaymentPage(ttk.Frame):
             0.05: translations[self.language]["nickels"],
             0.01: translations[self.language]["pennies"],
         }
+        # Calculate the change
         change = {}
         for value, name in money_map.items():
+            # Calculate the number of each money value
             count = int(difference // value)
+            # Update the difference
             if count > 0:
                 change[name] = count
                 difference = round(difference - count * value, 2)
@@ -236,29 +251,38 @@ class PaymentPage(ttk.Frame):
         for name, count in change.items():
             ttk.Label(self.change_frame, text=f"{name}: {count}", font=("Helvetica", 12)).grid(row=row, column=0, columnspan=2, pady=2)
             row += 1
-
+    """Validate the entered payment amount and process the payment."""
     def on_confirm_payment(self):
         if self.payment_choice_var.get() != "Credit Card" and not self.on_confirm_amount(self.cost_after_tax):
             return
-        
+        # Get the selected payment method
         selected_payment_method = self.payment_choice_var.get()
         if selected_payment_method == "Credit Card":
             card_number = self.card_number_entry.get().strip()
             expiration_date = self.expiration_date_entry.get().strip()
             cvv = self.cvv_entry.get().strip()
+            # Validate the entered card details
             if not (card_number.isdigit() and len(card_number) == 16):
+                # Display error message
                 messagebox.showerror(translations[self.language]["error"], "Invalid card number.")
                 return
+            # Validate the entered expiration date
             if not (len(expiration_date) == 5 and expiration_date[2] == '/'):
+                # Display error message
                 messagebox.showerror(translations[self.language]["error"], "Invalid expiration date.")
                 return
+            # Validate the entered CVV
             if not self.validate_expiration_date(expiration_date):
+                # Display error message
                 messagebox.showerror(translations[self.language]["error"], "Expiration date is in the past.")
                 return
+            # Validate the entered CVV
             if not (cvv.isdigit() and len(cvv) == 3):
+                # Display error message
                 messagebox.showerror(translations[self.language]["error"], "Invalid CVV.")
                 return
         elif selected_payment_method == "PayPal":
+            # Validate the entered PayPal email
             paypal_email = self.paypal_email_entry.get().strip()
             if not paypal_email:
                 messagebox.showerror(translations[self.language]["error"], "Invalid PayPal email.")
@@ -268,10 +292,13 @@ class PaymentPage(ttk.Frame):
         self.send_email_receipt()
 
     def validate_expiration_date(self, expiration_date):
+        # Validate the expiration date
         try:
+            # Extract the month and year
             exp_month, exp_year = expiration_date.split('/')
             exp_month = int(exp_month)
             exp_year = int(exp_year) + 2000  # Assuming the year is in YY format
+            # Validate the month and year
             if exp_month < 1 or exp_month > 12:
                 return False
             current_date = datetime.now()
@@ -283,11 +310,12 @@ class PaymentPage(ttk.Frame):
     def send_email_receipt(self):
         # Access user data from the parent class
         user_data = self.parent.user_data
-
+        
         # Generate the receipt content
         name = user_data["name"]
         email = user_data["email"]
         print(email)
+        """Send an email receipt to the user."""
         date_str = datetime.now().strftime("%Y-%m-%d")
         paint_choice = user_data["paint_choice"]
         amount_of_paint =  user_data["total_paint_cans"]
@@ -330,16 +358,20 @@ class PaymentPage(ttk.Frame):
             """,
             password=os.getenv("SENDER_PASSWORD")
         )
-
+    """Update all labels to the selected language."""
     def update_language(self, language):
+        # Update all labels with new language
         self.language = language
+        # Update all labels with new language
         self.label.config(text=translations[language]["select_payment_method"])
         self.cost_label_before_tax.config(text=f"{translations[language]['cost_before_tax']}: ${round(self.cost_before_tax, 2)}")
         self.cost_label_after_tax.config(text=f"{translations[language]['cost_after_tax']}: ${round(self.cost_after_tax, 2)}")
+        # Update discount label if it exists
         if hasattr(self, 'discount_frame'):
             self.discount_label.config(text=translations[language]["select_discount"])
         self.amount_label.config(text=translations[language]["enter_payment_amount"])
         self.confirm_button.config(text=translations[language]["confirm_payment"])
+        # Update payment fields based on the new language
         if hasattr(self, 'change_frame'):
             self.change_frame.grid_remove()
         self.process_change(0)  # Reset change display

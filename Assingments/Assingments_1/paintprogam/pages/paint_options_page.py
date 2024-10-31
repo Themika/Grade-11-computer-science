@@ -3,6 +3,8 @@ from ttkbootstrap.constants import *
 import tkinter as tk
 from tkinter import colorchooser
 from tkinter import messagebox
+
+# Translations for different languages
 translations = {
     "English": {
         "select_paint": "Select Your Paint",
@@ -72,7 +74,9 @@ class PaintOptionsPage(ttk.Frame):
     def __init__(self, container, parent):
         super().__init__(container)
         self.parent = parent
+        # Set the language to the parent's current language
         self.language = parent.current_language
+        """Paint options page for selecting paint type and customizing paint options."""    
         self.color_var = tk.StringVar(value="Red")
         self.finish_type_var = tk.StringVar(value=translations[self.language]["matte"])
         self.water_resistance_var = tk.StringVar(value=translations[self.language]["low"])
@@ -84,11 +88,11 @@ class PaintOptionsPage(ttk.Frame):
         self.coverage_var = tk.StringVar(value="400")
         self.voc_var = tk.StringVar(value="50")
         self.create_widgets()
-    
+    # Create the widgets for the paint options page
     def create_widgets(self):
         self.label = ttk.Label(self, text=translations[self.language]["select_paint"], font=("Helvetica", 16, "bold"))
         self.label.grid(row=0, column=0, columnspan=2, pady=10)
-    
+        # Dictionary of paint options and their prices
         self.paints = {
             "Value Paint": 40,
             "Regular Paint": 75,
@@ -98,21 +102,23 @@ class PaintOptionsPage(ttk.Frame):
             "Luxury Paint": 200,
             "Custom Paint": 250,
         }
-    
+        # Create radio buttons for selecting paint type
         self.paint_choice_var = tk.StringVar(value="Value Paint")
         self.paint_choice_var.trace("w", self.on_paint_selection_change)
         row = 1
+        # Create radio buttons for each paint type
         for paint, price in self.paints.items():
             ttk.Radiobutton(self, text=f"{paint}: ${price} per gallon", variable=self.paint_choice_var, value=paint).grid(row=row, column=0, sticky=tk.W, pady=5, padx=50)
             row += 1
-    
+        # Add a button to confirm paint selection
         self.confirm_button = ttk.Button(self, text=translations[self.language]["confirm_paint_selection"], command=self.on_confirm_paint, bootstyle="success")
         self.confirm_button.grid(row=row, column=0, columnspan=2, pady=10)
 
     def create_custom_paint_panel(self, selected_paint):
+        # Remove the previous custom paint panel if it exists
         if hasattr(self, 'custom_paint_frame'):
             self.custom_paint_frame.grid_remove()
-    
+        # Create a frame for custom paint options
         self.custom_paint_frame = ttk.Frame(self)
         self.custom_paint_frame.grid(row=0, column=2, rowspan=len(self.paints) + 4, padx=20, pady=10, sticky=tk.N)
     
@@ -130,7 +136,7 @@ class PaintOptionsPage(ttk.Frame):
         color_label.grid(row=1, column=0, pady=5, padx=5, sticky=tk.W)
         color_button = ttk.Button(self.custom_paint_frame, text=translations[self.language]["select_color"], command=self.choose_color, bootstyle="info")
         color_button.grid(row=1, column=1, pady=5, padx=5)
-    
+        # Add a button to confirm the selected color
         color_button_confirm = ttk.Button(self.custom_paint_frame, text=translations[self.language]["confirm_color"], bootstyle="info")
         color_button_confirm.grid(row=2, column=1, pady=5, padx=5)
         color_button_confirm.bind("<ButtonRelease-1>", lambda e: self.update_paint_preview())
@@ -213,7 +219,9 @@ class PaintOptionsPage(ttk.Frame):
         confirm_custom_paint_button.grid(row=12, column=0, columnspan=2, pady=10)    
 
     def choose_color(self):
+        # Open a color chooser dialog and set the selected color
         color_code = colorchooser.askcolor(title="Choose color")[1]
+        # Set the selected color if a color is chosen
         if color_code:
             self.color_var.set(color_code)
             print(f"Selected Color: {color_code}")  
@@ -242,24 +250,28 @@ class PaintOptionsPage(ttk.Frame):
 
     def lighter_color(self, color):
         """Return a lighter shade of the given color."""
+        # Get the RGB values of the color and increase each value by 20%
         r, g, b = self.winfo_rgb(color)
+        # Increase each value by 20% and ensure it is within the valid range
         r = min(255, int(r / 256 * 1.2))
         g = min(255, int(g / 256 * 1.2))
         b = min(255, int(b / 256 * 1.2))
+        # Convert the RGB values to hexadecimal and return the color
         return f'#{r:02x}{g:02x}{b:02x}'
 
     def on_confirm_custom_paint(self):
+        # Get the selected options
         selected_color = self.color_var.get()
         selected_water_resistance = self.water_resistance_var.get()
         selected_finish_type = self.finish_type_var.get()
         selected_durability = self.durability_var.get()
 
-        # Validate VOC level, coverage, and drying time
+        # Validate VOC level, and drying time
         try:
             voc_level = float(self.voc_var.get())
             coverage = float(self.coverage_var.get())
             drying_time = float(self.drying_time_var.get())
-
+            # Validate input
             if voc_level < 0:
                 messagebox.showerror("Input Error", "VOC Level cannot be negative.")
                 return
@@ -269,13 +281,14 @@ class PaintOptionsPage(ttk.Frame):
         except ValueError:
             messagebox.showerror("Input Error", "Please enter valid numerical values.")
             return
-
+        # Update user data with selected options
         self.parent.user_data.update({
             "color": selected_color,
             "water_resistance": selected_water_resistance,
             "finish_type": selected_finish_type,
             "durability": selected_durability,
         })
+        # Display the selected options
         print(f"Selected Color: {selected_color}")
         print(f"Selected Water Resistance: {selected_water_resistance}")
         print(f"Selected Finish Type: {selected_finish_type}")
@@ -285,10 +298,12 @@ class PaintOptionsPage(ttk.Frame):
         self.parent.create_payment_page(self.parent.user_data["cost_before_tax"], self.parent.user_data["cost_after_tax"])
 
     def on_paint_selection_change(self, *args):
+        # Get the selected paint
         selected_paint = self.paint_choice_var.get()
         self.create_custom_paint_panel(selected_paint)
 
     def on_confirm_paint(self):
+        # Get the selected paint and its price
         selected_paint = self.paint_choice_var.get()
         paint_price = self.paints[selected_paint]
         
@@ -297,8 +312,11 @@ class PaintOptionsPage(ttk.Frame):
         self.parent.user_data.update({"paint_choice": selected_paint})
         # Calculate total square footage
         total_square_footage = 0
+        # Iterate over each room's wall entries
         for room_entries in wall_entries.values():
+            # Calculate the square footage of each wall and add it to the total
             for i in range(0, len(room_entries), 2):
+                # Get the length and width of the wall
                 length = float(room_entries[i].get().strip())
                 width = float(room_entries[i + 1].get().strip())
                 total_square_footage += length * width
@@ -315,7 +333,7 @@ class PaintOptionsPage(ttk.Frame):
         # Display the costs
         self.cost_label_before_tax = ttk.Label(self.parent.pages['PaintOptions'], text=f"{translations[self.language]['cost_before_tax']}: ${round(cost_before_tax, 2)}", font=("Helvetica", 12, "bold"))
         self.cost_label_before_tax.grid(row=len(self.paints) + 2, column=0, columnspan=2, pady=10, padx=50)
-        
+        # Display the costs
         self.cost_label_after_tax = ttk.Label(self.parent.pages['PaintOptions'], text=f"{translations[self.language]['cost_after_tax']}: ${round(cost_after_tax, 2)}", font=("Helvetica", 12, "bold"))
         self.cost_label_after_tax.grid(row=len(self.paints) + 3, column=0, columnspan=2, pady=10, padx=50)
         
@@ -327,11 +345,15 @@ class PaintOptionsPage(ttk.Frame):
         self.create_custom_paint_panel(selected_paint)
 
     def update_language(self, language):
+        # Update the language of the page
         self.language = language
+        # Update the label with the new language
         self.label.config(text=translations[language]["select_paint"])
         self.confirm_button.config(text=translations[language]["confirm_paint_selection"])
+        # Update the custom paint panel if it exists
         if hasattr(self, 'custom_paint_frame'):
             self.custom_paint_frame.grid_remove()
+        # Update the cost labels
         self.create_custom_paint_panel(self.paint_choice_var.get())
         self.cost_label_before_tax.config(text=translations[language]["cost_before_tax"])
         self.cost_label_after_tax.config(text=translations[language]["cost_after_tax"])

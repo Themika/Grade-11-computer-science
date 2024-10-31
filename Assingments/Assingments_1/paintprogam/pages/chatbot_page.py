@@ -44,6 +44,8 @@ class ChatBotUI(ttk.Frame):
         # Add tags for styling messages
         self.chat_history_text.tag_configure("user", foreground="#007BFF", justify="right", lmargin1=10, lmargin2=10)
         self.chat_history_text.tag_configure("bot", foreground="#28A745", justify="left", lmargin1=10, lmargin2=10)
+        self.chat_history_text.tag_configure("bold", font=("Helvetica", 12, "bold"))
+        self.chat_history_text.tag_configure("bullet", lmargin1=20, lmargin2=20)
 
         # Add welcome message
         self.display_message("Bot", "Welcome! How can I assist you today?", "bot")
@@ -60,9 +62,30 @@ class ChatBotUI(ttk.Frame):
     def display_message(self, sender, message, tag):
         """Display a message in the chat history with simple styling."""
         self.chat_history_text.config(state=tk.NORMAL)
-        self.chat_history_text.insert(tk.END, f"{sender}: {message}\n\n", tag)
+        self.insert_message(sender, message, tag)
         self.chat_history_text.config(state=tk.DISABLED)
         self.chat_history_text.yview(tk.END)
+
+    def insert_message(self, sender, message, tag):
+        """Insert a message into the chat history with bold and bullet formatting."""
+        parts = message.split("**")
+        for i, part in enumerate(parts):
+            if i % 2 == 0:
+                self.insert_bullets(part, tag)
+            else:
+                self.chat_history_text.insert(tk.END, part + "\n", "bold")
+        self.chat_history_text.insert(tk.END, "\n")
+
+    def insert_bullets(self, message, tag):
+        """Insert bullet points into the chat history."""
+        lines = message.split("\n")
+        for line in lines:
+            if line.strip().startswith("-"):
+                self.chat_history_text.insert(tk.END, f"• {line.strip()[1:].strip()}\n", "bullet")
+            elif line.strip().startswith("1.") or line.strip().startswith("2.") or line.strip().startswith("3.") or line.strip().startswith("4.") or line.strip().startswith("5.") or line.strip().startswith("6.") or line.strip().startswith("7.") or line.strip().startswith("8.") or line.strip().startswith("9.") or line.strip().startswith("10."):
+                self.chat_history_text.insert(tk.END, f"{line.strip()}\n", tag)
+            else:
+                self.chat_history_text.insert(tk.END, f"{line}\n", tag)
 
     def get_response(self, user_message):
         """Generate a response based on user input."""
@@ -73,22 +96,60 @@ class ChatBotUI(ttk.Frame):
         elif "bye" in user_message.lower():
             return "Goodbye! Have a great day."
         elif user_message.strip():
-            return self.get_api_response(user_message).json().get("response", "Sorry, I couldn't fetch a response.")
+            api_response = self.get_api_response(user_message)
+            if api_response:
+                return api_response.get("response", "Sorry, I couldn't fetch a response.")
+            else:
+                return "Sorry, I couldn't fetch a response."
         else:
             return "I'm not sure how to respond to that. Could you rephrase?"
 
     def get_api_response(self, response):
         """Get a response from an API."""
-        url = "https://chatgpt-gpt4-ai-chatbot.p.rapidapi.com/ask"
-        payload = {"query": response}
+        url = f"{os.getenv('LINK')}"
+
+        payload = {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": f"{response}"
+                }
+            ],
+            "model": f"{os.getenv('MODEL')}",
+            "max_tokens": {os.getenv('MAX_TOKENS')},
+            "temperature": 0.9
+        }
         headers = {
-            "x-rapidapi-key": os.getenv("API_KEY"),
-            "x-rapidapi-host": "chatgpt-gpt4-ai-chatbot.p.rapidapi.com",
+            "x-rapidapi-key": f"{os.getenv('API_KEY')}",
+            "x-rapidapi-host": f"{os.getenv('HOST')}",
             "Content-Type": "application/json"
         }
-        response = requests.post(url, json=payload, headers=headers)
-        return response if response.ok else self.loading_response()
 
-    def loading_response(self):
-        """Generate a loading response."""
-        return "Please wait a moment while I process your request..."
+        try:
+            response = requests.post(url, json=payload, headers=headers)
+            response.raise_for_status()  # Raise an error for bad status codes
+            response_json = response.json()
+            # Extract the assistant's message content and format it
+            message_content = self.format_response(response_json['choices'][0]['message']['content'])
+            return {"response": message_content}
+        except requests.RequestException as e:
+            print(f"API request failed: {e}")
+            return self.fallback_response()
+
+    def format_response(self, message):
+        """Format the response by removing * and - and adding flair."""
+        lines = message.split("\n")
+        formatted_lines = []
+        for line in lines:
+            if line.strip().startswith("-"):
+                formatted_lines.append(f"• {line.strip()[1:].strip()}")
+            elif line.strip().startswith("1.") or line.strip().startswith("2.") or line.strip().startswith("3.") or line.strip().startswith("4.") or line.strip().startswith("5.") or line.strip().startswith("6.") or line.strip().startswith("7.") or line.strip().startswith("8.") or line.strip().startswith("9.") or line.strip().startswith("10."):
+                formatted_lines.append(f"{line.strip()}")
+            else:
+                formatted_lines.append(line)
+        formatted_message = "\n".join(formatted_lines)
+        return formatted_message
+
+    def fallback_response(self):
+        """Generate a fallback response."""
+        return {"response": "Sorry, I couldn't fetch a response due to a server error. Please try again later."}
