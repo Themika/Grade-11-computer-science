@@ -133,7 +133,7 @@ class ChatBotUI(ttk.Frame):
                 }
             ],
             "model": "gpt-4o",
-            "max_tokens": 100,
+            "max_tokens": 300,
             "temperature": 0.9
         }
         # Define the API request headers

@@ -7,7 +7,7 @@ from utils.validation_utils import validate_input
 translations = {
     "English": {
         "welcome_label": "Welcome to the Paint Program!",
-        "name_label": "Name:",
+        "name_label": "First Name:",
         "rooms_label": "Number of Rooms:",
         "email_label": "Email Address:",
         "age_label": "Age:",
@@ -16,7 +16,7 @@ translations = {
     },
     "French": {
         "welcome_label": "Bienvenue dans le programme de peinture!",
-        "name_label": "Nom:",
+        "name_label": "Prénom:",
         "rooms_label": "Nombre de chambres:",
         "email_label": "Adresse e-mail:",
         "age_label": "Âge:",
