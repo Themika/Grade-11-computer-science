@@ -259,43 +259,31 @@ class Bee:
         self.draw_outline()
         self.t.hideturtle()
 class Swarm:
-    # Create a swarm of bees
     def __init__(self, num_bees):
         self.num_bees = num_bees
         self.bees = []
 
     def create_swarm(self):
-        # Create a swarm of bees
         positions = []
-        # Create a swarm of bees
-        for _ in range(self.num_bees):
-            # Create a swarm of bees
+        sizes = sorted([random.randint(5, 15) for _ in range(self.num_bees)])
+        for size in sizes:
             bee = Bee()
-            # Create a swarm of bees
-            bee.side = random.randint(10,15)  # Random size for each bee
+            bee.side = size  # Set size for each bee
             bee.bee_w, bee.bee_l = 7 * bee.side, 10 * bee.side
             bee.t.penup()
-            # Create a swarm of bees
             while True:
-                # Create a swarm of bees
                 x, y = random.randint(-650, 650), random.randint(-400, 400)
-                # Check if the bees are too close to each other
                 if all(abs(x - px) > 20 and abs(y - py) > 20 for px, py in positions):
                     positions.append((x, y))
                     break
-            
             bee.t.goto(x, y)
             bee.t.pendown()
-            # Create a swarm of bees
             self.bees.append(bee)
 
     def draw_swarm(self):
-        # Draw the swarm of bees
         for bee in self.bees:
             bee.draw()
-            bee.t.penup()
-            bee.t.goto(random.randint(-200, 200), random.randint(-200, 200))
-            bee.t.pendown()
+    
 class Tree:
     def __init__(self, x, y, side):
         self.t = Turtle()
@@ -559,5 +547,4 @@ forest.draw_forest()
 swarm = Swarm(15)  
 swarm.create_swarm()
 swarm.draw_swarm()
-
 done()
