@@ -262,6 +262,7 @@ class Swarm:
     def __init__(self, num_bees):
         self.num_bees = num_bees
         self.bees = []
+        self.screen = Screen()
 
     def create_swarm(self):
         positions = []
@@ -283,6 +284,31 @@ class Swarm:
     def draw_swarm(self):
         for bee in self.bees:
             bee.draw()
+
+    def dance_step(self, step):
+        for bee in self.bees:
+            bee.t.penup()
+            if step == 0:
+                bee.t.forward(50)
+            elif step == 1:
+                bee.t.right(90)
+                bee.t.forward(50)
+            elif step == 2:
+                bee.t.right(90)
+                bee.t.forward(50)
+            elif step == 3:
+                bee.t.right(90)
+                bee.t.forward(50)
+            elif step == 4:
+                bee.t.right(90)
+            bee.t.pendown()
+        next_step = (step + 1) % 5
+        self.screen.ontimer(lambda: self.dance_step(next_step), 1000)  # Repeat every 1000 milliseconds (1 second)
+
+    def start_dance(self):
+        self.dance_step(0)
+        for bee in self.bees:
+            bee.draw()
     
 class Tree:
     def __init__(self, x, y, side):
@@ -294,7 +320,6 @@ class Tree:
         self.setup()
 
     def setup(self):
-        
         self.t.pensize(2)
         self.t.up()
         self.t.goto(self.x, self.y)
@@ -336,12 +361,28 @@ class Tree:
             self.t.forward(self.side * 2)
             self.t.right(90)
             self.t.pendown()
+            # Add shading to the leaves
+            self.t.color('#006400')
+            self.t.begin_fill()
+            self.t.penup()
+            self.t.backward(self.side * 2)
+            self.t.pendown()
+            self.draw_square(self.side * 6)
+            self.t.end_fill()
+            self.t.penup()
+            self.t.forward(self.side * 2)
+            self.t.left(90)
+            self.t.forward(self.side * 2)
+            self.t.right(90)
+            self.t.pendown()
+
     def draw_honey_square(self):
         """Draw a yellow honey square on the tree."""
         self.t.color('#FFD700')
         self.t.begin_fill()
         self.draw_square(self.side)
         self.t.end_fill()
+
     # Draw the tree
     def draw(self):
         self.draw_trunk()
@@ -352,6 +393,7 @@ class Tree:
             self.t.pendown()
             self.draw_honey_square()
         self.t.hideturtle()
+
 class Forest:
     def __init__(self, num_trees):
         self.num_trees = num_trees
@@ -474,11 +516,11 @@ class Background():
         mountain_turtle.pendown()
 
         # Base colors for different mountain layers
-        base_colors = ["dim gray", "slate gray", "dark gray", "light slate gray", "gray", "light steel blue", "cadet blue"]
+        base_colors = [(105, 105, 105), (112, 128, 144), (169, 169, 169), (119, 136, 153), (128, 128, 128), (176, 196, 222), (95, 158, 160)]
         # List of base positions for start, peak, and end of mountains, scaled by 1.2 for size increase
         mountain_positions = [
-            (-800 * 1.2, -450 * 1.2, -600 * 1.2, -150 * 1.2, -400 * 1.2), 
-            (-750 * 1.2, -450 * 1.2, -500 * 1.2, -120 * 1.2, -250 * 1.2), 
+            (-800 * 1.8, -450 * 1.8, -600 * 1.8, -250 * 1.8, -400 * 1.8), 
+            (-750 * 1.6, -450 * 1.6, -500 * 1.6, -120 * 1.6, -250 * 1.6), 
             (-700 * 1.2, -450 * 1.2, -450 * 1.2, -170 * 1.2, -200 * 1.2), 
             (-600 * 1.2, -450 * 1.2, -400 * 1.2, -100 * 1.2, -200 * 1.2),
             (-500 * 1.2, -450 * 1.2, -300 * 1.2, -80 * 1.2, -100 * 1.2),
@@ -511,6 +553,15 @@ class Background():
                 mountain_turtle.begin_fill()
                 mountain_turtle.goto(x_peak_variation, y_peak_variation + y_offset)  # Varying peak of the mountain
                 mountain_turtle.goto(x_end_variation, y_start + y_offset)  # Varying base of the mountain
+                mountain_turtle.end_fill()
+
+                # Add shading to the mountain
+                shading_color = (max(0, color[0] - 30), max(0, color[1] - 30), max(0, color[2] - 30))
+                mountain_turtle.color(shading_color)
+                mountain_turtle.begin_fill()
+                mountain_turtle.goto(x_peak_variation, y_peak_variation + y_offset)
+                mountain_turtle.goto(x_peak_variation + 20, y_peak_variation + y_offset - 20)
+                mountain_turtle.goto(x_end_variation, y_start + y_offset)
                 mountain_turtle.end_fill()
 
         mountain_turtle.hideturtle()
@@ -546,5 +597,5 @@ forest.create_forest()
 forest.draw_forest()
 swarm = Swarm(15)  
 swarm.create_swarm()
-swarm.draw_swarm()
+swarm.start_dance()  # Start the coordinated dance
 done()
