@@ -9,7 +9,7 @@ def ghostWriter(sentence: str, pause: float):
 
 
 def main():
-    ghostWriter("Enter the shape you would like to draw: ", 0.05)
+    ghostWriter("Enter the shape you would like to draw(Ghost/Diamond/Parallelogram/Triangle): ", 0.05)
     try:
         shape = str(input()).lower().strip(" ")
         if shape == "ghost":

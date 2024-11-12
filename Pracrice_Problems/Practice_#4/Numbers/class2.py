@@ -24,8 +24,9 @@ def main():
     ghostWriter(f"\nSum: {sum_numbers(numbers)}",0.05)
     ghostWriter(f"\nMean: {mean(numbers)}",0.05)
     ghostWriter(f"\nMedian: {median(numbers)}",0.05)
-    ghostWriter(f"\nMode: {mode(numbers)}",0.05)
-
+    ghostWriter(f"\nMode: {mode(numbers)}\n",0.05)
+    ghostWriter(f"\n{postive_check(sum_numbers(numbers))} ",0.05)
+    
 if __name__ == "__main__":
     while True:
         main()

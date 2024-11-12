@@ -3,7 +3,14 @@ def sum_numbers(inputs):
     for i in range(len(inputs)):
         total += inputs[i]
     return total
-
+def postive_check(inputs):
+    if inputs < 0:
+        return print("The total is a negative number.")
+    elif inputs > 0:
+        return print("The total is a positive number.")
+    else:
+        return print("The total is zero.")
+            
 def mean(inputs):
     total = sum(inputs)
     return total/len(inputs)
