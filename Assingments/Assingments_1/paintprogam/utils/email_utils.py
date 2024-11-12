@@ -10,7 +10,7 @@ def send_email(sender_email, receiver_email, subject, body, password):
     try:
         # Create the email content
         message = MIMEMultipart()
-        message["From"] = sender_email
+        message["From"] = os.environ.get("EMAIL")
         message["To"] = receiver_email
         message["Subject"] = subject
         message.attach(MIMEText(body, "plain"))

@@ -2,7 +2,7 @@ from turtle import *
 import time
 import random
 from turtle import Screen, Turtle
-
+from time import sleep
 """
     Deleted the Desmos stuff and have nothing saved
     This program shows a night sky and a mountain range 
@@ -257,12 +257,13 @@ class Bee:
         self.t.right(60)
         self.draw_eyes_and_antennae()
         self.draw_outline()
-        self.t.hideturtle()
+        self.t.hideturtle()        
 class Swarm:
     def __init__(self, num_bees):
         self.num_bees = num_bees
         self.bees = []
         self.screen = Screen()
+        self.bees_drawn = False  # Flag to indicate if the bees have been drawn
 
     def create_swarm(self):
         positions = []
@@ -280,12 +281,17 @@ class Swarm:
             bee.t.goto(x, y)
             bee.t.pendown()
             self.bees.append(bee)
+        self.draw_swarm()  # Draw all bees after creating them
+        self.bees_drawn = True  # Set the flag to indicate that the bees have been drawn
+        self.start_dance()  # Start the dance after all bees are drawn
 
     def draw_swarm(self):
         for bee in self.bees:
             bee.draw()
 
     def dance_step(self, step):
+        if not self.bees_drawn:  # Only animate if the bees have been drawn
+            return
         for bee in self.bees:
             bee.t.penup()
             if step == 0:
@@ -307,8 +313,6 @@ class Swarm:
 
     def start_dance(self):
         self.dance_step(0)
-        for bee in self.bees:
-            bee.draw()
     
 class Tree:
     def __init__(self, x, y, side):
@@ -597,5 +601,4 @@ forest.create_forest()
 forest.draw_forest()
 swarm = Swarm(15)  
 swarm.create_swarm()
-swarm.start_dance()  # Start the coordinated dance
 done()
