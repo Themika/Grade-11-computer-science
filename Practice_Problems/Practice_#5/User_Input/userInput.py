@@ -11,7 +11,7 @@ def main():
         name = str(input("Enter your first name: "))
         last_name = str(input("Enter your last name: "))
         age = int(input("Enter your age: "))
-        address = input("Enter your address: ")
+        address = str(input("Enter your address: "))
         phone_number = int(input("Enter your phone number: "))
         get_input(name, last_name, age, address, phone_number)
     except ValueError:
