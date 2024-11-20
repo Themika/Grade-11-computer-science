@@ -1,130 +1,216 @@
-import pygame
+import socket
 import random
-import sys
-import os
+import tkinter as tk
+from tkinter import ttk, CENTER
+from threading import Thread
+from PIL import Image, ImageTk
+import ttkbootstrap as tb  # Modern styling
+from ..gameManager import GameManager
+class RPSClient:
+    def __init__(self, root):
+        self.root = root
+        self.root.geometry("800x600")
+        self.root.title("Rock Paper Scissors")
+        self.style = tb.Style("superhero")  # Modern theme
+        self.client_socket = None
+        self.lobby_id = None
+        self.create_initial_ui()
 
-# Ensure the utils directory is in the Python path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'utils'))
+    def create_initial_ui(self):
+        # Clear existing widgets
+        for widget in self.root.winfo_children():
+            widget.destroy()
 
-from cutscene import CutScene, CutSceneManager
+        # Title
+        title_label = ttk.Label(self.root, text="Rock Paper Scissors", font=("Helvetica", 48), bootstyle="inverse-primary")
+        title_label.place(relx=0.5, y=50, anchor=CENTER)
 
-# Initialize pygame
-pygame.init()
+        # Mode selection
+        button_frame = ttk.Frame(self.root, bootstyle="secondary")
+        button_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
-# Define Colors
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
+        online_button = ttk.Button(button_frame, text="Online", command=self.show_lobby_options, bootstyle="primary")
+        online_button.grid(row=0, column=0, padx=50, pady=20)
 
-# Set screen size
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Rock Paper Scissors")
+        computer_button = ttk.Button(button_frame, text="Computer", command=self.start_computer, bootstyle="success")
+        computer_button.grid(row=0, column=1, padx=50, pady=20)
+        back_button = ttk.Button(button_frame, text="Back", bootstyle="danger")
+        back_button.grid(row=0, column=2, padx=50, pady=20)
 
-# Load images
-rock_img = pygame.image.load('Assingments/Assingments_2/assets/mptyxj3gnrra1-removebg-preview.png')
-paper_img = pygame.image.load('Assingments/Assingments_2/assets/mptyxj3gnrra1-removebg-preview.png')
-scissors_img = pygame.image.load('Assingments/Assingments_2/assets/mptyxj3gnrra1-removebg-preview.png')
-background_img = pygame.image.load('Assingments/Assingments_2/assets/Creepy-Cabin-Graphic-67803520-1.png')
+    def show_lobby_options(self):
+        # Clear existing widgets
+        for widget in self.root.winfo_children():
+            widget.destroy()
 
-# Scale images
-rock_img = pygame.transform.scale(rock_img, (150, 150))
-paper_img = pygame.transform.scale(paper_img, (150, 150))
-scissors_img = pygame.transform.scale(scissors_img, (150, 150))
-background_img = pygame.transform.scale(background_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        # Title
+        title_label = ttk.Label(self.root, text="Rock Paper Scissors - Online", font=("Helvetica", 48), bootstyle="inverse-primary")
+        title_label.place(relx=0.5, y=50, anchor=CENTER)
 
-# Font setup
-font = pygame.font.SysFont("Helvetica", 36)
-large_font = pygame.font.SysFont("Helvetica", 72)
+        # Lobby options
+        lobby_frame = ttk.Frame(self.root, bootstyle="secondary")
+        lobby_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
-class RPS:
-    def __init__(self):
-        self.running = True
-        self.player_choice = None
-        self.computer_choice = None
-        self.result = None
-        self.thinking = False
-        self.cutscene_manager = CutSceneManager(screen)
-        self.cutscene = None
+        create_lobby_button = ttk.Button(lobby_frame, text="Create Lobby", command=self.create_lobby, bootstyle="primary")
+        create_lobby_button.grid(row=0, column=0, padx=50, pady=20)
 
-    def run(self):
-        while self.running:
-            self.check_events()
-            self.update()
-            self.draw()
-            pygame.display.flip()
+        join_lobby_button = ttk.Button(lobby_frame, text="Join Lobby", command=self.join_lobby, bootstyle="success")
+        join_lobby_button.grid(row=0, column=1, padx=50, pady=20)
 
-    def draw(self):
-        screen.blit(background_img, (0, 0))  # Draw the background image
-        self.draw_choices()
-        self.draw_result()
-        self.cutscene_manager.draw()
+        # Back button
+        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger").place(relx=0.5, y=550, anchor=CENTER)
 
-    def draw_choices(self):
-        screen.blit(rock_img, (100, 400))
-        screen.blit(paper_img, (325, 400))
-        screen.blit(scissors_img, (550, 400))
+    def create_lobby(self):
+        self.lobby_id = f"Lobby{random.randint(1000, 9999)}"
+        if self.connect_to_server():
+            self.create_online_ui()
 
-    def draw_result(self):
-        if self.thinking:
-            thinking_text = font.render("Computer is thinking...", True, BLACK)
-            screen.blit(thinking_text, (SCREEN_WIDTH // 2 - thinking_text.get_width() // 2, 50))
-        elif self.result:
-            result_text = large_font.render(self.result, True, BLACK)
-            screen.blit(result_text, (SCREEN_WIDTH // 2 - result_text.get_width() // 2, 50))
-            computer_choice_text = font.render(f"Computer chose: {self.computer_choice}", True, BLACK)
-            screen.blit(computer_choice_text, (SCREEN_WIDTH // 2 - computer_choice_text.get_width() // 2, 150))
+    def join_lobby(self):
+        # Clear existing widgets
+        for widget in self.root.winfo_children():
+            widget.destroy()
 
-    def update(self):
-        self.cutscene_manager.update()
+        # Title
+        title_label = ttk.Label(self.root, text="Join Lobby", font=("Helvetica", 48), bootstyle="inverse-primary")
+        title_label.place(relx=0.5, y=50, anchor=CENTER)
 
-    def check_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                self.running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN and not self.thinking:
-                self.handle_click(event.pos)
+        # Lobby ID entry
+        lobby_id_label = ttk.Label(self.root, text="Enter Lobby ID:", font=("Helvetica", 24))
+        lobby_id_label.place(relx=0.5, y=200, anchor=CENTER)
 
-    def handle_click(self, pos):
-        if 100 <= pos[0] <= 250 and 400 <= pos[1] <= 550:
-            self.player_choice = "rock"
-        elif 325 <= pos[0] <= 475 and 400 <= pos[1] <= 550:
-            self.player_choice = "paper"
-        elif 550 <= pos[0] <= 700 and 400 <= pos[1] <= 550:
-            self.player_choice = "scissors"
-        if self.player_choice:
-            self.thinking = True
-            pygame.display.flip()
-            self.start_cutscene()
+        self.lobby_id_entry = ttk.Entry(self.root, font=("Helvetica", 24))
+        self.lobby_id_entry.place(relx=0.5, y=250, anchor=CENTER)
 
-    def start_cutscene(self):
-        self.computer_choice = random.choice(["rock", "paper", "scissors"])
-        self.determine_winner()
-        scenes = [
-            "You chose " + self.player_choice,
-            "Computer is thinking...",
-            "Computer chose " + self.computer_choice,
-            self.result
-        ]
-        self.cutscene = CutScene("RPS_CutScene", scenes)
-        self.cutscene_manager.start_cutscene(self.cutscene)
-        self.thinking = False
+        # Join button
+        join_button = ttk.Button(self.root, text="Join", command=self.join_existing_lobby, bootstyle="primary")
+        join_button.place(relx=0.5, y=300, anchor=CENTER)
 
-    def determine_winner(self):
-        if self.player_choice == self.computer_choice:
-            self.result = "It's a tie!"
-        elif (self.player_choice == "rock" and self.computer_choice == "scissors") or \
-             (self.player_choice == "paper" and self.computer_choice == "rock") or \
-             (self.player_choice == "scissors" and self.computer_choice == "paper"):
-            self.result = "You win!"
+        # Back button
+        ttk.Button(self.root, text="Back", command=self.show_lobby_options, bootstyle="danger").place(relx=0.5, y=550, anchor=CENTER)
+
+    def join_existing_lobby(self):
+        self.lobby_id = self.lobby_id_entry.get()
+        if self.connect_to_server():
+            self.create_online_ui()
+
+    def connect_to_server(self):
+        try:
+            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.client_socket.connect(("localhost", 8765))
+            self.client_socket.sendall(self.lobby_id.encode())
+            return True
+        except ConnectionError:
+            self.show_error("Unable to connect to the server.")
+            return False
+
+    def create_online_ui(self):
+        # Clear existing widgets
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        # Title
+        title_label = ttk.Label(self.root, text="Rock Paper Scissors - Online", font=("Helvetica", 48), bootstyle="inverse-primary")
+        title_label.place(relx=0.5, y=50, anchor=CENTER)
+
+        # Instructions
+        instruction_label = ttk.Label(self.root, text="Choose your move:", font=("Helvetica", 24))
+        instruction_label.place(relx=0.5, y=150, anchor=CENTER)
+
+        # Load images
+        self.load_images()
+
+        # Buttons
+        button_frame = ttk.Frame(self.root, bootstyle="secondary")
+        button_frame.place(relx=0.5, rely=0.7, anchor=CENTER)
+
+        ttk.Button(button_frame, image=self.rock_img, command=lambda: self.send_move("Rock"), bootstyle="primary").grid(row=0, column=0, padx=50)
+        ttk.Button(button_frame, image=self.paper_img, command=lambda: self.send_move("Paper"), bootstyle="success").grid(row=0, column=1, padx=50)
+        ttk.Button(button_frame, image=self.scissors_img, command=lambda: self.send_move("Scissors"), bootstyle="info").grid(row=0, column=2, padx=50)
+
+        # Result label
+        self.result_label = ttk.Label(self.root, text="Waiting for result...", font=("Helvetica", 24), bootstyle="inverse-secondary")
+        self.result_label.place(relx=0.5, y=250, anchor=CENTER)
+
+        # Start thread to listen for server responses
+        self.listener_thread = Thread(target=self.listen_to_server, daemon=True)
+        self.listener_thread.start()
+
+        # Back button
+        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger").place(relx=0.5, y=550, anchor=CENTER)
+
+    def start_computer(self):
+        self.create_computer_ui()
+
+    def create_computer_ui(self):
+        # Clear existing widgets
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        # Title
+        title_label = ttk.Label(self.root, text="Rock Paper Scissors", font=("Helvetica", 48), bootstyle="inverse-primary")
+        title_label.place(relx=0.5, y=50, anchor=CENTER)
+
+        # Load images
+        self.load_images()
+
+        # Buttons
+        button_frame = ttk.Frame(self.root, bootstyle="secondary")
+        button_frame.place(relx=0.5, rely=0.7, anchor=CENTER)
+
+        ttk.Button(button_frame, image=self.rock_img, command=lambda: self.play_vs_computer("Rock"), bootstyle="primary").grid(row=0, column=0, padx=50)
+        ttk.Button(button_frame, image=self.paper_img, command=lambda: self.play_vs_computer("Paper"), bootstyle="success").grid(row=0, column=1, padx=50)
+        ttk.Button(button_frame, image=self.scissors_img, command=lambda: self.play_vs_computer("Scissors"), bootstyle="info").grid(row=0, column=2, padx=50)
+
+        # Result label
+        self.result_label = ttk.Label(self.root, text="Choose your move to play!", font=("Helvetica", 16), bootstyle="inverse-secondary")
+        self.result_label.place(relx=0.5, y=250, anchor=CENTER)
+
+        # Back button
+        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger").place(relx=0.5, y=550, anchor=CENTER)
+
+    def load_images(self):
+        # Load and resize images for buttons
+        self.rock_img = ImageTk.PhotoImage(Image.open("Assingments/Assingments_2/assets/Screenshot_2024-11-20_090719-removebg-preview.png").resize((150, 150)))
+        self.paper_img = ImageTk.PhotoImage(Image.open("Assingments/Assingments_2/assets/Screenshot_2024-11-20_090747-removebg-preview.png").resize((150, 150)))
+        self.scissors_img = ImageTk.PhotoImage(Image.open("Assingments/Assingments_2/assets/Screenshot_2024-11-20_090824-removebg-preview.png").resize((150, 150)))
+
+    def send_move(self, move):
+        try:
+            self.client_socket.sendall(move.encode())
+            self.result_label.config(text=f"You chose {move}. Waiting for opponent...")
+        except BrokenPipeError:
+            self.result_label.config(text="Connection lost.")
+
+    def listen_to_server(self):
+        while True:
+            try:
+                message = self.client_socket.recv(1024).decode()
+                self.result_label.config(text=message)
+            except ConnectionResetError:
+                self.result_label.config(text="Server disconnected.")
+                break
+
+    def play_vs_computer(self, player_choice):
+        computer_choice = random.choice(["Rock", "Paper", "Scissors"])
+        result = self.determine_winner(player_choice, computer_choice)
+        self.result_label.config(text=f"You chose {player_choice}, computer chose {computer_choice}. {result}")
+
+    def determine_winner(self, player_choice, computer_choice):
+        if player_choice == computer_choice:
+            return "It's a tie!"
+        elif (player_choice == "Rock" and computer_choice == "Scissors") or \
+             (player_choice == "Paper" and computer_choice == "Rock") or \
+             (player_choice == "Scissors" and computer_choice == "Paper"):
+            return "You win!"
         else:
-            self.result = "You lose!"
+            return "You lose!"
 
+    def show_error(self, message):
+        error_label = ttk.Label(self.root, text=message, font=("Helvetica", 16), bootstyle="danger")
+        error_label.place(relx=0.5, y=550, anchor=CENTER)
+
+
+# Run the client
 if __name__ == "__main__":
-    game = RPS()
-    game.run()
-    pygame.quit()
-    sys.exit()
+    root = tb.Window()
+    app = RPSClient(root)
+    root.mainloop()
