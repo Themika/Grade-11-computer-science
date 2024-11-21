@@ -5,11 +5,10 @@ from tkinter import ttk, CENTER
 from threading import Thread
 from PIL import Image, ImageTk
 import ttkbootstrap as tb  # Modern styling
-from ..gameManager import GameManager
 class RPSClient:
     def __init__(self, root):
         self.root = root
-        self.root.geometry("800x600")
+        self.root.geometry("1000x600")
         self.root.title("Rock Paper Scissors")
         self.style = tb.Style("superhero")  # Modern theme
         self.client_socket = None

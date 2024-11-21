@@ -34,12 +34,8 @@ def handle_client(client_socket, client_address, lobby_id):
                 winner = determine_winner(player1, move1, player2, move2)
 
                 for client, pid in zip(lobbies[lobby_id]['clients'], lobbies[lobby_id]['moves'].keys()):
-                    if pid == winner:
-                        client.sendall(f"You won! Your move: {move1}. Opponent's move: {move2}.\n".encode())
-                    elif winner == "Draw":
-                        client.sendall(f"It's a draw! Your move: {move1}. Opponent's move: {move2}.\n".encode())
-                    else:
-                        client.sendall(f"You lost. Your move: {move1}. Opponent's move: {move2}.\n".encode())
+                    result = "won" if pid == winner else "lost" if winner != "Draw" else "draw"
+                    client.sendall(f"You {result}! Your move: {move1}. Opponent's move: {move2}.\n".encode())
 
                 lobbies[lobby_id]['moves'].clear()
 
@@ -53,11 +49,11 @@ def handle_client(client_socket, client_address, lobby_id):
         del lobbies[lobby_id]
 
 # Start the server
-def start_server():
+def start_server(server_number):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind(("localhost", 8765))
+    server.bind(("localhost", server_number))
     server.listen(5)  # Allow multiple connections
-    print("Server started on localhost:8765")
+    print(f"Server started on localhost:{server_number}")
 
     while True:
         client_socket, client_address = server.accept()
@@ -68,4 +64,4 @@ def start_server():
         threading.Thread(target=handle_client, args=(client_socket, client_address, lobby_id)).start()
 
 if __name__ == "__main__":
-    start_server()
+    start_server(8765)
