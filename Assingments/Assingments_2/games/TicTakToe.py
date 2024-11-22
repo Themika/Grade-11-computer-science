@@ -14,6 +14,7 @@ class TicTacToe:
         self.lobby_id = None
         self.player_symbol = None
         self.is_my_turn = False
+        self.board_size = (3, 3)  # Default board size
         self.create_initial_ui()
 
     def create_initial_ui(self):
@@ -51,8 +52,8 @@ class TicTacToe:
         create_lobby_1v1_button = ttk.Button(lobby_frame, text="Create 1v1 Lobby", command=lambda: self.create_lobby("1v1"), bootstyle="primary")
         create_lobby_1v1_button.grid(row=0, column=0, padx=50, pady=20)
 
-        create_lobby_2v2_button = ttk.Button(lobby_frame, text="Create 1v1v1 Lobby", command=lambda: self.create_lobby("2v2"), bootstyle="primary")
-        create_lobby_2v2_button.grid(row=0, column=1, padx=50, pady=20)
+        create_lobby_3p_button = ttk.Button(lobby_frame, text="Create 3 Player Lobby", command=lambda: self.create_lobby("3p"), bootstyle="primary")
+        create_lobby_3p_button.grid(row=0, column=1, padx=50, pady=20)
 
         join_lobby_button = ttk.Button(lobby_frame, text="Join Lobby", command=self.join_lobby, bootstyle="success")
         join_lobby_button.grid(row=1, column=0, columnspan=2, padx=50, pady=20)
@@ -67,6 +68,7 @@ class TicTacToe:
             print(f"Sent CREATE_LOBBY {self.lobby_id} {mode} to server")
             self.player_symbol = "X"
             self.is_my_turn = True
+            self.board_size = (3, 3) if mode == "1v1" else (6, 6)
             self.create_online_ui()
 
     def join_lobby(self):
@@ -97,8 +99,9 @@ class TicTacToe:
         if self.connect_to_server():
             self.client_socket.sendall(f"JOIN_LOBBY {self.lobby_id}".encode('utf-8'))
             print(f"Sent JOIN_LOBBY {self.lobby_id} to server")
-            self.player_symbol = "O"
+            self.player_symbol = "O" if self.player_symbol is None else "Z"
             self.is_my_turn = False
+            self.board_size = (3, 3) if self.player_symbol == "O" else (6, 6)
             self.create_online_ui()
 
     def connect_to_server(self):
@@ -110,8 +113,7 @@ class TicTacToe:
         except ConnectionError:
             self.show_error("Unable to connect to the server.")
             return False
-    def create_online_ui_1v1v1(self):
-        pass
+
     def create_online_ui(self):
         # Clear existing widgets
         for widget in self.root.winfo_children():
@@ -130,7 +132,7 @@ class TicTacToe:
         instruction_label.place(relx=0.5, y=200, anchor=CENTER)
 
         # Create board
-        self.create_board()
+        self.create_board(*self.board_size)
 
         # Result label
         self.result_label = ttk.Label(self.root, text="Waiting for result...", font=("Helvetica", 24), bootstyle="inverse-secondary")
@@ -156,7 +158,7 @@ class TicTacToe:
         title_label.place(relx=0.5, y=50, anchor=CENTER)
 
         # Create board
-        self.create_board()
+        self.create_board(3, 3)
 
         # Result label
         self.result_label = ttk.Label(self.root, text="Choose your move to play!", font=("Helvetica", 24), bootstyle="inverse-secondary")
@@ -165,14 +167,17 @@ class TicTacToe:
         # Back button
         ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger").place(relx=0.5, y=550, anchor=CENTER)
 
-    def create_board(self):
+        self.is_my_turn = True
+        self.player_symbol = "X"
+
+    def create_board(self, length, width):
         self.board_frame = ttk.Frame(self.root, bootstyle="secondary")
         self.board_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
         self.buttons = []
-        for i in range(3):
+        for i in range(length):
             row = []
-            for j in range(3):
+            for j in range(width):
                 button = ttk.Button(self.board_frame, text="", command=lambda i=i, j=j: self.make_move(i, j), bootstyle="primary", width=10)
                 button.grid(row=i, column=j, padx=5, pady=5)
                 row.append(button)
@@ -181,12 +186,20 @@ class TicTacToe:
     def make_move(self, i, j):
         if self.is_my_turn and self.buttons[i][j]["text"] == "":
             self.buttons[i][j]["text"] = self.player_symbol
-            self.client_socket.sendall(f"MOVE {self.lobby_id} {i},{j},{self.player_symbol}".encode('utf-8'))
             self.is_my_turn = False
             self.update_buttons_state()
             self.check_winner()
+            self.computer_move()
 
-    
+    def computer_move(self):
+        empty_cells = [(i, j) for i in range(3) for j in range(3) if self.buttons[i][j]["text"] == ""]
+        if empty_cells:
+            i, j = random.choice(empty_cells)
+            self.buttons[i][j]["text"] = "O"
+            self.is_my_turn = True
+            self.update_buttons_state()
+            self.check_winner()
+
     def update_buttons_state(self):
         state = "normal" if self.is_my_turn else "disabled"
         for row in self.buttons:
@@ -200,22 +213,23 @@ class TicTacToe:
         self.update_buttons_state()
         self.check_winner()
 
-
     def check_winner(self):
-        for i in range(3):
-            if self.buttons[i][0]["text"] == self.buttons[i][1]["text"] == self.buttons[i][2]["text"] != "":
-                self.result_label.config(text=f"{self.buttons[i][0]['text']} wins!")
+        length, width = self.board_size
+        lines = [
+            [self.buttons[i][j] for j in range(width)] for i in range(length)
+        ] + [
+            [self.buttons[j][i] for j in range(length)] for i in range(width)
+        ] + [
+            [self.buttons[i][i] for i in range(min(length, width))],
+            [self.buttons[i][width-1-i] for i in range(min(length, width))]
+        ]
+
+        for line in lines:
+            if all(button["text"] == line[0]["text"] != "" for button in line):
+                self.result_label.config(text=f"{line[0]['text']} wins!")
                 return
-            if self.buttons[0][i]["text"] == self.buttons[1][i]["text"] == self.buttons[2][i]["text"] != "":
-                self.result_label.config(text=f"{self.buttons[0][i]['text']} wins!")
-                return
-        if self.buttons[0][0]["text"] == self.buttons[1][1]["text"] == self.buttons[2][2]["text"] != "":
-            self.result_label.config(text=f"{self.buttons[0][0]['text']} wins!")
-            return
-        if self.buttons[0][2]["text"] == self.buttons[1][1]["text"] == self.buttons[2][0]["text"] != "":
-            self.result_label.config(text=f"{self.buttons[0][2]['text']} wins!")
-            return
-        if all(self.buttons[i][j]["text"] != "" for i in range(3) for j in range(3)):
+
+        if all(self.buttons[i][j]["text"] != "" for i in range(length) for j in range(width)):
             self.result_label.config(text="It's a tie!")
 
     def listen_to_server(self):

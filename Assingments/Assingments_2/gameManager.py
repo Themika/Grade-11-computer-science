@@ -2,6 +2,7 @@ import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from PIL import Image, ImageTk
 from games.RPS import RPSClient
+from games.TicTakToe import TicTacToe
 
 class GameManager:
     def __init__(self, root):
@@ -46,6 +47,7 @@ class GameManager:
 
     def start_game2(self):
         self.show_game_ui("Mini Game 2")
+        self.tic_tac_toe_client = TicTacToe(self.root)
 
     def start_game3(self):
         self.show_game_ui("Mini Game 3")
