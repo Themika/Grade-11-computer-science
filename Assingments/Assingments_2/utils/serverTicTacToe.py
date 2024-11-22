@@ -31,19 +31,19 @@ def handle_client(client_socket, client_address, lobby_id):
                 client_socket.sendall(str(lobbies).encode('utf-8'))
             elif message.startswith('CREATE_LOBBY'):
                 lobby_name, mode = message.split()[1], message.split()[2]
-                board_size = 4 if mode == "4x4" else 3
-                lobbies[lobby_name] = {'clients': [client_socket], 'board': [['' for _ in range(board_size)] for _ in range(board_size)], 'turn': 0, 'mode': mode}
+                board_size = 5 if mode == "blitz" else 3
+                lobbies[lobby_name] = {
+                    'clients': [client_socket],
+                    'board': [['' for _ in range(board_size)] for _ in range(board_size)],
+                    'turn': 0,
+                    'mode': mode
+                }
                 client_socket.sendall(f"Lobby {lobby_name} created.".encode('utf-8'))
                 print(f"Lobby {lobby_name} created with mode {mode}.")
-
             elif message.startswith('JOIN_LOBBY'):
                 lobby_name = message.split()[1]
                 if lobby_name in lobbies:
-                    if lobbies[lobby_name]['mode'] == '1v1' and len(lobbies[lobby_name]['clients']) < 2:
-                        lobbies[lobby_name]['clients'].append(client_socket)
-                        client_socket.sendall(f"Joined lobby {lobby_name}.".encode('utf-8'))
-                        print(f"Client {client_address} joined lobby {lobby_name}.")
-                    elif lobbies[lobby_name]['mode'] == '1v1v1' and len(lobbies[lobby_name]['clients']) < 3:
+                    if len(lobbies[lobby_name]['clients']) < 3:
                         lobbies[lobby_name]['clients'].append(client_socket)
                         client_socket.sendall(f"Joined lobby {lobby_name}.".encode('utf-8'))
                         print(f"Client {client_address} joined lobby {lobby_name}.")
@@ -57,7 +57,6 @@ def handle_client(client_socket, client_address, lobby_id):
                     i, j, symbol = move.split(',')
                     i, j = int(i), int(j)
                     lobbies[lobby_name]['board'][i][j] = symbol
-                    # Update turn to the next player in a 3-player cycle
                     lobbies[lobby_name]['turn'] = (lobbies[lobby_name]['turn'] + 1) % len(lobbies[lobby_name]['clients'])
                     winner = check_winner(lobbies[lobby_name]['board'])
                     for client in lobbies[lobby_name]['clients']:
@@ -76,17 +75,21 @@ def check_winner(board):
     size = len(board)
     # Check rows
     for row in board:
-        if all(cell == row[0] != '' for cell in row):
-            return row[0]
+        for i in range(size - 3):
+            if row[i] == row[i+1] == row[i+2] == row[i+3] != '':
+                return row[i]
     # Check columns
     for col in range(size):
-        if all(board[row][col] == board[0][col] != '' for row in range(size)):
-            return board[0][col]
+        for i in range(size - 3):
+            if board[i][col] == board[i+1][col] == board[i+2][col] == board[i+3][col] != '':
+                return board[i][col]
     # Check diagonals
-    if all(board[i][i] == board[0][0] != '' for i in range(size)):
-        return board[0][0]
-    if all(board[i][size-1-i] == board[0][size-1] != '' for i in range(size)):
-        return board[0][size-1]
+    for i in range(size - 3):
+        for j in range(size - 3):
+            if board[i][j] == board[i+1][j+1] == board[i+2][j+2] == board[i+3][j+3] != '':
+                return board[i][j]
+            if board[i][j+3] == board[i+1][j+2] == board[i+2][j+1] == board[i+3][j] != '':
+                return board[i][j+3]
     # Check for tie
     if all(board[i][j] != '' for i in range(size) for j in range(size)):
         return 'Tie'
