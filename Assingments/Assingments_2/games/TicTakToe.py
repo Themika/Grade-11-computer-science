@@ -23,6 +23,9 @@ class TicTacToe:
         self.create_initial_ui()
 
     def create_initial_ui(self):
+        # Stop the timer if it's running
+        self.stop_timer()
+
         # Clear existing widgets
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -42,6 +45,9 @@ class TicTacToe:
         computer_button.grid(row=0, column=1, padx=20, pady=10)
 
     def show_lobby_options(self):
+        # Stop the timer if it's running
+        self.stop_timer()
+
         # Clear existing widgets
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -74,9 +80,15 @@ class TicTacToe:
             print(f"Sent CREATE_LOBBY {self.lobby_id} {mode} to server")
             self.player_symbol = "X"
             self.is_my_turn = True
+            if mode == "blitz":
+                self.time_remaining = 30  # Reset the timer
+                self.timer_started = False
             self.create_online_ui()
 
     def join_lobby(self):
+        # Stop the timer if it's running
+        self.stop_timer()
+
         # Clear existing widgets
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -124,6 +136,9 @@ class TicTacToe:
             return False
 
     def create_online_ui(self):
+        # Stop the timer if it's running
+        self.stop_timer()
+
         # Clear existing widgets
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -161,6 +176,9 @@ class TicTacToe:
         self.create_computer_ui()
 
     def create_computer_ui(self):
+        # Stop the timer if it's running
+        self.stop_timer()
+
         # Clear existing widgets
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -196,22 +214,23 @@ class TicTacToe:
             self.buttons.append(row)
 
     def make_move(self, i, j):
-        if self.is_my_turn and self.buttons[i][j]["text"] == "" and self.timer_started:
+        if self.is_my_turn and self.buttons[i][j]["text"] == "":
             self.buttons[i][j]["text"] = self.player_symbol
             self.client_socket.sendall(f"MOVE {self.lobby_id} {i},{j},{self.player_symbol}".encode('utf-8'))
             self.is_my_turn = False
-            self.stop_timer()
+            self.stop_timer()  # Stop the timer when the player makes a move
             self.update_buttons_state()
             winner = self.check_winner()
             if winner:
                 self.result_label.config(text=f"{winner} wins!" if winner != 'Tie' else "It's a tie!")
 
     def start_timer(self):
-        self.timer_started = True
-        self.start_timer_button.config(state="disabled")
-        self.update_buttons_state()
-        self.timer = Timer(1.0, self.update_timer)
-        self.timer.start()
+        if self.board_size == (5, 5) and self.is_my_turn:  # Only start the timer in Blitz mode
+            self.timer_started = True
+            self.start_timer_button.config(state="disabled")
+            self.update_buttons_state()
+            self.timer = Timer(1.0, self.update_timer)
+            self.timer.start()
 
     def stop_timer(self):
         if self.timer:
@@ -219,18 +238,20 @@ class TicTacToe:
         self.timer_started = False
 
     def update_timer(self):
-        if self.time_remaining > 0:
+        if self.time_remaining > 0 and self.is_my_turn:
             self.time_remaining -= 1
-            self.root.after(0, self.timer_label.config, {'text': f"Time remaining:\n{self.time_remaining} seconds"})
+            if self.timer_label.winfo_exists():
+                self.root.after(0, lambda: self.timer_label.config(text=f"Time remaining:\n{self.time_remaining} seconds"))
             self.timer = Timer(1.0, self.update_timer)
             self.timer.start()
         else:
             self.timer_started = False
-            self.root.after(0, self.timer_label.config, {'text': "Time's up!"})
+            if self.timer_label.winfo_exists():
+                self.root.after(0, lambda: self.timer_label.config(text="Time's up!"))
             self.update_buttons_state()
 
     def update_buttons_state(self):
-        state = "normal" if self.is_my_turn and self.timer_started else "disabled"
+        state = "normal" if self.is_my_turn else "disabled"
         for row in self.buttons:
             for button in row:
                 if button["text"] == "":
@@ -239,10 +260,8 @@ class TicTacToe:
     def update_board(self, i, j, symbol):
         self.buttons[i][j]["text"] = symbol
         self.is_my_turn = (symbol != self.player_symbol)
-        if self.is_my_turn:
+        if self.board_size == (5, 5) and self.is_my_turn:  # Only start the timer in Blitz mode and if it's the player's turn
             self.start_timer()
-        else:
-            self.stop_timer()
         self.update_buttons_state()
 
     def check_winner(self):

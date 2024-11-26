@@ -54,7 +54,7 @@ def handle_client(client_socket, client_address, lobby_id):
             elif message.startswith('JOIN_LOBBY'):
                 lobby_name = message.split()[1]
                 if lobby_name in lobbies:
-                    if len(lobbies[lobby_name]['clients']) < 3:
+                    if len(lobbies[lobby_name]['clients']) < 2:  # Ensure only 2 players for 1v1 mode
                         lobbies[lobby_name]['clients'].append(client_socket)
                         
                         # Send the board size to the new player when they join
