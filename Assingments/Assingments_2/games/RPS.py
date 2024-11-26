@@ -211,5 +211,6 @@ class RPSClient:
 # Run the client
 if __name__ == "__main__":
     root = tb.Window()
+    root.resizable(width=False, height=False)
     app = RPSClient(root)
     root.mainloop()

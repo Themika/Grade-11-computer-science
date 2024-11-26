@@ -1,0 +1,3 @@
+2.) Add error handleing 
+3.) Add computer mode for tic tac toe
+4.)Add leader board + stats

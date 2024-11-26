@@ -266,7 +266,7 @@ class TicTacToe:
 
     def check_winner(self):
         size = len(self.buttons)
-        win_length = 4 if size == 5 else 3  # Set win length based on board size
+        win_length = 5 if size == 5 else 3  # Set win length based on board size
 
         # Check rows
         for row in self.buttons:
@@ -320,5 +320,6 @@ class TicTacToe:
 
 if __name__ == "__main__":
     root = ttk.Window(themename="superhero")
+    root.resizable(width=False, height=False)
     app = TicTacToe(root)
     root.mainloop()
