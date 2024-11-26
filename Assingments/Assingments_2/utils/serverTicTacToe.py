@@ -59,13 +59,12 @@ def handle_client(client_socket, client_address, lobby_id):
                         
                         # Send the board size to the new player when they join
                         board_size = lobbies[lobby_name]['board_size']
-                        client_socket.sendall(f"Joined lobby {lobby_name}. Board size: {board_size}".encode('utf-8'))
-                        print(f"Client {client_address} joined lobby {lobby_name}. Board size: {board_size}")
+                        client_socket.sendall(f"BOARD_SIZE {board_size}".encode('utf-8'))
+                        print(f"Client {client_address} joined lobby {lobby_name}.")
                     else:
                         client_socket.sendall("Lobby is full.".encode('utf-8'))
                 else:
                     client_socket.sendall("Lobby not found.".encode('utf-8'))
-
 
             elif message.startswith('MOVE'):
                 lobby_name, move = message.split()[1], message.split()[2]
@@ -91,45 +90,34 @@ def handle_client(client_socket, client_address, lobby_id):
             print(f"Error handling client {client_address}: {e}")
             break
 
-
 def check_winner(board):
     size = len(board)
-    win_condition = 5 if any(lobby['mode'] == 'blitz' for lobby in lobbies.values()) else 3  # 5 in a row for blitz mode
+    win_length = 5 if size == 5 else 3  # Set win length based on board size
 
     # Check rows
     for row in board:
-        for i in range(size - win_condition + 1):
-            if all(cell == row[i] != '' for cell in row[i:i+win_condition]):
+        for i in range(size - win_length + 1):
+            if all(cell == row[i] != '' for cell in row[i:i+win_length]):
                 return row[i]
-    
+
     # Check columns
     for col in range(size):
-        for i in range(size - win_condition + 1):
-            if all(board[row][col] == board[i][col] != '' for row in range(i, i + win_condition)):
+        for i in range(size - win_length + 1):
+            if all(board[row][col] == board[i][col] != '' for row in range(i, i+win_length)):
                 return board[i][col]
-    
-    # Check diagonals (top-left to bottom-right)
-    for i in range(size - win_condition + 1):
-        for j in range(size - win_condition + 1):
-            if all(board[i+k][j+k] == board[i][j] != '' for k in range(win_condition)):
-                return board[i][j]
 
-    # Check diagonals (top-right to bottom-left)
-    for i in range(size - win_condition + 1):
-        for j in range(win_condition - 1, size):
-            if all(board[i+k][j-k] == board[i][j] != '' for k in range(win_condition)):
+    # Check diagonals
+    for i in range(size - win_length + 1):
+        for j in range(size - win_length + 1):
+            if all(board[i+k][j+k] == board[i][j] != '' for k in range(win_length)):
                 return board[i][j]
+            if all(board[i+k][j+win_length-1-k] == board[i][j+win_length-1] != '' for k in range(win_length)):
+                return board[i][j+win_length-1]
 
     # Check for tie
     if all(board[i][j] != '' for i in range(size) for j in range(size)):
         return 'Tie'
     return None
-
-
-def check_corners(board, symbol):
-    size = len(board)
-    corners = [(0, 0), (0, size-1), (size-1, 0), (size-1, size-1)]
-    return all(board[i][j] == symbol for i, j in corners)
 
 if __name__ == "__main__":
     start_server(2341)

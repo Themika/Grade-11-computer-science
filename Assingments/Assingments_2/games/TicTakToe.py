@@ -3,7 +3,7 @@ import tk as tk
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import socket
-from threading import Thread
+from threading import Thread, Timer
 import random
 
 class TicTacToe:
@@ -16,6 +16,10 @@ class TicTacToe:
         self.lobby_id = None
         self.player_symbol = None
         self.is_my_turn = False
+        self.timer = None
+        self.time_remaining = 30
+        self.timer_started = False
+        self.board_size = (3, 3)  # Default board size
         self.create_initial_ui()
 
     def create_initial_ui(self):
@@ -55,7 +59,6 @@ class TicTacToe:
 
         create_lobby_blitz_button = ttk.Button(lobby_frame, text="Create Blitz Lobby", command=lambda: self.create_lobby("blitz"), bootstyle="primary")
         create_lobby_blitz_button.grid(row=0, column=1, padx=50, pady=20)
-        # Add Warp Button
 
         join_lobby_button = ttk.Button(lobby_frame, text="Join Lobby", command=self.join_lobby, bootstyle="success")
         join_lobby_button.grid(row=1, column=0, columnspan=2, padx=50, pady=20)
@@ -65,16 +68,13 @@ class TicTacToe:
 
     def create_lobby(self, mode):
         self.lobby_id = f"Lobby{random.randint(1000, 9999)}"
+        self.board_size = (3, 3) if mode == "1v1" else (5, 5)  # Ensure the board size is set correctly
         if self.connect_to_server():
             self.client_socket.sendall(f"CREATE_LOBBY {self.lobby_id} {mode}".encode('utf-8'))
             print(f"Sent CREATE_LOBBY {self.lobby_id} {mode} to server")
             self.player_symbol = "X"
             self.is_my_turn = True
-            
-            # Set board size based on mode
-            board_size = 5 if mode == "blitz" else 3
-            self.create_online_ui(board_size)
-
+            self.create_online_ui()
 
     def join_lobby(self):
         # Clear existing widgets
@@ -104,18 +104,14 @@ class TicTacToe:
         if self.connect_to_server():
             self.client_socket.sendall(f"JOIN_LOBBY {self.lobby_id}".encode('utf-8'))
             print(f"Sent JOIN_LOBBY {self.lobby_id} to server")
-
-            # Wait for the response from the server about the lobby details
-            response = self.client_socket.recv(1024).decode('utf-8')
-            if "Board size" in response:
-                # Extract the board size from the server response
-                board_size = int(response.split(":")[-1].strip())
-                self.player_symbol = "O"
-                self.is_my_turn = False
-                self.create_online_ui(board_size)  # Pass the correct board size to create the UI
-            else:
-                self.show_error(response)  # Display error if the lobby doesn't exist or the response is not correct
-
+            self.player_symbol = "O"
+            self.is_my_turn = False
+            # Wait for the server to send the board size
+            board_size_message = self.client_socket.recv(1024).decode()
+            if board_size_message.startswith("BOARD_SIZE"):
+                _, size = board_size_message.split()
+                self.board_size = (int(size), int(size))
+            self.create_online_ui()
 
     def connect_to_server(self):
         try:
@@ -127,7 +123,7 @@ class TicTacToe:
             self.show_error("Unable to connect to the server.")
             return False
 
-    def create_online_ui(self, board_size=3):
+    def create_online_ui(self):
         # Clear existing widgets
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -144,12 +140,19 @@ class TicTacToe:
         instruction_label = ttk.Label(self.root, text="Choose your move:", font=("Helvetica", 24))
         instruction_label.place(relx=0.5, y=200, anchor=CENTER)
 
-        # Create board with appropriate size
-        self.create_board(board_size, board_size)
+        # Create board
+        self.create_board(*self.board_size)
 
         # Result label
         self.result_label = ttk.Label(self.root, text="Waiting for result...", font=("Helvetica", 24), bootstyle="inverse-secondary")
         self.result_label.place(relx=0.5, y=450, anchor=CENTER)
+
+        # Timer label and start button for Blitz mode
+        if self.board_size == (5, 5):
+            self.timer_label = ttk.Label(self.root, text=f"Time remaining: {self.time_remaining} seconds", font=("Helvetica", 24), bootstyle="inverse-secondary")
+            self.timer_label.place(relx=0.85, rely=0.2, anchor=CENTER)
+            self.start_timer_button = ttk.Button(self.root, text="Start Timer", command=self.start_timer, bootstyle="warning")
+            self.start_timer_button.place(relx=0.85, rely=0.3, anchor=CENTER)
 
         # Start thread to listen for server responses
         self.listener_thread = Thread(target=self.listen_to_server, daemon=True)
@@ -157,7 +160,6 @@ class TicTacToe:
 
         # Back button
         ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger").place(relx=0.5, y=550, anchor=CENTER)
-
 
     def start_computer(self):
         self.create_computer_ui()
@@ -171,7 +173,7 @@ class TicTacToe:
         title_label = ttk.Label(self.root, text="Tic Tac Toe", font=("Helvetica", 48), bootstyle="inverse-primary")
         title_label.place(relx=0.5, y=50, anchor=CENTER)
 
-        # Create 3x3 board for the computer mode
+        # Create board
         self.create_board(3, 3)
 
         # Result label
@@ -183,7 +185,6 @@ class TicTacToe:
 
         self.is_my_turn = True
         self.player_symbol = "X"
-
 
     def create_board(self, length, width):
         self.board_frame = ttk.Frame(self.root, bootstyle="secondary")
@@ -198,17 +199,34 @@ class TicTacToe:
                 row.append(button)
             self.buttons.append(row)
 
-
     def make_move(self, i, j):
-        if self.is_my_turn and self.buttons[i][j]["text"] == "":
+        if self.is_my_turn and self.buttons[i][j]["text"] == "" and self.timer_started:
             self.buttons[i][j]["text"] = self.player_symbol
             self.client_socket.sendall(f"MOVE {self.lobby_id} {i},{j},{self.player_symbol}".encode('utf-8'))
             self.is_my_turn = False
             self.update_buttons_state()
             self.check_winner()
 
+    def start_timer(self):
+        self.timer_started = True
+        self.start_timer_button.config(state="disabled")
+        self.update_buttons_state()
+        self.timer = Timer(1.0, self.update_timer)
+        self.timer.start()
+
+    def update_timer(self):
+        if self.time_remaining > 0:
+            self.time_remaining -= 1
+            self.timer_label.config(text=f"Time remaining: {self.time_remaining} seconds")
+            self.timer = Timer(1.0, self.update_timer)
+            self.timer.start()
+        else:
+            self.timer_started = False
+            self.timer_label.config(text="Time's up!")
+            self.update_buttons_state()
+
     def update_buttons_state(self):
-        state = "normal" if self.is_my_turn else "disabled"
+        state = "normal" if self.is_my_turn and self.timer_started else "disabled"
         for row in self.buttons:
             for button in row:
                 if button["text"] == "":
@@ -219,49 +237,44 @@ class TicTacToe:
         self.is_my_turn = (symbol != self.player_symbol)
         self.update_buttons_state()
 
-    def check_winner(self):
-        size = len(self.buttons)  # Dynamic board size
-        for i in range(size):
-            for j in range(size - 3):  # Ensure index j+3 is within bounds
-                # Check horizontal
-                if self.buttons[i][j]["text"] == self.buttons[i][j+1]["text"] == self.buttons[i][j+2]["text"] == self.buttons[i][j+3]["text"] != "":
-                    self.result_label.config(text=f"{self.buttons[i][j]['text']} wins!")
-                    return True
-                # Check vertical
-                if self.buttons[j][i]["text"] == self.buttons[j+1][i]["text"] == self.buttons[j+2][i]["text"] == self.buttons[j+3][i]["text"] != "":
-                    self.result_label.config(text=f"{self.buttons[j][i]['text']} wins!")
-                    return True
+    def check_winner(board):
+        size = len(board)
+        win_length = 5 if size == 5 else 3  # Set win length based on board size
 
-        for i in range(size - 3):
-            for j in range(size - 3):  # Ensure diagonal indices are within bounds
-                # Check diagonal (top-left to bottom-right)
-                if self.buttons[i][j]["text"] == self.buttons[i+1][j+1]["text"] == self.buttons[i+2][j+2]["text"] == self.buttons[i+3][j+3]["text"] != "":
-                    self.result_label.config(text=f"{self.buttons[i][j]['text']} wins!")
-                    return True
-                # Check diagonal (top-right to bottom-left)
-                if self.buttons[i][j+3]["text"] == self.buttons[i+1][j+2]["text"] == self.buttons[i+2][j+1]["text"] == self.buttons[i+3][j]["text"] != "":
-                    self.result_label.config(text=f"{self.buttons[i][j+3]['text']} wins!")
-                    return True
+        # Check rows
+        for row in board:
+            for i in range(size - win_length + 1):
+                if all(cell == row[i] != '' for cell in row[i:i+win_length]):
+                    return row[i]
 
-        # Check for a tie
-        if all(self.buttons[i][j]["text"] != "" for i in range(size) for j in range(size)):
-            self.result_label.config(text="It's a tie!")
-            return True
+        # Check columns
+        for col in range(size):
+            for i in range(size - win_length + 1):
+                if all(board[row][col] == board[i][col] != '' for row in range(i, i+win_length)):
+                    return board[i][col]
 
-        return False
+        # Check diagonals
+        for i in range(size - win_length + 1):
+            for j in range(size - win_length + 1):
+                if all(board[i+k][j+k] == board[i][j] != '' for k in range(win_length)):
+                    return board[i][j]
+                if all(board[i+k][j+win_length-1-k] == board[i][j+win_length-1] != '' for k in range(win_length)):
+                    return board[i][j+win_length-1]
 
+        # Check for tie
+        if all(board[i][j] != '' for i in range(size) for j in range(size)):
+            return 'Tie'
+        return None
 
     def listen_to_server(self):
         while True:
             try:
                 message = self.client_socket.recv(1024).decode()
                 print(f"Received message from server: {message}")
-
                 if message.startswith("MOVE"):
                     _, move = message.split()
                     i, j, symbol = move.split(',')
                     self.update_board(int(i), int(j), symbol)
-
                 elif message.startswith("WINNER"):
                     winner = message.split()[1]
                     if winner == 'Tie':
@@ -270,12 +283,9 @@ class TicTacToe:
                         self.result_label.config(text=f"{winner} wins!")
                     # Disable further moves after game ends
                     self.update_buttons_state()
-
             except ConnectionResetError:
                 self.result_label.config(text="Server disconnected.")
                 break
-
-
 
     def show_error(self, message):
         error_label = ttk.Label(self.root, text=message, font=("Helvetica", 16), bootstyle="danger")
