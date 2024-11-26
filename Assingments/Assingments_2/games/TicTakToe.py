@@ -70,7 +70,11 @@ class TicTacToe:
             print(f"Sent CREATE_LOBBY {self.lobby_id} {mode} to server")
             self.player_symbol = "X"
             self.is_my_turn = True
-            self.create_online_ui()
+            
+            # Set board size based on mode
+            board_size = 5 if mode == "blitz" else 3
+            self.create_online_ui(board_size)
+
 
     def join_lobby(self):
         # Clear existing widgets
@@ -100,9 +104,18 @@ class TicTacToe:
         if self.connect_to_server():
             self.client_socket.sendall(f"JOIN_LOBBY {self.lobby_id}".encode('utf-8'))
             print(f"Sent JOIN_LOBBY {self.lobby_id} to server")
-            self.player_symbol = "O"
-            self.is_my_turn = False
-            self.create_online_ui()
+
+            # Wait for the response from the server about the lobby details
+            response = self.client_socket.recv(1024).decode('utf-8')
+            if "Board size" in response:
+                # Extract the board size from the server response
+                board_size = int(response.split(":")[-1].strip())
+                self.player_symbol = "O"
+                self.is_my_turn = False
+                self.create_online_ui(board_size)  # Pass the correct board size to create the UI
+            else:
+                self.show_error(response)  # Display error if the lobby doesn't exist or the response is not correct
+
 
     def connect_to_server(self):
         try:
@@ -114,7 +127,7 @@ class TicTacToe:
             self.show_error("Unable to connect to the server.")
             return False
 
-    def create_online_ui(self):
+    def create_online_ui(self, board_size=3):
         # Clear existing widgets
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -131,8 +144,8 @@ class TicTacToe:
         instruction_label = ttk.Label(self.root, text="Choose your move:", font=("Helvetica", 24))
         instruction_label.place(relx=0.5, y=200, anchor=CENTER)
 
-        # Create board
-        self.create_board(5, 5)
+        # Create board with appropriate size
+        self.create_board(board_size, board_size)
 
         # Result label
         self.result_label = ttk.Label(self.root, text="Waiting for result...", font=("Helvetica", 24), bootstyle="inverse-secondary")
@@ -144,6 +157,7 @@ class TicTacToe:
 
         # Back button
         ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger").place(relx=0.5, y=550, anchor=CENTER)
+
 
     def start_computer(self):
         self.create_computer_ui()
@@ -157,7 +171,7 @@ class TicTacToe:
         title_label = ttk.Label(self.root, text="Tic Tac Toe", font=("Helvetica", 48), bootstyle="inverse-primary")
         title_label.place(relx=0.5, y=50, anchor=CENTER)
 
-        # Create board
+        # Create 3x3 board for the computer mode
         self.create_board(3, 3)
 
         # Result label
@@ -169,6 +183,7 @@ class TicTacToe:
 
         self.is_my_turn = True
         self.player_symbol = "X"
+
 
     def create_board(self, length, width):
         self.board_frame = ttk.Frame(self.root, bootstyle="secondary")
@@ -182,6 +197,7 @@ class TicTacToe:
                 button.grid(row=i, column=j, padx=5, pady=5)
                 row.append(button)
             self.buttons.append(row)
+
 
     def make_move(self, i, j):
         if self.is_my_turn and self.buttons[i][j]["text"] == "":
@@ -204,39 +220,62 @@ class TicTacToe:
         self.update_buttons_state()
 
     def check_winner(self):
-        for i in range(5):
-            for j in range(2):
+        size = len(self.buttons)  # Dynamic board size
+        for i in range(size):
+            for j in range(size - 3):  # Ensure index j+3 is within bounds
+                # Check horizontal
                 if self.buttons[i][j]["text"] == self.buttons[i][j+1]["text"] == self.buttons[i][j+2]["text"] == self.buttons[i][j+3]["text"] != "":
                     self.result_label.config(text=f"{self.buttons[i][j]['text']} wins!")
                     return True
+                # Check vertical
                 if self.buttons[j][i]["text"] == self.buttons[j+1][i]["text"] == self.buttons[j+2][i]["text"] == self.buttons[j+3][i]["text"] != "":
                     self.result_label.config(text=f"{self.buttons[j][i]['text']} wins!")
                     return True
-        for i in range(2):
-            for j in range(2):
+
+        for i in range(size - 3):
+            for j in range(size - 3):  # Ensure diagonal indices are within bounds
+                # Check diagonal (top-left to bottom-right)
                 if self.buttons[i][j]["text"] == self.buttons[i+1][j+1]["text"] == self.buttons[i+2][j+2]["text"] == self.buttons[i+3][j+3]["text"] != "":
                     self.result_label.config(text=f"{self.buttons[i][j]['text']} wins!")
                     return True
+                # Check diagonal (top-right to bottom-left)
                 if self.buttons[i][j+3]["text"] == self.buttons[i+1][j+2]["text"] == self.buttons[i+2][j+1]["text"] == self.buttons[i+3][j]["text"] != "":
                     self.result_label.config(text=f"{self.buttons[i][j+3]['text']} wins!")
                     return True
-        if all(self.buttons[i][j]["text"] != "" for i in range(5) for j in range(5)):
+
+        # Check for a tie
+        if all(self.buttons[i][j]["text"] != "" for i in range(size) for j in range(size)):
             self.result_label.config(text="It's a tie!")
             return True
+
         return False
+
 
     def listen_to_server(self):
         while True:
             try:
                 message = self.client_socket.recv(1024).decode()
                 print(f"Received message from server: {message}")
+
                 if message.startswith("MOVE"):
                     _, move = message.split()
                     i, j, symbol = move.split(',')
                     self.update_board(int(i), int(j), symbol)
+
+                elif message.startswith("WINNER"):
+                    winner = message.split()[1]
+                    if winner == 'Tie':
+                        self.result_label.config(text="It's a tie!")
+                    else:
+                        self.result_label.config(text=f"{winner} wins!")
+                    # Disable further moves after game ends
+                    self.update_buttons_state()
+
             except ConnectionResetError:
                 self.result_label.config(text="Server disconnected.")
                 break
+
+
 
     def show_error(self, message):
         error_label = ttk.Label(self.root, text=message, font=("Helvetica", 16), bootstyle="danger")

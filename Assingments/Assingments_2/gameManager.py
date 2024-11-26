@@ -24,10 +24,10 @@ class GameManager:
         
         button_width = 1000 // 3  # Each button's width is a third of the screen width
         
-        self.game1_button = ttk.Button(button_frame, text="Mini Game 1", command=self.start_game1, bootstyle="primary")
+        self.game1_button = ttk.Button(button_frame, text="Rock Paper Scissors", command=self.start_game1, bootstyle="primary")
         self.game1_button.place(x=0, y=0, width=button_width, height=100)
         
-        self.game2_button = ttk.Button(button_frame, text="Mini Game 2", command=self.start_game2, bootstyle="success")
+        self.game2_button = ttk.Button(button_frame, text="Tic Tac Toe", command=self.start_game2, bootstyle="success")
         self.game2_button.place(x=button_width, y=0, width=button_width, height=100)
         
         self.game3_button = ttk.Button(button_frame, text="Mini Game 3", command=self.start_game3, bootstyle="info")
@@ -42,11 +42,11 @@ class GameManager:
         self.placeholder_label = None
 
     def start_game1(self):
-        self.show_game_ui("Mini Game 1")
+        self.show_game_ui("Rock Paper Scissors")
         self.rps_client = RPSClient(self.root)
 
     def start_game2(self):
-        self.show_game_ui("Mini Game 2")
+        self.show_game_ui("Tic Tac Toe")
         self.tic_tac_toe_client = TicTacToe(self.root)
 
     def start_game3(self):
