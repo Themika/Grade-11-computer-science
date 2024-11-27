@@ -7,11 +7,11 @@ from threading import Timer
 class HighLowGame:
     def __init__(self, root,game_manager):
         self.root = root
+        self.game_manager = game_manager
         self.root.geometry("1000x650")
         self.root.title("High Low Guessing Game")
-        self.style = tb.Style("superhero")  # Modern theme
+        self.style = tb.Style("superhero")  
         self.timer = None
-        self.game_manager = game_manager
         self.create_mode_selection_ui()
 
     def create_mode_selection_ui(self):

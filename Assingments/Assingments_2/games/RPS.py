@@ -11,10 +11,10 @@ import ttkbootstrap as tb  # Modern styling
 class RPSClient:
     def __init__(self, root, game_manager):
         self.root = root
-        self.game_manager = game_manager  # Reference to the GameManager instance
+        self.game_manager = game_manager  
         self.root.geometry("1000x600")
         self.root.title("Rock Paper Scissors")
-        self.style = tb.Style("superhero")  # Modern theme
+        self.style = tb.Style("superhero")  
         self.client_socket = None
         self.lobby_id = None
         self.create_initial_ui()

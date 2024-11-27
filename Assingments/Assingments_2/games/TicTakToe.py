@@ -6,6 +6,7 @@ import ttkbootstrap as tb
 from tkinter import messagebox
 from threading import Thread, Timer
 from ttkbootstrap.constants import *
+from .Tik_Tak_Toe_AI import TicTacToeAI
 
 class TicTacToe:
     def __init__(self, root, game_manager):
@@ -22,6 +23,8 @@ class TicTacToe:
         self.timer_started = False
         self.board_size = (3, 3)  
         self.game_manager = game_manager
+        self.ai = None
+        self.difficulty = None
         self.create_initial_ui()
 
     def create_initial_ui(self):
@@ -43,10 +46,12 @@ class TicTacToe:
         online_button = ttk.Button(button_frame, text="Online", command=self.show_lobby_options, bootstyle="primary-outline", width=20)
         online_button.grid(row=0, column=0, padx=20, pady=10)
 
+        computer_button = ttk.Button(button_frame, text="Play Against Computer", command=self.show_computer_options, bootstyle="info-outline", width=20)
+        computer_button.grid(row=1, column=0, padx=20, pady=10)
+
         # Back button
         back_button = ttk.Button(button_frame, text="Back", command=self.game_manager.main_menu, bootstyle="danger-outline", width=20)
         back_button.grid(row=0, column=1, padx=50, pady=20)
-
     def show_lobby_options(self):
         # Stop the timer if it's running
         self.stop_timer()
@@ -74,7 +79,59 @@ class TicTacToe:
 
         # Back button
         ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", width=20).place(relx=0.5, y=550, anchor=CENTER)
+    def show_computer_options(self):
+        # Clear existing widgets
+        for widget in self.root.winfo_children():
+            widget.destroy()
 
+        # Title
+        title_label = ttk.Label(self.root, text="Select Difficulty", font=("Helvetica", 36), bootstyle="inverse-primary")
+        title_label.place(relx=0.5, y=50, anchor=CENTER)
+
+        # Difficulty options
+        button_frame = ttk.Frame(self.root, bootstyle="secondary")
+        button_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
+
+        easy_button = ttk.Button(button_frame, text="Easy", command=lambda: self.start_computer_game("easy"), bootstyle="success-outline", width=20)
+        easy_button.grid(row=0, column=0, padx=20, pady=10)
+
+        medium_button = ttk.Button(button_frame, text="Medium", command=lambda: self.start_computer_game("medium"), bootstyle="warning-outline", width=20)
+        medium_button.grid(row=1, column=0, padx=20, pady=10)
+
+        hard_button = ttk.Button(button_frame, text="Hard", command=lambda: self.start_computer_game("hard"), bootstyle="danger-outline", width=20)
+        hard_button.grid(row=2, column=0, padx=20, pady=10)
+
+        # Back button
+        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", width=20).place(relx=0.5, y=550, anchor=CENTER)
+    def start_computer_game(self, difficulty):
+        self.board_size = (3, 3)
+        self.player_symbol = "X"
+        self.ai = TicTacToeAI("O")
+        self.difficulty = difficulty
+        self.is_my_turn = True  # Player goes first
+        self.create_computer_ui()  # Reuse UI for board display
+
+    def create_computer_ui(self):
+        # Stop the timer if it's running
+        self.stop_timer()
+
+        # Clear existing widgets
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        # Title
+        title_label = ttk.Label(self.root, text="Tic Tac Toe - Computer", font=("Helvetica", 36), bootstyle="inverse-primary")
+        title_label.place(relx=0.5, y=50, anchor=CENTER)
+
+        # Create board
+        self.create_board(*self.board_size)
+
+        # Result label
+        self.result_label = ttk.Label(self.root, text="Your turn!", font=("Helvetica", 18), bootstyle="inverse-secondary")
+        self.result_label.place(relx=0.5, y=450, anchor=CENTER)
+
+        # Back button
+        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", width=20).place(relx=0.5, y=550, anchor=CENTER)
     def create_lobby(self, mode):
         self.lobby_id = f"Lobby{random.randint(1000, 9999)}"
         self.board_size = (3, 3) if mode == "1v1" else (5, 5)  # Ensure the board size is set correctly
@@ -192,11 +249,29 @@ class TicTacToe:
 
     def make_move(self, i, j):
         if self.is_my_turn and self.buttons[i][j]["text"] == "":
+            # Trigger computer's move only if playing against the computer
             self.buttons[i][j]["text"] = self.player_symbol
-            self.client_socket.sendall(f"MOVE {self.lobby_id} {i},{j},{self.player_symbol}".encode('utf-8'))
             self.is_my_turn = False
             self.update_buttons_state()
-        
+            if self.ai:
+                winner = self.check_winner()
+                if winner:
+                    self.result_label.config(text=f"{winner} wins!" if winner != 'Tie' else "It's a tie!")
+                    return
+                self.root.after(500, self.computer_move)
+            else:
+                self.client_socket.sendall(f"MOVE {self.lobby_id} {i},{j},{self.player_symbol}".encode('utf-8'))
+
+    def computer_move(self):
+        move = self.ai.get_move([[btn["text"] for btn in row] for row in self.buttons], self.difficulty)
+        if move:
+            i, j = move
+            self.buttons[i][j]["text"] = self.ai.symbol
+            self.is_my_turn = True
+            self.update_buttons_state()
+            winner = self.check_winner()
+            if winner:
+                self.result_label.config(text=f"{winner} wins!" if winner != 'Tie' else "It's a tie!")
 
     def start_timer(self):
         if self.board_size == (5, 5) and self.is_my_turn:  # Only start the timer in Blitz mode
@@ -220,9 +295,10 @@ class TicTacToe:
             self.timer.start()
         else:
             self.timer_started = False
-            if self.timer_label.winfo_exists():
-                self.root.after(0, lambda: self.timer_label.config(text="Time's up!"))
-            self.update_buttons_state()
+            if self.time_remaining < 0:
+                if self.timer_label.winfo_exists():
+                    self.root.after(0, lambda: self.timer_label.config(text="Time's up!"))
+                self.update_buttons_state()
 
     def update_buttons_state(self):
         state = "normal" if self.is_my_turn else "disabled"
