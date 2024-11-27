@@ -1,7 +1,9 @@
+# FILE: RPSClient.py
+
 import socket
 import random
 import tkinter as tk
-from tkinter import ttk, CENTER
+from tkinter import ttk, CENTER, messagebox
 from threading import Thread
 from PIL import Image, ImageTk
 import ttkbootstrap as tb  # Modern styling
@@ -30,14 +32,14 @@ class RPSClient:
         button_frame = ttk.Frame(self.root, bootstyle="secondary")
         button_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
-        online_button = ttk.Button(button_frame, text="Online", command=self.show_lobby_options, bootstyle="primary-outline",width=20)
+        online_button = ttk.Button(button_frame, text="Online", command=self.show_lobby_options, bootstyle="primary-outline", width=20)
         online_button.grid(row=0, column=0, padx=50, pady=20)
 
-        computer_button = ttk.Button(button_frame, text="Computer", command=self.start_computer, bootstyle="success-outline",width=20)
+        computer_button = ttk.Button(button_frame, text="Computer", command=self.start_computer, bootstyle="success-outline", width=20)
         computer_button.grid(row=0, column=1, padx=50, pady=20)
 
         # Back button
-        back_button = ttk.Button(button_frame, text="Back", command=self.game_manager.main_menu, bootstyle="danger-outline",width=20)
+        back_button = ttk.Button(button_frame, text="Back", command=self.game_manager.main_menu, bootstyle="danger-outline", width=20)
         back_button.grid(row=0, column=2, padx=50, pady=20)
 
     def show_lobby_options(self):
@@ -53,19 +55,25 @@ class RPSClient:
         lobby_frame = ttk.Frame(self.root, bootstyle="secondary")
         lobby_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
-        create_lobby_button = ttk.Button(lobby_frame, text="Create Lobby", command=self.create_lobby, bootstyle="primary-outline",width=20)
+        create_lobby_button = ttk.Button(lobby_frame, text="Create Lobby", command=self.create_lobby, bootstyle="primary-outline", width=20)
         create_lobby_button.grid(row=0, column=0, padx=50, pady=20)
 
-        join_lobby_button = ttk.Button(lobby_frame, text="Join Lobby", command=self.join_lobby, bootstyle="success-outline",width=20)
+        join_lobby_button = ttk.Button(lobby_frame, text="Join Lobby", command=self.join_lobby, bootstyle="success-outline", width=20)
         join_lobby_button.grid(row=0, column=1, padx=50, pady=20)
 
         # Back button
-        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline",width=20).place(relx=0.5, y=550, anchor=CENTER)
+        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", width=20).place(relx=0.5, y=550, anchor=CENTER)
 
     def create_lobby(self):
         self.lobby_id = f"Lobby{random.randint(1000, 9999)}"
         if self.connect_to_server():
-            self.create_online_ui()
+            self.client_socket.sendall(f"CREATE_LOBBY {self.lobby_id}".encode())
+            response = self.client_socket.recv(1024).decode()
+            if response.startswith("LOBBY_CREATED"):
+                self.create_online_ui()
+            elif response == "LOBBY_EXISTS":
+                messagebox.showerror("Error", "Lobby already exists. Please try again.")
+                self.client_socket.close()
 
     def join_lobby(self):
         # Clear existing widgets
@@ -93,13 +101,18 @@ class RPSClient:
     def join_existing_lobby(self):
         self.lobby_id = self.lobby_id_entry.get()
         if self.connect_to_server():
-            self.create_online_ui()
+            self.client_socket.sendall(self.lobby_id.encode())
+            response = self.client_socket.recv(1024).decode()
+            if response == "LOBBY_NOT_FOUND":
+                messagebox.showerror("Error", "Lobby does not exist. Please check the Lobby ID and try again.")
+                self.client_socket.close()
+            else:
+                self.create_online_ui()
 
     def connect_to_server(self):
         try:
             self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.client_socket.connect(("localhost", 8765))
-            self.client_socket.sendall(self.lobby_id.encode())
             return True
         except ConnectionError:
             self.show_error("Unable to connect to the server.")
@@ -187,9 +200,9 @@ class RPSClient:
         while True:
             try:
                 message = self.client_socket.recv(1024).decode()
-                self.result_label.config(text=message)
+                self.root.after(0, lambda: self.result_label.config(text=message))
             except ConnectionResetError:
-                self.result_label.config(text="Server disconnected.")
+                self.root.after(0, lambda: self.result_label.config(text="Server disconnected."))
                 break
 
     def play_vs_computer(self, player_choice):
@@ -209,13 +222,12 @@ class RPSClient:
         return "You lose!"
 
     def show_error(self, message):
-        error_label = ttk.Label(self.root, text=message, font=("Helvetica", 16), bootstyle="danger-outline")
-        error_label.place(relx=0.5, y=550, anchor=CENTER)
+        messagebox.showerror("Error", message)
 
 
 # Run the client
 if __name__ == "__main__":
     root = tb.Window()
     root.resizable(width=False, height=False)
-    app = RPSClient(root)
+    app = RPSClient(root, None)
     root.mainloop()

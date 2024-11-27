@@ -72,9 +72,9 @@ def handle_client(client_socket, client_address, lobby_id):
                                 else:
                                     player.sendall("WAIT_FOR_TURN".encode('utf-8'))
                     else:
-                        client_socket.sendall("Lobby is full.".encode('utf-8'))
+                        client_socket.sendall("LOBBY_FULL".encode('utf-8'))
                 else:
-                    client_socket.sendall("Lobby not found.".encode('utf-8'))
+                    client_socket.sendall("LOBBY_NOT_FOUND".encode('utf-8'))
 
             elif message.startswith('MOVE'):
                 lobby_name, move = message.split()[1], message.split()[2]

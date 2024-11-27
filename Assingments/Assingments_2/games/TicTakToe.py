@@ -1,10 +1,11 @@
-import ttkbootstrap as tb  # Modern styling
+import socket
+import random
 import tk as tk 
 import ttkbootstrap as ttk
-from ttkbootstrap.constants import *
-import socket
+import ttkbootstrap as tb
+from tkinter import messagebox
 from threading import Thread, Timer
-import random
+from ttkbootstrap.constants import *
 
 class TicTacToe:
     def __init__(self, root, game_manager):
@@ -120,12 +121,14 @@ class TicTacToe:
             print(f"Sent JOIN_LOBBY {self.lobby_id} to server")
             self.player_symbol = "O"
             self.is_my_turn = False
-            # Wait for the server to send the board size
-            board_size_message = self.client_socket.recv(1024).decode()
-            if board_size_message.startswith("BOARD_SIZE"):
-                _, size = board_size_message.split()
+            # Wait for the server to send the board size or an error message
+            response = self.client_socket.recv(1024).decode()
+            if response.startswith("BOARD_SIZE"):
+                _, size = response.split()
                 self.board_size = (int(size), int(size))
-            self.create_online_ui()
+                self.create_online_ui()
+            elif response == "LOBBY_NOT_FOUND":
+                messagebox.showerror("Error", "Lobby does not exist. Please check the Lobby ID and try again.")
 
     def connect_to_server(self):
         try:
@@ -193,6 +196,7 @@ class TicTacToe:
             self.client_socket.sendall(f"MOVE {self.lobby_id} {i},{j},{self.player_symbol}".encode('utf-8'))
             self.is_my_turn = False
             self.update_buttons_state()
+        
 
     def start_timer(self):
         if self.board_size == (5, 5) and self.is_my_turn:  # Only start the timer in Blitz mode
@@ -292,7 +296,6 @@ class TicTacToe:
     def show_error(self, message):
         error_label = ttk.Label(self.root, text=message, font=("Helvetica", 16), bootstyle="danger")
         error_label.place(relx=0.5, y=550, anchor=CENTER)
-
 if __name__ == "__main__":
     root = ttk.Window(themename="superhero")
     root.resizable(width=False, height=False)

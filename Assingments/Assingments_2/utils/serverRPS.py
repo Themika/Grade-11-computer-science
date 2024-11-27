@@ -1,3 +1,5 @@
+# FILE: serverRPS.py
+
 import socket
 import threading
 
@@ -58,10 +60,21 @@ def start_server(server_number):
     while True:
         client_socket, client_address = server.accept()
         lobby_id = client_socket.recv(1024).decode().strip()
-        if lobby_id not in lobbies:
-            lobbies[lobby_id] = {'clients': [], 'moves': {}}
-        lobbies[lobby_id]['clients'].append(client_socket)
-        threading.Thread(target=handle_client, args=(client_socket, client_address, lobby_id)).start()
+        if lobby_id.startswith("CREATE_LOBBY"):
+            lobby_id = lobby_id.split()[1]
+            if lobby_id not in lobbies:
+                lobbies[lobby_id] = {'clients': [client_socket], 'moves': {}}
+                client_socket.sendall(f"LOBBY_CREATED {lobby_id}".encode('utf-8'))
+                threading.Thread(target=handle_client, args=(client_socket, client_address, lobby_id)).start()
+            else:
+                client_socket.sendall("LOBBY_EXISTS".encode('utf-8'))
+                client_socket.close()
+        elif lobby_id not in lobbies:
+            client_socket.sendall("LOBBY_NOT_FOUND".encode('utf-8'))
+            client_socket.close()
+        else:
+            lobbies[lobby_id]['clients'].append(client_socket)
+            threading.Thread(target=handle_client, args=(client_socket, client_address, lobby_id)).start()
 
 if __name__ == "__main__":
     start_server(8765)
