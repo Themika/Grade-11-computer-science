@@ -27,6 +27,9 @@ class TicTacToe:
         self.difficulty = None
         self.create_initial_ui()
 
+    def replay_computer_game(self):
+        self.start_computer_game(self.difficulty)
+
     def create_initial_ui(self):
         # Stop the timer if it's running
         self.stop_timer()
@@ -52,6 +55,7 @@ class TicTacToe:
         # Back button
         back_button = ttk.Button(button_frame, text="Back", command=self.game_manager.main_menu, bootstyle="danger-outline", width=20)
         back_button.grid(row=0, column=2, padx=50, pady=20)
+
     def show_lobby_options(self):
         # Stop the timer if it's running
         self.stop_timer()
@@ -59,6 +63,10 @@ class TicTacToe:
         # Clear existing widgets
         for widget in self.root.winfo_children():
             widget.destroy()
+
+        # Reset AI-related attributes
+        self.ai = None
+        self.difficulty = None
 
         # Title
         title_label = ttk.Label(self.root, text="Tic Tac Toe - Online", font=("Helvetica", 36), bootstyle="inverse-primary")
@@ -79,6 +87,7 @@ class TicTacToe:
 
         # Back button
         ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", width=20).place(relx=0.5, y=550, anchor=CENTER)
+
     def show_computer_options(self):
         # Clear existing widgets
         for widget in self.root.winfo_children():
@@ -103,6 +112,7 @@ class TicTacToe:
 
         # Back button
         ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", width=20).place(relx=0.5, y=550, anchor=CENTER)
+
     def start_computer_game(self, difficulty):
         self.board_size = (3, 3)
         self.player_symbol = "X"
@@ -130,8 +140,13 @@ class TicTacToe:
         self.result_label = ttk.Label(self.root, text="Your turn!", font=("Helvetica", 18), bootstyle="inverse-secondary")
         self.result_label.place(relx=0.5, y=450, anchor=CENTER)
 
+        # Replay button
+        replay_button = ttk.Button(self.root, text="Replay", command=self.replay_computer_game, bootstyle="success-outline", width=20)
+        replay_button.place(relx=0.5, y=500, anchor=CENTER)
+
         # Back button
         ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", width=20).place(relx=0.5, y=550, anchor=CENTER)
+
     def create_lobby(self, mode):
         self.lobby_id = f"Lobby{random.randint(1000, 9999)}"
         self.board_size = (3, 3) if mode == "1v1" else (5, 5)  # Ensure the board size is set correctly
@@ -152,6 +167,10 @@ class TicTacToe:
         # Clear existing widgets
         for widget in self.root.winfo_children():
             widget.destroy()
+
+        # Reset AI-related attributes
+        self.ai = None
+        self.difficulty = None
 
         # Title
         title_label = ttk.Label(self.root, text="Join Lobby", font=("Helvetica", 36), bootstyle="inverse-primary")
