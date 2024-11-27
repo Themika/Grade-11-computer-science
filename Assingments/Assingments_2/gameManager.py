@@ -3,6 +3,7 @@ from ttkbootstrap.constants import *
 from PIL import Image, ImageTk
 from games.RPS import RPSClient
 from games.TicTakToe import TicTacToe
+from games.highLowGame import HighLowGame
 
 class GameManager:
     def __init__(self, root):
@@ -42,44 +43,70 @@ class GameManager:
         self.placeholder_label = None
 
     def start_game1(self):
-        self.show_game_ui("Rock Paper Scissors")
-        self.rps_client = RPSClient(self.root)
+        self.rps_client = RPSClient(self.root, self)
 
     def start_game2(self):
-        self.show_game_ui("Tic Tac Toe")
-        self.tic_tac_toe_client = TicTacToe(self.root)
+        self.tic_tac_toe_client = TicTacToe(self.root,self)
 
     def start_game3(self):
-        self.show_game_ui("Mini Game 3")
+        self.higher_lower_client = HighLowGame(self.root,self)
 
     def main_menu(self):
         self.show_main_ui()
 
     def show_main_ui(self):
-        self.game1_button.place(x=0, y=0, width=1000 // 3, height=100)
-        self.game2_button.place(x=1000 // 3, y=0, width=1000 // 3, height=100)
-        self.game3_button.place(x=2 * 1000 // 3, y=0, width=1000 // 3, height=100)
-        self.back_button.place_forget()
-        
-        # Hide game title and placeholder labels if they exist
-        if self.game_title_label:
-            self.game_title_label.place_forget()
-        if self.placeholder_label:
-            self.placeholder_label.place_forget()
+        # Clear existing widgets
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        # Title
+        title_label = ttk.Label(self.root, text="Game Manager", font=("Helvetica", 48), bootstyle="inverse-primary")
+        title_label.place(relx=0.5, y=50, anchor=CENTER)
+
+        # Buttons
+        button_frame = ttk.Frame(self.root, bootstyle="secondary")
+        button_frame.place(relx=0.5, rely=1.0, anchor=S, width=1000, height=100)
+
+        button_width = 1000 // 3  # Each button's width is a third of the screen width
+
+        game1_button = ttk.Button(button_frame, text="Rock Paper Scissors", command=self.start_game1, bootstyle="primary")
+        game1_button.place(x=0, y=0, width=button_width, height=100)
+
+        game2_button = ttk.Button(button_frame, text="Tic Tac Toe", command=self.start_game2, bootstyle="success")
+        game2_button.place(x=button_width, y=0, width=button_width, height=100)
+
+        game3_button = ttk.Button(button_frame, text="Mini Game 3", command=self.start_game3, bootstyle="info")
+        game3_button.place(x=2 * button_width, y=0, width=button_width, height=100)
+
 
     def show_game_ui(self, game_title):
-        self.game1_button.place_forget()
-        self.game2_button.place_forget()
-        self.game3_button.place_forget()
+        # Safely handle widgets to avoid errors
+        try:
+            self.game1_button.place_forget()
+            self.game2_button.place_forget()
+            self.game3_button.place_forget()
+        except AttributeError:
+            # Buttons might not be initialized; skip
+            pass
+
+        # Show Back Button
         self.back_button.place(x=1000 // 3, y=0, width=1000 // 3, height=100)
-        
+
+        # Display game-specific UI
+        # Remove any existing labels to prevent overlapping
+        if self.game_title_label:
+            self.game_title_label.destroy()
+        if self.placeholder_label:
+            self.placeholder_label.destroy()
+
         # Game title
         self.game_title_label = ttk.Label(self.root, text=game_title, font=("Helvetica", 36), bootstyle="inverse-primary")
         self.game_title_label.place(relx=0.5, y=150, anchor=CENTER)
-        
+
         # Placeholder text
         self.placeholder_label = ttk.Label(self.root, text="Game content goes here!", font=("Helvetica", 24), bootstyle="inverse-secondary")
         self.placeholder_label.place(relx=0.5, y=250, anchor=CENTER)
+
 
 if __name__ == "__main__":
     root = ttk.Window(themename="superhero")

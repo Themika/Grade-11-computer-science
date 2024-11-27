@@ -5,9 +5,11 @@ from tkinter import ttk, CENTER
 from threading import Thread
 from PIL import Image, ImageTk
 import ttkbootstrap as tb  # Modern styling
+
 class RPSClient:
-    def __init__(self, root):
+    def __init__(self, root, game_manager):
         self.root = root
+        self.game_manager = game_manager  # Reference to the GameManager instance
         self.root.geometry("1000x600")
         self.root.title("Rock Paper Scissors")
         self.style = tb.Style("superhero")  # Modern theme
@@ -33,7 +35,9 @@ class RPSClient:
 
         computer_button = ttk.Button(button_frame, text="Computer", command=self.start_computer, bootstyle="success")
         computer_button.grid(row=0, column=1, padx=50, pady=20)
-        back_button = ttk.Button(button_frame, text="Back", bootstyle="danger")
+
+        # Back button
+        back_button = ttk.Button(button_frame, text="Back", command=self.game_manager.main_menu, bootstyle="danger")
         back_button.grid(row=0, column=2, padx=50, pady=20)
 
     def show_lobby_options(self):

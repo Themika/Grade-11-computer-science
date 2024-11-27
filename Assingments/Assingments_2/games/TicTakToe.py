@@ -7,9 +7,9 @@ from threading import Thread, Timer
 import random
 
 class TicTacToe:
-    def __init__(self, root):
+    def __init__(self, root,game_manager):
         self.root = root
-        self.root.geometry("800x600")
+        self.root.geometry("1000x600")
         self.root.title("Tic Tac Toe")
         self.style = ttk.Style("superhero")
         self.client_socket = None
@@ -17,9 +17,10 @@ class TicTacToe:
         self.player_symbol = None
         self.is_my_turn = False
         self.timer = None
-        self.time_remaining = 30
+        self.time_remaining = 15
         self.timer_started = False
-        self.board_size = (3, 3)  # Default board size
+        self.board_size = (3, 3)  
+        self.game_manager = game_manager
         self.create_initial_ui()
 
     def create_initial_ui(self):
@@ -43,6 +44,9 @@ class TicTacToe:
 
         computer_button = ttk.Button(button_frame, text="Computer", command=self.start_computer, bootstyle="success", width=20)
         computer_button.grid(row=0, column=1, padx=20, pady=10)
+        # Back button
+        back_button = ttk.Button(button_frame, text="Back", command=self.game_manager.main_menu, bootstyle="danger",width=20)
+        back_button.grid(row=0, column=2, padx=50, pady=20)
 
     def show_lobby_options(self):
         # Stop the timer if it's running
@@ -81,7 +85,7 @@ class TicTacToe:
             self.player_symbol = "X"
             self.is_my_turn = True
             if mode == "blitz":
-                self.time_remaining = 30  # Reset the timer
+                self.time_remaining = 15  # Reset the timer
                 self.timer_started = False
             self.create_online_ui()
 
@@ -266,7 +270,7 @@ class TicTacToe:
 
     def check_winner(self):
         size = len(self.buttons)
-        win_length = 5 if size == 5 else 3  # Set win length based on board size
+        win_length =  3  # Set win length based on board size
 
         # Check rows
         for row in self.buttons:

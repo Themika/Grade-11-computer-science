@@ -92,7 +92,7 @@ def handle_client(client_socket, client_address, lobby_id):
 
 def check_winner(board):
     size = len(board)
-    win_length = 5 if size == 5 else 3  # Set win length based on board size
+    win_length = 3  # Set win length based on board size
 
     # Check rows
     for row in board:

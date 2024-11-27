@@ -5,12 +5,13 @@ import time
 from threading import Timer
 
 class HighLowGame:
-    def __init__(self, root):
+    def __init__(self, root,game_manager):
         self.root = root
         self.root.geometry("1000x650")
         self.root.title("High Low Guessing Game")
         self.style = tb.Style("superhero")  # Modern theme
         self.timer = None
+        self.game_manager = game_manager
         self.create_mode_selection_ui()
 
     def create_mode_selection_ui(self):
@@ -42,6 +43,9 @@ class HighLowGame:
         # Limited guesses mode button
         limited_button = tb.Button(button_frame, text="Limited Guesses", command=lambda: self.start_game("limited"), bootstyle="danger-outline", padding=10)
         limited_button.grid(row=0, column=2, padx=10)
+        
+        back_button = tb.Button(button_frame, text="Back", command=self.game_manager.main_menu, bootstyle="danger")
+        back_button.grid(row=0, column=2, padx=50, pady=20)
 
     def show_difficulty_options(self):
         # Clear existing widgets and stop the timer if running
