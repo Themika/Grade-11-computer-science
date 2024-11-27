@@ -31,7 +31,7 @@ class GameManager:
         self.game2_button = ttk.Button(button_frame, text="Tic Tac Toe", command=self.start_game2, bootstyle="success")
         self.game2_button.place(x=button_width, y=0, width=button_width, height=100)
         
-        self.game3_button = ttk.Button(button_frame, text="Mini Game 3", command=self.start_game3, bootstyle="info")
+        self.game3_button = ttk.Button(button_frame, text="High Low Game", command=self.start_game3, bootstyle="info")
         self.game3_button.place(x=2 * button_width, y=0, width=button_width, height=100)
         
         self.back_button = ttk.Button(button_frame, text="Back to Main Menu", command=self.main_menu, bootstyle="danger")
@@ -46,10 +46,10 @@ class GameManager:
         self.rps_client = RPSClient(self.root, self)
 
     def start_game2(self):
-        self.tic_tac_toe_client = TicTacToe(self.root,self)
+        self.tic_tac_toe_client = TicTacToe(self.root, self)
 
     def start_game3(self):
-        self.higher_lower_client = HighLowGame(self.root,self)
+        self.higher_lower_client = HighLowGame(self.root, self)
 
     def main_menu(self):
         self.show_main_ui()
@@ -75,9 +75,8 @@ class GameManager:
         game2_button = ttk.Button(button_frame, text="Tic Tac Toe", command=self.start_game2, bootstyle="success")
         game2_button.place(x=button_width, y=0, width=button_width, height=100)
 
-        game3_button = ttk.Button(button_frame, text="Mini Game 3", command=self.start_game3, bootstyle="info")
+        game3_button = ttk.Button(button_frame, text="High Low Game", command=self.start_game3, bootstyle="info")
         game3_button.place(x=2 * button_width, y=0, width=button_width, height=100)
-
 
     def show_game_ui(self, game_title):
         # Safely handle widgets to avoid errors
@@ -89,8 +88,11 @@ class GameManager:
             # Buttons might not be initialized; skip
             pass
 
-        # Show Back Button
-        self.back_button.place(x=1000 // 3, y=0, width=1000 // 3, height=100)
+        # Adjust back button position for High Low Game
+        if game_title == "High Low Game":
+            self.back_button.place(x=2 * 1000 // 3 + 50, y=0, width=1000 // 3, height=100)
+        else:
+            self.back_button.place(x=1000 // 3, y=0, width=1000 // 3, height=100)
 
         # Display game-specific UI
         # Remove any existing labels to prevent overlapping
@@ -106,7 +108,6 @@ class GameManager:
         # Placeholder text
         self.placeholder_label = ttk.Label(self.root, text="Game content goes here!", font=("Helvetica", 24), bootstyle="inverse-secondary")
         self.placeholder_label.place(relx=0.5, y=250, anchor=CENTER)
-
 
 if __name__ == "__main__":
     root = ttk.Window(themename="superhero")
