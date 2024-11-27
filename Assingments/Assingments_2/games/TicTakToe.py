@@ -177,9 +177,11 @@ class TicTacToe:
         self.listener_thread.start()
 
     def start_computer(self):
-        self.create_computer_ui()
+        # Select difficulty before starting computer mode
+        self.show_difficulty_options()
 
-    def create_computer_ui(self):
+
+    def create_computer_ui(self, difficulty):
         # Stop the timer if it's running
         self.stop_timer()
 
@@ -188,21 +190,47 @@ class TicTacToe:
             widget.destroy()
 
         # Title
-        title_label = ttk.Label(self.root, text="Tic Tac Toe", font=("Helvetica", 36), bootstyle="inverse-primary")
+        title_label = ttk.Label(self.root, text=f"Tic Tac Toe - {difficulty.capitalize()}", font=("Helvetica", 36), bootstyle="inverse-primary")
         title_label.place(relx=0.5, y=50, anchor=CENTER)
 
         # Create board
         self.create_board(3, 3)
 
         # Result label
-        self.result_label = ttk.Label(self.root, text="Choose your move to play!", font=("Helvetica", 18), bootstyle="inverse-secondary")
+        self.result_label = ttk.Label(self.root, text="Your turn!", font=("Helvetica", 18), bootstyle="inverse-secondary")
         self.result_label.place(relx=0.5, y=450, anchor=CENTER)
 
         # Back button
         ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger", width=20).place(relx=0.5, y=550, anchor=CENTER)
 
+        self.difficulty = difficulty
         self.is_my_turn = True
         self.player_symbol = "X"
+        self.computer_symbol = "O"
+
+    
+    def show_difficulty_options(self):
+        # Clear existing widgets
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        # Title
+        title_label = ttk.Label(self.root, text="Choose Difficulty", font=("Helvetica", 36), bootstyle="inverse-primary")
+        title_label.place(relx=0.5, y=50, anchor=CENTER)
+
+        # Difficulty buttons
+        button_frame = ttk.Frame(self.root, bootstyle="secondary")
+        button_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
+
+        easy_button = ttk.Button(button_frame, text="Easy", command=lambda: self.create_computer_ui("easy"), bootstyle="success", width=20)
+        easy_button.grid(row=0, column=0, padx=20, pady=10)
+
+        hard_button = ttk.Button(button_frame, text="Hard", command=lambda: self.create_computer_ui("hard"), bootstyle="danger", width=20)
+        hard_button.grid(row=0, column=1, padx=20, pady=10)
+
+        # Back button
+        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger", width=20).place(relx=0.5, y=550, anchor=CENTER)
+
 
     def create_board(self, length, width):
         self.board_frame = ttk.Frame(self.root, bootstyle="secondary")
@@ -220,13 +248,80 @@ class TicTacToe:
     def make_move(self, i, j):
         if self.is_my_turn and self.buttons[i][j]["text"] == "":
             self.buttons[i][j]["text"] = self.player_symbol
-            self.client_socket.sendall(f"MOVE {self.lobby_id} {i},{j},{self.player_symbol}".encode('utf-8'))
             self.is_my_turn = False
-            self.stop_timer()  # Stop the timer when the player makes a move
             self.update_buttons_state()
             winner = self.check_winner()
             if winner:
                 self.result_label.config(text=f"{winner} wins!" if winner != 'Tie' else "It's a tie!")
+                return
+
+            # Trigger computer's move
+            self.root.after(500, self.computer_move)
+    def computer_move(self):
+        if self.difficulty == "easy":
+            self.make_random_move()
+        elif self.difficulty == "hard":
+            self.make_best_move()
+
+        self.is_my_turn = True
+        self.update_buttons_state()
+        winner = self.check_winner()
+        if winner:
+            self.result_label.config(text=f"{winner} wins!" if winner != 'Tie' else "It's a tie!")
+
+    def make_random_move(self):
+        empty_cells = [(i, j) for i in range(3) for j in range(3) if self.buttons[i][j]["text"] == ""]
+        if empty_cells:
+            i, j = random.choice(empty_cells)
+            self.buttons[i][j]["text"] = self.computer_symbol
+    def make_best_move(self):
+        best_score = -float('inf')
+        best_move = None
+
+        for i in range(3):
+            for j in range(3):
+                if self.buttons[i][j]["text"] == "":
+                    self.buttons[i][j]["text"] = self.computer_symbol
+                    score = self.minimax(0, False)
+                    self.buttons[i][j]["text"] = ""
+                    if score > best_score:
+                        best_score = score
+                        best_move = (i, j)
+
+        if best_move:
+            i, j = best_move
+            self.buttons[i][j]["text"] = self.computer_symbol
+
+    def minimax(self, depth, is_maximizing):
+        winner = self.check_winner()
+        if winner == self.computer_symbol:
+            return 10 - depth
+        elif winner == self.player_symbol:
+            return depth - 10
+        elif winner == 'Tie':
+            return 0
+
+        if is_maximizing:
+            best_score = -float('inf')
+            for i in range(3):
+                for j in range(3):
+                    if self.buttons[i][j]["text"] == "":
+                        self.buttons[i][j]["text"] = self.computer_symbol
+                        score = self.minimax(depth + 1, False)
+                        self.buttons[i][j]["text"] = ""
+                        best_score = max(best_score, score)
+            return best_score
+        else:
+            best_score = float('inf')
+            for i in range(3):
+                for j in range(3):
+                    if self.buttons[i][j]["text"] == "":
+                        self.buttons[i][j]["text"] = self.player_symbol
+                        score = self.minimax(depth + 1, True)
+                        self.buttons[i][j]["text"] = ""
+                        best_score = min(best_score, score)
+            return best_score
+
 
     def start_timer(self):
         if self.board_size == (5, 5) and self.is_my_turn:  # Only start the timer in Blitz mode
