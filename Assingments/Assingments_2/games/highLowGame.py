@@ -29,20 +29,20 @@ class HighLowGame:
         instruction_label.pack(pady=10)
 
         # Button frame
-        button_frame = tb.Frame(self.root)
-        button_frame.pack(pady=20)
+        button_frame = tb.Frame(self.root, bootstyle="secondary")
+        button_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
         # Normal mode button
         normal_button = tb.Button(button_frame, text="Normal", command=self.show_difficulty_options, bootstyle="success-outline", padding=10,width=20)
-        normal_button.grid(row=0, column=0, padx=10)
+        normal_button.grid(row=0, column=0, padx=10,pady=20)
 
         # Timer mode button
         timer_button = tb.Button(button_frame, text="Timer", command=lambda: self.start_game("timer"), bootstyle="warning-outline", padding=10,width=20)
-        timer_button.grid(row=0, column=1, padx=10)
+        timer_button.grid(row=0, column=1, padx=10,pady=20)
 
         # Limited guesses mode button
         limited_button = tb.Button(button_frame, text="Limited Guesses", command=lambda: self.start_game("limited"), bootstyle="danger-outline", padding=10,width=20)
-        limited_button.grid(row=0, column=2, padx=10)
+        limited_button.grid(row=0, column=2, padx=10,pady=20)
 
         back_button = tb.Button(button_frame, text="Back", command=self.game_manager.main_menu, bootstyle="danger-outline",width=20)
         back_button.grid(row=2, column=1, padx=50, pady=20)
@@ -58,20 +58,20 @@ class HighLowGame:
         title_label.pack(pady=20)
 
         # Button frame
-        button_frame = tb.Frame(self.root)
-        button_frame.pack(pady=20)
+        button_frame = tb.Frame(self.root, bootstyle="secondary")
+        button_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
         # Easy button
         easy_button = tb.Button(button_frame, text="Easy", command=lambda: self.start_game("easy"), bootstyle="success-outline", padding=10,width=20)
-        easy_button.grid(row=0, column=0, padx=10)
+        easy_button.grid(row=0, column=0, padx=10,pady=20)
 
         # Medium button
         medium_button = tb.Button(button_frame, text="Medium", command=lambda: self.start_game("medium"), bootstyle="warning-outline", padding=10,width=20)
-        medium_button.grid(row=0, column=1, padx=10)
+        medium_button.grid(row=0, column=1, padx=10,pady=20)
 
         # Hard button
         hard_button = tb.Button(button_frame, text="Hard", command=lambda: self.start_game("hard"), bootstyle="danger-outline", padding=10,width=20)
-        hard_button.grid(row=0, column=2, padx=10)
+        hard_button.grid(row=0, column=2, padx=10,pady=20)
 
         # Back button
         back_button = tb.Button(button_frame, text="Back", command=self.create_mode_selection_ui, bootstyle="danger-outline", padding=10,width=20)

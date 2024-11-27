@@ -47,11 +47,11 @@ class TicTacToe:
         online_button.grid(row=0, column=0, padx=20, pady=10)
 
         computer_button = ttk.Button(button_frame, text="Play Against Computer", command=self.show_computer_options, bootstyle="info-outline", width=20)
-        computer_button.grid(row=1, column=0, padx=20, pady=10)
+        computer_button.grid(row=0, column=1, padx=20, pady=10)
 
         # Back button
         back_button = ttk.Button(button_frame, text="Back", command=self.game_manager.main_menu, bootstyle="danger-outline", width=20)
-        back_button.grid(row=0, column=1, padx=50, pady=20)
+        back_button.grid(row=0, column=2, padx=50, pady=20)
     def show_lobby_options(self):
         # Stop the timer if it's running
         self.stop_timer()
