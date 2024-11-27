@@ -61,6 +61,16 @@ def handle_client(client_socket, client_address, lobby_id):
                         board_size = lobbies[lobby_name]['board_size']
                         client_socket.sendall(f"BOARD_SIZE {board_size}".encode('utf-8'))
                         print(f"Client {client_address} joined lobby {lobby_name}.")
+
+                        # Notify both players of whose turn it is
+                        if len(lobbies[lobby_name]['clients']) == 2:
+                            # If both players are in the lobby, inform them
+                            current_turn = lobbies[lobby_name]['turn']
+                            for index, player in enumerate(lobbies[lobby_name]['clients']):
+                                if index == current_turn:
+                                    player.sendall("YOUR_TURN".encode('utf-8'))
+                                else:
+                                    player.sendall("WAIT_FOR_TURN".encode('utf-8'))
                     else:
                         client_socket.sendall("Lobby is full.".encode('utf-8'))
                 else:
@@ -84,6 +94,10 @@ def handle_client(client_socket, client_address, lobby_id):
                         # Continue the game and send the move update
                         for client in lobbies[lobby_name]['clients']:
                             client.sendall(f"MOVE {move}".encode('utf-8'))
+                            if client == lobbies[lobby_name]['clients'][lobbies[lobby_name]['turn']]:
+                                client.sendall("YOUR_TURN".encode('utf-8'))
+                            else:
+                                client.sendall("WAIT_FOR_TURN".encode('utf-8'))
                     print(f"Move {move} in lobby {lobby_name}.")
 
         except Exception as e:
