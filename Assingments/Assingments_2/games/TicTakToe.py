@@ -46,47 +46,53 @@ class TicTacToe:
         button_frame = ttk.Frame(self.root, bootstyle="secondary")
         button_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
-        online_button = ttk.Button(button_frame, text="Online", command=self.show_lobby_options, bootstyle="primary-outline", width=20)
+        online_button = ttk.Button(button_frame, text="Online", command=self.show_lobby_options, bootstyle="primary-outline", padding=10, width=20)
         online_button.grid(row=0, column=0, padx=20, pady=10)
 
-        computer_button = ttk.Button(button_frame, text="Play Against Computer", command=self.show_computer_options, bootstyle="info-outline", width=20)
+        computer_button = ttk.Button(button_frame, text="Play Against Computer", command=self.show_computer_options, bootstyle="info-outline", padding=10, width=20)
         computer_button.grid(row=0, column=1, padx=20, pady=10)
 
         # Back button
-        back_button = ttk.Button(button_frame, text="Back", command=self.game_manager.main_menu, bootstyle="danger-outline", width=20)
+        back_button = ttk.Button(button_frame, text="Back", command=self.game_manager.main_menu, bootstyle="danger-outline", padding=10, width=20)
         back_button.grid(row=0, column=2, padx=50, pady=20)
 
     def show_lobby_options(self):
         # Stop the timer if it's running
         self.stop_timer()
-
+    
         # Clear existing widgets
         for widget in self.root.winfo_children():
             widget.destroy()
-
+    
         # Reset AI-related attributes
         self.ai = None
         self.difficulty = None
-
+    
         # Title
         title_label = ttk.Label(self.root, text="Tic Tac Toe - Online", font=("Helvetica", 36), bootstyle="inverse-primary")
         title_label.place(relx=0.5, y=50, anchor=CENTER)
-
+    
         # Lobby options
         lobby_frame = ttk.Frame(self.root, bootstyle="secondary")
         lobby_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
-
-        create_lobby_1v1_button = ttk.Button(lobby_frame, text="Create 1v1 Lobby", command=lambda: self.create_lobby("1v1"), bootstyle="primary-outline", width=20)
+    
+        create_lobby_1v1_button = ttk.Button(lobby_frame, text="Create 1v1 Lobby", command=lambda: self.create_lobby("1v1"), bootstyle="primary-outline", padding=10, width=20)
         create_lobby_1v1_button.grid(row=0, column=0, padx=20, pady=10)
-
-        create_lobby_blitz_button = ttk.Button(lobby_frame, text="Create Blitz Lobby", command=lambda: self.create_lobby("blitz"), bootstyle="primary-outline", width=20)
+    
+        create_lobby_blitz_button = ttk.Button(lobby_frame, text="Create Blitz Lobby", command=lambda: self.create_lobby("blitz"), bootstyle="primary-outline", padding=10, width=20)
         create_lobby_blitz_button.grid(row=0, column=1, padx=20, pady=10)
-
-        join_lobby_button = ttk.Button(lobby_frame, text="Join Lobby", command=self.join_lobby, bootstyle="success-outline", width=20)
+        create_lobby_blitz_button.bind("<Enter>", lambda e: self.show_tooltip(e, "Blitz mode: 5x5 board, 15 seconds per move, 1v1 only, First to get 3 in a row wins."))
+    
+        join_lobby_button = ttk.Button(lobby_frame, text="Join Lobby", command=self.join_lobby, bootstyle="success-outline", padding=10, width=20)
         join_lobby_button.grid(row=1, column=0, columnspan=2, padx=20, pady=10)
-
+    
         # Back button
-        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", width=20).place(relx=0.5, y=550, anchor=CENTER)
+        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", padding=10, width=20).place(relx=0.5, y=550, anchor=CENTER)
+    
+    def show_tooltip(self, event, text):
+        tooltip = ttk.Label(self.root, text=text, font=("Helvetica", 12), bootstyle="info", relief="solid", borderwidth=1, padding=5)
+        tooltip.place(x=event.widget.winfo_rootx() - self.root.winfo_rootx() - 350, y=event.widget.winfo_rooty() - self.root.winfo_rooty() -100)
+        event.widget.bind("<Leave>", lambda e: tooltip.destroy())
 
     def show_computer_options(self):
         # Clear existing widgets
@@ -101,17 +107,17 @@ class TicTacToe:
         button_frame = ttk.Frame(self.root, bootstyle="secondary")
         button_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
-        easy_button = ttk.Button(button_frame, text="Easy", command=lambda: self.start_computer_game("easy"), bootstyle="success-outline", width=20)
+        easy_button = ttk.Button(button_frame, text="Easy", command=lambda: self.start_computer_game("easy"), bootstyle="success-outline", padding=10, width=20)
         easy_button.grid(row=0, column=0, padx=20, pady=10)
 
-        medium_button = ttk.Button(button_frame, text="Medium", command=lambda: self.start_computer_game("medium"), bootstyle="warning-outline", width=20)
+        medium_button = ttk.Button(button_frame, text="Medium", command=lambda: self.start_computer_game("medium"), bootstyle="warning-outline", padding=10, width=20)
         medium_button.grid(row=1, column=0, padx=20, pady=10)
 
-        hard_button = ttk.Button(button_frame, text="Hard", command=lambda: self.start_computer_game("hard"), bootstyle="danger-outline", width=20)
+        hard_button = ttk.Button(button_frame, text="Hard", command=lambda: self.start_computer_game("hard"), bootstyle="danger-outline", padding=10, width=20)
         hard_button.grid(row=2, column=0, padx=20, pady=10)
 
         # Back button
-        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", width=20).place(relx=0.5, y=550, anchor=CENTER)
+        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", padding=10, width=20).place(relx=0.5, y=550, anchor=CENTER)
 
     def start_computer_game(self, difficulty):
         self.board_size = (3, 3)
@@ -141,11 +147,11 @@ class TicTacToe:
         self.result_label.place(relx=0.5, y=450, anchor=CENTER)
 
         # Replay button
-        replay_button = ttk.Button(self.root, text="Replay", command=self.replay_computer_game, bootstyle="success-outline", width=20)
+        replay_button = ttk.Button(self.root, text="Replay", command=self.replay_computer_game, bootstyle="success-outline", padding=10, width=20)
         replay_button.place(relx=0.5, y=500, anchor=CENTER)
 
         # Back button
-        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", width=20).place(relx=0.5, y=550, anchor=CENTER)
+        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", padding=10, width=20).place(relx=0.5, y=550, anchor=CENTER)
 
     def create_lobby(self, mode):
         self.lobby_id = f"Lobby{random.randint(1000, 9999)}"
@@ -184,11 +190,11 @@ class TicTacToe:
         self.lobby_id_entry.place(relx=0.5, y=250, anchor=CENTER)
 
         # Join button
-        join_button = ttk.Button(self.root, text="Join", command=self.join_existing_lobby, bootstyle="primary", width=20)
+        join_button = ttk.Button(self.root, text="Join", command=self.join_existing_lobby, bootstyle="primary", padding=10, width=20)
         join_button.place(relx=0.5, y=300, anchor=CENTER)
 
         # Back button
-        ttk.Button(self.root, text="Back", command=self.show_lobby_options, bootstyle="danger-outline", width=20).place(relx=0.5, y=550, anchor=CENTER)
+        ttk.Button(self.root, text="Back", command=self.show_lobby_options, bootstyle="danger-outline", padding=10, width=20).place(relx=0.5, y=550, anchor=CENTER)
 
     def join_existing_lobby(self):
         self.lobby_id = self.lobby_id_entry.get()
@@ -240,7 +246,7 @@ class TicTacToe:
         self.result_label.place(relx=0.5, y=450, anchor=CENTER)
 
         # Back button
-        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", width=20).place(relx=0.5, y=550, anchor=CENTER)
+        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", padding=10, width=20).place(relx=0.5, y=550, anchor=CENTER)
 
         # Timer label and start button for Blitz mode
         if self.board_size == (5, 5):
@@ -267,6 +273,10 @@ class TicTacToe:
             self.buttons.append(row)
 
     def make_move(self, i, j):
+        if self.board_size == (5, 5) and not self.timer_started:
+            messagebox.showerror("Error", "You must start the timer to begin the game.")
+            return
+
         if self.is_my_turn and self.buttons[i][j]["text"] == "":
             # Trigger computer's move only if playing against the computer
             self.buttons[i][j]["text"] = self.player_symbol

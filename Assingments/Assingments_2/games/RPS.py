@@ -32,14 +32,14 @@ class RPSClient:
         button_frame = ttk.Frame(self.root, bootstyle="secondary")
         button_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
-        online_button = ttk.Button(button_frame, text="Online", command=self.show_lobby_options, bootstyle="primary-outline", width=20)
+        online_button = ttk.Button(button_frame, text="Online", command=self.show_lobby_options, bootstyle="primary-outline", padding=10, width=20)
         online_button.grid(row=0, column=0, padx=50, pady=20)
 
-        computer_button = ttk.Button(button_frame, text="Computer", command=self.start_computer, bootstyle="success-outline", width=20)
+        computer_button = ttk.Button(button_frame, text="Computer", command=self.start_computer, bootstyle="success-outline",padding=10, width=20)
         computer_button.grid(row=0, column=1, padx=50, pady=20)
 
         # Back button
-        back_button = ttk.Button(button_frame, text="Back", command=self.game_manager.main_menu, bootstyle="danger-outline", width=20)
+        back_button = ttk.Button(button_frame, text="Back", command=self.game_manager.main_menu, bootstyle="danger-outline",padding=10, width=20)
         back_button.grid(row=0, column=2, padx=50, pady=20)
 
     def show_lobby_options(self):
@@ -55,14 +55,14 @@ class RPSClient:
         lobby_frame = ttk.Frame(self.root, bootstyle="secondary")
         lobby_frame.place(relx=0.5, rely=0.5, anchor=CENTER)
 
-        create_lobby_button = ttk.Button(lobby_frame, text="Create Lobby", command=self.create_lobby, bootstyle="primary-outline", width=20)
+        create_lobby_button = ttk.Button(lobby_frame, text="Create Lobby", command=self.create_lobby, bootstyle="primary-outline",padding=10, width=20)
         create_lobby_button.grid(row=0, column=0, padx=50, pady=20)
 
-        join_lobby_button = ttk.Button(lobby_frame, text="Join Lobby", command=self.join_lobby, bootstyle="success-outline", width=20)
+        join_lobby_button = ttk.Button(lobby_frame, text="Join Lobby", command=self.join_lobby, bootstyle="success-outline",padding=10, width=20)
         join_lobby_button.grid(row=0, column=1, padx=50, pady=20)
 
         # Back button
-        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", width=20).place(relx=0.5, y=550, anchor=CENTER)
+        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline",padding=10, width=20).place(relx=0.5, y=550, anchor=CENTER)
 
     def create_lobby(self):
         self.lobby_id = f"Lobby{random.randint(1000, 9999)}"
@@ -92,11 +92,11 @@ class RPSClient:
         self.lobby_id_entry.place(relx=0.5, y=250, anchor=CENTER)
 
         # Join button
-        join_button = ttk.Button(self.root, text="Join", command=self.join_existing_lobby, bootstyle="primary-outline")
+        join_button = ttk.Button(self.root, text="Join", command=self.join_existing_lobby, bootstyle="primary-outline",padding=10)
         join_button.place(relx=0.5, y=300, anchor=CENTER)
 
         # Back button
-        ttk.Button(self.root, text="Back", command=self.show_lobby_options, bootstyle="danger-outline").place(relx=0.5, y=550, anchor=CENTER)
+        ttk.Button(self.root, text="Back", command=self.show_lobby_options, bootstyle="danger-outline",padding=10).place(relx=0.5, y=550, anchor=CENTER)
 
     def join_existing_lobby(self):
         self.lobby_id = self.lobby_id_entry.get()
@@ -151,7 +151,7 @@ class RPSClient:
         self.listener_thread.start()
 
         # Back button
-        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline").place(relx=0.5, y=550, anchor=CENTER)
+        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline",padding=10).place(relx=0.5, y=550, anchor=CENTER)
 
     def start_computer(self):
         self.create_computer_ui()
