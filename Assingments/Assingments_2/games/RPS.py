@@ -11,7 +11,7 @@ class RPSClient:
     def __init__(self, root, game_manager):
         self.root = root
         self.game_manager = game_manager  
-        self.root.geometry("1000x650")
+        self.root.geometry("1150x650")
         self.root.title("Rock Paper Scissors")
         self.style = tb.Style("superhero")  
         self.client_socket = None
@@ -160,7 +160,7 @@ class RPSClient:
         self.listener_thread.start()
 
         # Back button
-        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline",padding=10).place(relx=0.5, y=550, anchor=CENTER)
+        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline",padding=10).place(relx=0.5, y=600, anchor=CENTER)
 
     def start_computer(self):
         self.create_computer_ui()
@@ -227,8 +227,8 @@ class RPSClient:
         # Animate the computer's choice
         animation_steps = ["Rock...", "Paper...", "Scissors...","Shoot!"]
         for i, step in enumerate(animation_steps):
-            self.root.after(i * 10000, lambda s=step: self.result_label.config(text=s))
-        self.root.after(len(animation_steps) * 500, lambda: self.show_computer_thinking(player_choice))
+            self.root.after(i * 900, lambda s=step: self.result_label.config(text=s))
+        self.root.after(len(animation_steps) * 900, lambda: self.show_computer_thinking(player_choice))
 
     def show_computer_thinking(self, player_choice):
         # Show the computer's choice
@@ -255,7 +255,7 @@ class RPSClient:
         # Show the computer's choice and determine the winner
         computer_choice = random.choice(["Rock", "Paper", "Scissors"])
         result = self.determine_winner(player_choice, computer_choice)
-        self.result_label.config(text=f"You chose {player_choice}, computer chose {computer_choice}. {result}")
+        self.result_label.config(text=f"You chose {player_choice}, Computer chose {computer_choice}. \n\t\t{result}")
 
 # Run the client
 if __name__ == "__main__":

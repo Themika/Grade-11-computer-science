@@ -11,8 +11,8 @@ from games.highLowGame import HighLowGame
 
     Instructions
     ----------------------------
-        - First in another terminal run the server.py file to start the server.
-        - Run this file to start the game manager.
+        - First in terminal run the server.py file to start the server.
+        - Then run the game manager file.
         - Click on the game you want to play.
     
     Online Modes
@@ -94,6 +94,7 @@ class GameManager:
         self.show_main_ui()
 
     def show_main_ui(self):
+        self.root.geometry(f"1000x600")
         # Clear existing widgets
         for widget in self.root.winfo_children():
             widget.destroy()
