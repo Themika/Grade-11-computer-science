@@ -44,7 +44,7 @@ class HighLowGame:
         limited_button = tb.Button(button_frame, text="Limited Guesses", command=lambda: self.start_game("limited"), bootstyle="danger-outline", padding=10, width=20)
         limited_button.grid(row=0, column=2, padx=20, pady=10)
 
-        back_button = tb.Button(button_frame, text="Back", command=self.game_manager.main_menu, bootstyle="danger-outline", width=20)
+        back_button = tb.Button(button_frame, text="Back", command=self.game_manager.main_menu, bootstyle="danger-outline",padding=10, width=20)
         back_button.grid(row=2, column=1, padx=50, pady=20)
 
     def show_difficulty_options(self):
