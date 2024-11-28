@@ -12,7 +12,7 @@ class RPSClient:
     def __init__(self, root, game_manager):
         self.root = root
         self.game_manager = game_manager  
-        self.root.geometry("1000x600")
+        self.root.geometry("1000x650")
         self.root.title("Rock Paper Scissors")
         self.style = tb.Style("superhero")  
         self.client_socket = None

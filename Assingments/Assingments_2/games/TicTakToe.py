@@ -11,7 +11,7 @@ from .Tik_Tak_Toe_AI import TicTacToeAI
 class TicTacToe:
     def __init__(self, root, game_manager):
         self.root = root
-        self.root.geometry("1000x600")
+        self.root.geometry("1000x650")
         self.root.title("Tic Tac Toe")
         self.style = ttk.Style("superhero")
         self.client_socket = None
@@ -19,7 +19,7 @@ class TicTacToe:
         self.player_symbol = None
         self.is_my_turn = False
         self.timer = None
-        self.time_remaining = 15
+        self.time_remaining = 10
         self.timer_started = False
         self.board_size = (3, 3)  
         self.game_manager = game_manager
@@ -162,7 +162,7 @@ class TicTacToe:
             self.player_symbol = "X"
             self.is_my_turn = True
             if mode == "blitz":
-                self.time_remaining = 15  # Reset the timer
+                self.time_remaining = 10  # Reset the timer
                 self.timer_started = False
             self.create_online_ui()
 
