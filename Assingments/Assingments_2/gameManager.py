@@ -5,10 +5,44 @@ from games.RPS import RPSClient
 from games.TicTakToe import TicTacToe
 from games.highLowGame import HighLowGame
 
+"""
+    This program is a game manager that allows the user to play three different games: Rock Paper Scissors, Tic Tac Toe, and High Low Game.
+    The user can navigate between the games and return to the main menu at any time. 
+
+    Instructions
+    ----------------------------
+        - First in another terminal run the server.py file to start the server.
+        - Run this file to start the game manager.
+        - Click on the game you want to play.
+    
+    Online Modes
+    ----------------------------
+        - Rock Paper Scissors and Tic Tac Toe have online multiplayer modes.
+        - The user can play against another player by connecting to the server.
+        - FIrst create the lobby 
+        - Run another Game Manager instance and connect to the lobby.
+        - Play the game with the other player.
+    
+    Features
+    ----------------------------
+        - Rock Paper Scissors
+        - Tic Tac Toe
+        - High Low Game
+        - Multiplayer options for all games
+        - Fun extra game modes
+        - Visually appealing interface
+    
+    Improvements
+    ----------------------------
+    - Add more games to the game manager.
+"""
+
+
 class GameManager:
     def __init__(self, root):
         self.root = root
         self.root.title("Game Manager")
+        self.root.resizable(False, False)
         self.create_ui()
         self.width = 1000
 

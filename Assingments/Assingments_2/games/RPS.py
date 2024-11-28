@@ -1,5 +1,3 @@
-# FILE: RPSClient.py
-
 import socket
 import random
 import tkinter as tk
@@ -181,7 +179,7 @@ class RPSClient:
         self.result_label.place(relx=0.5, y=250, anchor=CENTER)
 
         # Back button
-        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline").place(relx=0.5, y=550, anchor=CENTER)
+        ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline").place(relx=0.5, y=600, anchor=CENTER)
 
     def load_images(self):
         # Load and resize images for buttons
@@ -206,9 +204,18 @@ class RPSClient:
                 break
 
     def play_vs_computer(self, player_choice):
-        computer_choice = random.choice(["Rock", "Paper", "Scissors"])
-        result = self.determine_winner(player_choice, computer_choice)
-        self.result_label.config(text=f"You chose {player_choice}, computer chose {computer_choice}. {result}")
+        self.result_label.config(text="You chose " + player_choice)
+        self.animate_choice(player_choice)
+
+    def animate_choice(self, player_choice):
+        animation_steps = ["Rock...", "Paper...", "Scissors...","Shoot!"]
+        for i, step in enumerate(animation_steps):
+            self.root.after(i * 10000, lambda s=step: self.result_label.config(text=s))
+        self.root.after(len(animation_steps) * 500, lambda: self.show_computer_thinking(player_choice))
+
+    def show_computer_thinking(self, player_choice):
+        self.result_label.config(text="Computer is thinking...")
+        self.root.after(2000, self.show_computer_result, player_choice)
 
     def determine_winner(self, player_choice, computer_choice):
         if player_choice == computer_choice:
@@ -224,6 +231,10 @@ class RPSClient:
     def show_error(self, message):
         messagebox.showerror("Error", message)
 
+    def show_computer_result(self, player_choice):
+        computer_choice = random.choice(["Rock", "Paper", "Scissors"])
+        result = self.determine_winner(player_choice, computer_choice)
+        self.result_label.config(text=f"You chose {player_choice}, computer chose {computer_choice}. {result}")
 
 # Run the client
 if __name__ == "__main__":

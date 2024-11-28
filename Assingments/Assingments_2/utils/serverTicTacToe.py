@@ -76,6 +76,7 @@ def handle_client(client_socket, client_address, lobby_id):
                 else:
                     client_socket.sendall("LOBBY_NOT_FOUND".encode('utf-8'))
 
+
             elif message.startswith('MOVE'):
                 lobby_name, move = message.split()[1], message.split()[2]
                 if lobby_name in lobbies:

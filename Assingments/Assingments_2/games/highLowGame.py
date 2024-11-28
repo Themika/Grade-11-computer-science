@@ -226,14 +226,13 @@ class HighLowGame:
             if self.mode == "limited":
                 self.guesses_left_label = tb.Label(self.root, text=f"Guesses left: {self.guesses_left}", font=("Helvetica", 24), bootstyle="inverse-secondary")
                 self.guesses_left_label.pack(pady=10)
-
-        # Replay button
-        replay_button = tb.Button(self.root, text="Replay", command=self.replay_game, bootstyle="info-outline", width=20)
-        replay_button.pack(pady=10)
-
         # Back button
         back_button = tb.Button(self.root, text="Back", command=self.create_mode_selection_ui, bootstyle="danger-outline", width=20)
-        back_button.pack(pady=20)
+        back_button.pack(side=BOTTOM, pady=20)
+        # Replay button
+        replay_button = tb.Button(self.root, text="Replay", command=self.replay_game, bootstyle="info-outline", width=20)
+        replay_button.pack(side=BOTTOM,pady=20)
+
 
     def replay_game(self):
         self.start_game(self.mode)
@@ -323,5 +322,6 @@ class HighLowGame:
 
 if __name__ == "__main__":
     root = tb.Window(themename="superhero")
+    root.resizable(False, False)
     game = HighLowGame(root, None)
     root.mainloop()

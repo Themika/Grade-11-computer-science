@@ -198,6 +198,9 @@ class TicTacToe:
 
     def join_existing_lobby(self):
         self.lobby_id = self.lobby_id_entry.get()
+        if not self.lobby_id:
+            messagebox.showerror("Error", "Lobby ID cannot be empty. Please enter a valid Lobby ID.")
+            return
         if self.connect_to_server():
             self.client_socket.sendall(f"JOIN_LOBBY {self.lobby_id}".encode('utf-8'))
             print(f"Sent JOIN_LOBBY {self.lobby_id} to server")
@@ -211,6 +214,9 @@ class TicTacToe:
                 self.create_online_ui()
             elif response == "LOBBY_NOT_FOUND":
                 messagebox.showerror("Error", "Lobby does not exist. Please check the Lobby ID and try again.")
+            elif response == "LOBBY_FULL":
+                messagebox.showerror("Error", "Lobby is full. Please try joining a different lobby.")
+
 
     def connect_to_server(self):
         try:
@@ -394,6 +400,8 @@ class TicTacToe:
                 elif message == "WAIT_FOR_TURN":
                     self.is_my_turn = False
                     self.update_buttons_state()
+                elif message == "INVALID_LOBBY_NAME":
+                    messagebox.showerror("Error", "Invalid lobby name. Please try again.")
             except ConnectionResetError:
                 self.result_label.config(text="Server disconnected.")
                 break
