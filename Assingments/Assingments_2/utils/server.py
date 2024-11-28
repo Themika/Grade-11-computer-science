@@ -1,6 +1,6 @@
 import os
 import subprocess
-
+# Start the server for the RPS and TicTacToe games
 path = r'Assingments/Assingments_2/utils/'
 filename = ['serverRPS.py', 'ServerTicTacToe.py']
 

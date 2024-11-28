@@ -39,6 +39,7 @@ from games.highLowGame import HighLowGame
 
 
 class GameManager:
+    # Initialize the game manager
     def __init__(self, root):
         self.root = root
         self.root.title("Game Manager")
@@ -58,10 +59,10 @@ class GameManager:
         button_frame.place(relx=0.5, rely=1.0, anchor=S, width=1000, height=100)
         
         button_width = 1000 // 3  # Each button's width is a third of the screen width
-        
+        # Initialize buttons for each game
         self.game1_button = ttk.Button(button_frame, text="Rock Paper Scissors", command=self.start_game1, bootstyle="primary")
         self.game1_button.place(x=0, y=0, width=button_width, height=100)
-        
+        # Hide the buttons initially
         self.game2_button = ttk.Button(button_frame, text="Tic Tac Toe", command=self.start_game2, bootstyle="success")
         self.game2_button.place(x=button_width, y=0, width=button_width, height=100)
         
@@ -75,17 +76,21 @@ class GameManager:
         # Initialize labels for game title and placeholder text
         self.game_title_label = None
         self.placeholder_label = None
-
+    
     def start_game1(self):
+        # Start Rock Paper Scissors game
         self.rps_client = RPSClient(self.root, self)
 
     def start_game2(self):
+        # Start Tic Tac Toe game
         self.tic_tac_toe_client = TicTacToe(self.root, self)
 
     def start_game3(self):
+        # Start High Low Game
         self.higher_lower_client = HighLowGame(self.root, self)
 
     def main_menu(self):
+        # Return to the main menu
         self.show_main_ui()
 
     def show_main_ui(self):
@@ -102,10 +107,10 @@ class GameManager:
         button_frame.place(relx=0.5, rely=1.0, anchor=S, width=1000, height=100)
 
         button_width = 1000 // 3  # Each button's width is a third of the screen width
-
+        # Initialize buttons for each game
         game1_button = ttk.Button(button_frame, text="Rock Paper Scissors", command=self.start_game1, bootstyle="primary")
         game1_button.place(x=0, y=0, width=button_width, height=100)
-
+        # Hide the buttons initially
         game2_button = ttk.Button(button_frame, text="Tic Tac Toe", command=self.start_game2, bootstyle="success")
         game2_button.place(x=button_width, y=0, width=button_width, height=100)
 
@@ -144,6 +149,7 @@ class GameManager:
         self.placeholder_label.place(relx=0.5, y=250, anchor=CENTER)
 
 if __name__ == "__main__":
+    # Start the game manager
     root = ttk.Window(themename="superhero")
     game_manager = GameManager(root)
     root.mainloop()

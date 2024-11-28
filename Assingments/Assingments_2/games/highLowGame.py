@@ -5,6 +5,7 @@ import time
 from threading import Timer
 
 class HighLowGame:
+    # Class to manage the High Low Guessing Game
     def __init__(self, root, game_manager):
         self.root = root
         self.game_manager = game_manager
@@ -73,12 +74,14 @@ class HighLowGame:
         back_button.grid(row=2, column=1, padx=50, pady=20)
 
     def show_tooltip(self, event, text):
+        # Show tooltip at the mouse position
         if self.tooltip:
             self.tooltip.destroy()
         self.tooltip = tb.Label(self.root, text=text, font=("Helvetica", 12), bootstyle="info", relief="solid", borderwidth=1, padding=5)
         self.tooltip.place(x=event.widget.winfo_rootx() - self.root.winfo_rootx() + event.widget.winfo_width() - 350, y=event.widget.winfo_rooty() - self.root.winfo_rooty() - 30)
 
     def hide_tooltip(self, event):
+        # Hide the tooltip
         if self.tooltip:
             self.tooltip.destroy()
             self.tooltip = None
@@ -114,6 +117,7 @@ class HighLowGame:
         back_button.grid(row=1, column=1, pady=20)
 
     def start_game(self, mode):
+        # Set up the game based on the selected mode
         self.mode = mode
         if mode == "easy":
             self.number_to_guess = random.randint(1, 20)
@@ -146,6 +150,7 @@ class HighLowGame:
             self.number_to_guess = random.randint(1, 100)
             self.range_text = "1 and 100"
             self.previous_guess = None
+        # Initialize game variables
         self.guessed_numbers = []
         self.too_low_count = 0
         self.too_high_count = 0
@@ -238,27 +243,33 @@ class HighLowGame:
         self.start_game(self.mode)
 
     def start_timer(self):
+        # Start the timer for timer mode
         if self.time_left > 0:
             self.time_left -= 1
             self.timer_label.config(text=f"Time left: {self.time_left} seconds")
             self.timer = self.root.after(1000, self.start_timer)
+        # Time's up
         else:
             self.result_label.config(text="Time's up! You didn't guess the number.", foreground="red")
             self.entry.config(state="disabled")
 
     def stop_timer(self):
+        # Stop the timer if running
         if self.timer:
             self.root.after_cancel(self.timer)
             self.timer = None
 
     def check_guess(self):
+        # Check the user's guess and provide feedback
         try:
             guess = int(self.entry.get())
+            # Check if the guess is within the range
             if guess < int(self.range_text.split()[0]) or guess > int(self.range_text.split()[-1]):
                 self.result_label.config(text=f"Please enter a number between {self.range_text}.", foreground="red")
                 return
-
+            # Update the guessed numbers list
             self.guessed_numbers.append(guess)
+            # Provide feedback based on the mode
             if guess < self.number_to_guess:
                 self.too_low_count += 1
                 self.result_label.config(text=f"Too low! Try again.", foreground="red")
@@ -273,32 +284,34 @@ class HighLowGame:
                 self.entry.config(state="disabled")
                 self.stop_timer()
                 return
-
+            # Update the guessed numbers label
             if self.mode == "limited":
                 self.guesses_left -= 1
                 self.guesses_left_label.config(text=f"Guesses left: {self.guesses_left}")
                 if self.guesses_left <= 0:
                     self.result_label.config(text="No more guesses left! You didn't guess the number.", foreground="red")
                     self.entry.config(state="disabled")
-
+            # Update the guessed numbers label
             if self.mode == "hot_cold":
                 if self.previous_guess is not None:
+                    # Provide feedback based on how close the guess is
                     if abs(self.number_to_guess - guess) < abs(self.number_to_guess - self.previous_guess):
                         self.result_label.config(text="Hot!", foreground="red")
                     else:
                         self.result_label.config(text="Cold!", foreground="blue")
                 self.previous_guess = guess
-
+            # Update the guessed numbers label
             if self.mode == "range_shrink":
                 self.range_text = f"{max(1, guess - self.shrink_factor)} and {min(100, guess + self.shrink_factor)}"
                 self.result_label.config(text=f"Range shrunk! New range: {self.range_text}", foreground="purple")
-
+        # Handle invalid input
         except ValueError:
             self.result_label.config(text="Please enter a valid number.", foreground="red")
 
     def feedback(self, feedback_type):
+        # Provide feedback to the computer based on the user's response
         self.computer_guesses.append(self.computer_guess)  # Track the computer's guess
-
+        # Update the guessed numbers label
         if feedback_type == "low":
             self.min_guess = self.computer_guess + 1
         elif feedback_type == "high":
@@ -307,20 +320,23 @@ class HighLowGame:
             self.result_label.config(text="The computer guessed your number!", foreground="green")
             self.update_computer_guessed_numbers_label()
             return
-
+        # Update the computer's guess
         self.computer_guess = (self.min_guess + self.max_guess) // 2
         self.computer_guess_label.config(text=f"Computer's guess: {self.computer_guess}")
 
     def update_guessed_numbers_label(self):
+        # Update the guessed numbers label
         guessed_numbers_text = f"Guessed numbers: {', '.join(map(str, self.guessed_numbers))}"
         font_size = max(10, 24 - len(self.guessed_numbers) // 2)  # Decrease font size as more numbers are guessed
         self.guessed_numbers_label.config(text=guessed_numbers_text, font=("Helvetica", font_size))
 
     def update_computer_guessed_numbers_label(self):
+        # Update the computer's guessed numbers label
         computer_guessed_numbers_text = f"Computer's guesses: {', '.join(map(str, self.computer_guesses))}"
         self.computer_guessed_numbers_label.config(text=computer_guessed_numbers_text)
 
 if __name__ == "__main__":
+    # Run the game
     root = tb.Window(themename="superhero")
     root.resizable(False, False)
     game = HighLowGame(root, None)
