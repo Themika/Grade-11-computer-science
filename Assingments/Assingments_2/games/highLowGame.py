@@ -9,7 +9,7 @@ class HighLowGame:
     def __init__(self, root, game_manager):
         self.root = root
         self.game_manager = game_manager
-        self.root.geometry("1000x675")
+        self.root.geometry("1000x700")
         self.root.title("High Low Guessing Game")
         self.style = tb.Style("superhero")  
         self.timer = None
@@ -236,7 +236,7 @@ class HighLowGame:
         back_button.pack(side=BOTTOM, pady=20)
         # Replay button
         replay_button = tb.Button(self.root, text="Replay", command=self.replay_game, bootstyle="info-outline", width=20)
-        replay_button.pack(side=BOTTOM,pady=20)
+        replay_button.pack(side=BOTTOM,pady=25)
 
 
     def replay_game(self):

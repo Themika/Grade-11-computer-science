@@ -11,7 +11,7 @@ from games.highLowGame import HighLowGame
 
     Instructions
     ----------------------------
-        - First in terminal run the server.py file to start the server.
+        - First in terminal run the server.py file to start the servers.
         - Then run the game manager file.
         - Click on the game you want to play.
     
@@ -20,8 +20,8 @@ from games.highLowGame import HighLowGame
         - Rock Paper Scissors and Tic Tac Toe have online multiplayer modes.
         - The user can play against another player by connecting to the server.
         - FIrst create the lobby 
-        - Run another Game Manager instance and connect to the lobby.
-        - Play the game with the other player.
+        - Run another Game Manager instance and join the lobby by entering the lobby id. The id should have Lobbyxxxx format.
+        - Play the game with the other players.
     
     Features
     ----------------------------

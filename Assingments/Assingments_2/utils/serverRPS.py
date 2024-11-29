@@ -19,7 +19,7 @@ def determine_winner(player1, move1, player2, move2):
 def handle_client(client_socket, client_address, lobby_id):
     player_id = f"Player{len(lobbies[lobby_id]['clients'])}"
     print(f"{player_id} connected to lobby {lobby_id}: {client_address}")
-    client_socket.sendall(f"Welcome {player_id} to lobby {lobby_id}!\n\n Waiting for your move...\n".encode())
+    client_socket.sendall(f"Welcome {player_id} to lobby {lobby_id}!\n\t Waiting for your move...".encode())
     
     while True:
         try:
@@ -38,7 +38,7 @@ def handle_client(client_socket, client_address, lobby_id):
                 # Notify the clients of the result
                 for client, pid in zip(lobbies[lobby_id]['clients'], lobbies[lobby_id]['moves'].keys()):
                     result = "won" if pid == winner else "lost" if winner != "Draw" else "draw"
-                    client.sendall(f"You {result}!\n Your move: {move1}.\n Opponent's move: {move2}\n".encode())
+                    client.sendall(f"You {result}! Your move: {move1}.\n Opponent's move: {move2}".encode())
 
                 lobbies[lobby_id]['moves'].clear()
 

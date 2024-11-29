@@ -79,7 +79,7 @@ class TicTacToe:
     
         create_lobby_blitz_button = ttk.Button(lobby_frame, text="Create Blitz Lobby", command=lambda: self.create_lobby("blitz"), bootstyle="primary-outline", padding=10, width=20)
         create_lobby_blitz_button.grid(row=0, column=1, padx=20, pady=10)
-        create_lobby_blitz_button.bind("<Enter>", lambda e: self.show_tooltip(e, "Blitz mode: 5x5 board, 15 seconds per move, 1v1 only, First to get 3 in a row wins."))
+        create_lobby_blitz_button.bind("<Enter>", lambda e: self.show_tooltip(e, "Blitz mode: 5x5 board, 10 seconds per move, 1v1 only, First to get 3 in a row wins."))
     
         join_lobby_button = ttk.Button(lobby_frame, text="Join Lobby", command=self.join_lobby, bootstyle="success-outline", padding=10, width=20)
         join_lobby_button.grid(row=1, column=0, columnspan=2, padx=20, pady=10)
@@ -357,11 +357,15 @@ class TicTacToe:
         else:
             # Stop the timer if it reaches 0
             self.timer_started = False
-            # Update the timer label
-            if self.time_remaining < 0:
+            if self.time_remaining <= 0:
                 if self.timer_label.winfo_exists():
-                    self.root.after(0, lambda: self.timer_label.config(text="Time's up!"))
+                    self.root.after(0, lambda: self.timer_label.config(text="Time's up! You lost."))
+                self.result_label.config(text="Time's up! You lost.")
+                self.is_my_turn = False
                 self.update_buttons_state()
+                # Send a message to the server indicating the player lost due to time out
+                if self.client_socket:
+                    self.client_socket.sendall(f"TIMEOUT_LOSS {self.lobby_id}".encode('utf-8'))
 
     def update_buttons_state(self):
         # Disable buttons if it's not the player's turn or the cell is already filled
