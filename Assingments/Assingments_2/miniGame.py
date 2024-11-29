@@ -12,7 +12,7 @@ from games.highLowGame import HighLowGame
     Instructions
     ----------------------------
         - First in terminal run the server.py file to start the servers.
-        - Then run the mini game file.
+        - Then run the miniGame.py file.
         - Click on the game you want to play.
     
     Online Modes
