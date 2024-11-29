@@ -194,9 +194,9 @@ class RPSClient:
 
     def load_images(self):
         # Load and resize images for buttons
-        self.rock_img = ImageTk.PhotoImage(Image.open("Assingments/Assingments_2/assets/Screenshot_2024-11-20_090719-removebg-preview.png").resize((150, 150)))
-        self.paper_img = ImageTk.PhotoImage(Image.open("Assingments/Assingments_2/assets/Screenshot_2024-11-20_090747-removebg-preview.png").resize((150, 150)))
-        self.scissors_img = ImageTk.PhotoImage(Image.open("Assingments/Assingments_2/assets/Screenshot_2024-11-20_090824-removebg-preview.png").resize((150, 150)))
+        self.rock_img = ImageTk.PhotoImage(Image.open("assets/Screenshot_2024-11-20_090719-removebg-preview.png").resize((150, 150)))
+        self.paper_img = ImageTk.PhotoImage(Image.open("assets/Screenshot_2024-11-20_090747-removebg-preview.png").resize((150, 150)))
+        self.scissors_img = ImageTk.PhotoImage(Image.open("assets/Screenshot_2024-11-20_090824-removebg-preview.png").resize((150, 150)))
 
     def send_move(self, move):
         try:
