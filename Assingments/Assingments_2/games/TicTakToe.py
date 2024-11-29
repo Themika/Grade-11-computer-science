@@ -171,7 +171,7 @@ class TicTacToe:
 
         # Result label
         self.result_label = ttk.Label(self.root, text="Waiting for result...", font=("Helvetica", 18), bootstyle="inverse-secondary")
-        self.result_label.place(relx=0.5, y=450, anchor=CENTER)
+        self.result_label.place(relx=0.5, y=475, anchor=CENTER)
 
         # Back button
         ttk.Button(self.root, text="Back", command=self.create_initial_ui, bootstyle="danger-outline", padding=10, width=20).place(relx=0.5, y=550, anchor=CENTER)
