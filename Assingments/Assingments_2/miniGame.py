@@ -19,9 +19,9 @@ from games.highLowGame import HighLowGame
     ----------------------------
         - Rock Paper Scissors and Tic Tac Toe have online multiplayer modes.
         - The user can play against another player by connecting to the server.
-        - FIrst create the lobby 
+        - First create the lobby 
         - Run another mini game instance and join the lobby by entering the lobby id. The id should have Lobbyxxxx format.
-        - Play the game with the other players.
+        - Join the lobby and start the game.
     
     Features
     ----------------------------
