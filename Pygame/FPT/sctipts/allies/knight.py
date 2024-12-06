@@ -9,6 +9,7 @@ class State:
     ATTACK_2 = 'attack_2'
     ATTACK_3 = "attack_3"
     ATTACK_4 = "attack_4"
+    ATTACK_5 = "attack_5"
 
 class Knight(pygame.sprite.Sprite):
     def __init__(self, *groups):
@@ -74,6 +75,14 @@ class Knight(pygame.sprite.Sprite):
                 pygame.image.load('Animations/Warrior/Blue/Blue_Attack_4/Warrior_Blue_Attack_4_4.png'),
                 pygame.image.load('Animations/Warrior/Blue/Blue_Attack_4/Warrior_Blue_Attack_4_5.png'),
                 pygame.image.load('Animations/Warrior/Blue/Blue_Attack_4/Warrior_Blue_Attack_4_6.png')
+            ],
+            "attack_5":[
+                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_5/Warrior_Blue_Attack_5_1.png'),
+                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_5/Warrior_Blue_Attack_5_2.png'),
+                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_5/Warrior_Blue_Attack_5_3.png'),
+                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_5/Warrior_Blue_Attack_5_4.png'),
+                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_5/Warrior_Blue_Attack_5_5.png'),
+                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_5/Warrior_Blue_Attack_5_6.png')
             ]
         }
         self.target = None
@@ -195,27 +204,46 @@ class Knight(pygame.sprite.Sprite):
         for enemy in enemies:
             if self.rect.colliderect(enemy.rect.inflate(100, 100)):  
                 self.target = enemy.rect.center
-                if self.rect.colliderect(enemy.rect.inflate(0.1, 0.1)): 
+                if self.rect.colliderect(enemy.rect.inflate(5, 5)): 
                     if self.rect.centery < enemy.rect.centery:
                         if self.state == State.ATTACK_3 and self.current_sprite == len(self.sprites[State.ATTACK_3]) - 1:
                             self.state = State.ATTACK_4
                             self.current_sprite = 0
+                            enemy.take_damage(10)
                         elif self.state == State.ATTACK_4 and self.current_sprite == len(self.sprites[State.ATTACK_4]) - 1:
                             self.state = State.ATTACK_3
                             self.current_sprite = 0
+                            enemy.take_damage(10)
                         elif self.state != State.ATTACK_3 and self.state != State.ATTACK_4:
                             self.state = State.ATTACK_3
                             self.current_sprite = 0
+                            enemy.take_damage(10)
+                    elif self.rect.centery > enemy.rect.centery:
+                        if self.state == State.ATTACK_5 and self.current_sprite == len(self.sprites[State.ATTACK_5]) - 1:
+                            self.state = State.ATTACK_5
+                            self.current_sprite = 0
+                            enemy.take_damage(10)
+                        elif self.state == State.ATTACK_1 and self.current_sprite == len(self.sprites[State.ATTACK_1]) - 1:
+                            self.state = State.ATTACK_5
+                            self.current_sprite = 0
+                            enemy.take_damage(10)
+                        elif self.state != State.ATTACK_5 and self.state != State.ATTACK_1:
+                            self.state = State.ATTACK_5
+                            self.current_sprite = 0
+                            enemy.take_damage(10)
                     else:
                         if self.state == State.ATTACK_1 and self.current_sprite == len(self.sprites[State.ATTACK_1]) - 1:
                             self.state = State.ATTACK_2
                             self.current_sprite = 0
+                            enemy.take_damage(10)
                         elif self.state == State.ATTACK_2 and self.current_sprite == len(self.sprites[State.ATTACK_2]) - 1:
                             self.state = State.ATTACK_1
                             self.current_sprite = 0
+                            enemy.take_damage(10)
                         elif self.state != State.ATTACK_1 and self.state != State.ATTACK_2:
                             self.state = State.ATTACK_1
                             self.current_sprite = 0
+                            enemy.take_damage(10)
                     print(f"Enemy detected. Attacking with {self.state}.")
                 else:
                     self.state = State.RUN  
