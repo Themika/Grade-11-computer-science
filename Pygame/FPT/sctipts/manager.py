@@ -2,6 +2,7 @@ import pygame
 from utils.camera import Camera
 from player.player import Player
 from allies.knight import Knight
+from enemy.enemy import Enemy
 from utils.rps_manager import RPSManager
 import random
 
@@ -44,6 +45,10 @@ all_sprites = pygame.sprite.Group(player)
 knight_1 = Knight()
 all_sprites.add(knight_1)
 
+# Create an enemy and add it to the screen
+enemy_1 = Enemy()
+all_sprites.add(enemy_1)
+
 rps_manager = RPSManager()
 
 clock = pygame.time.Clock()
@@ -69,6 +74,8 @@ while running:
     for sprite in all_sprites:
         if isinstance(sprite, Player):
             sprite.update(keys, dt)
+        elif isinstance(sprite, Knight):
+            sprite.update(dt, [enemy_1])
         else:
             sprite.update(dt)
 
