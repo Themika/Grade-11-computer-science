@@ -1,0 +1,33 @@
+import pygame
+from allies.knight import Knight
+
+class RPSManager:
+    def __init__(self):
+        self.selected_knight = None
+        self.move_marker = None
+
+    def handle_event(self, event, camera, all_sprites):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pos = pygame.mouse.get_pos()
+            adjusted_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
+            if event.button == 3:  # Right click
+                for sprite in all_sprites:
+                    if isinstance(sprite, Knight) and sprite.rect.collidepoint(adjusted_pos):
+                        if self.selected_knight == sprite:
+                            self.selected_knight.deselect()
+                            self.selected_knight = None
+                        else:
+                            if self.selected_knight:
+                                self.selected_knight.deselect()
+                            self.selected_knight = sprite
+                            sprite.selection()
+                        break
+            elif event.button == 1:  # Left click
+                if self.selected_knight:
+                    # Set the marker as a potion target
+                    self.move_marker = adjusted_pos
+                    self.selected_knight.move_to_potion(adjusted_pos)
+
+    def draw_marker(self, surface):
+        if self.move_marker:
+            pygame.draw.circle(surface, (0, 255, 0), self.move_marker, 10)  
