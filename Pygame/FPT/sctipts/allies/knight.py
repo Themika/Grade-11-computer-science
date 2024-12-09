@@ -109,26 +109,30 @@ class Knight(pygame.sprite.Sprite):
 
         self.state_timer = 0 
         self.idle_time = 0 
+        self.speed = 2
 
     def generate_random_patrol_points(self, num_points, max_x, max_y):
         """Generate a list of random patrol points within the given range."""
         return [(random.randint(0, max_x), random.randint(0, max_y)) for _ in range(num_points)]
-    
+    def move_to_click_position(self, pos):
+        """Set the mouse position when clicked, only if the knight is selected."""
+        if self.selected:
+            print(f"Setting target to: {pos}")
+            self.mouse_pos = pos
+            self.state = State.RUN
+
     def movement(self):
         """Determine what the knight should do based on its state."""
         if self.mouse_pos:
-            # Always prioritize moving to the target
             self.state = State.RUN  # Ensure the state is RUN when there's a target
-            print(f"Moving to: {self.mouse_pos}")  # Print to debug mouse position
-            self.move_to_click_position(self.mouse_pos)
-
+            print(f"Moving to: {self.mouse_pos} State: {self.state}")  # Debug mouse position
+            if self.move_towards_pos(self.mouse_pos):  # Continue moving toward the mouse position
+                print(f"Reached target: {self.mouse_pos}")  # Debug when target is reached
+                self.mouse_pos = None  # Clear the mouse position when the target is reached
+                self.state = State.IDLE  # Reset to idle state after reaching the target
+                return  # Exit the function to prevent further actions
         elif self.selected:
-            # Handle when the knight is selected but no specific target is set
-            # Allow movement even when selected (don't change state to IDLE)
-            if self.state != State.RUN:  # Only set to RUN if it's not already running
-                self.state = State.RUN
-            self.move_to_click_position(self.mouse_pos)  # Move to the mouse position when selected
-            
+            self.state = State.IDLE
         else:
             # Normal behavior when not selected
             if self.state == State.RUN:
@@ -141,6 +145,7 @@ class Knight(pygame.sprite.Sprite):
                 if pygame.time.get_ticks() - self.state_timer >= self.idle_time:
                     self.state = State.PATROL
                     self.state_timer = pygame.time.get_ticks()
+
 
 
     def search(self):
@@ -205,13 +210,13 @@ class Knight(pygame.sprite.Sprite):
     def selection(self):
         """Handle selection of the knight."""
         self.selected = True
-        self.state = State.IDLE  
+        self.state = State.IDLE
         print("Knight selected")
 
     def deselect(self):
         """Handle deselection of the knight."""
         self.selected = False
-        self.state = State.PATROL  
+        self.state = State.PATROL
         print("Knight deselected")
 
     def move_to(self, target):
@@ -225,12 +230,6 @@ class Knight(pygame.sprite.Sprite):
         self.state = State.RUN  
         self.state_timer = 0  
 
-    def move_to_click_position(self, click_position):
-        """Set the target to the click position and move without attacking enemies."""
-        self.mouse_pos = click_position
-        self.target = click_position
-        self.state = State.RUN
-        self.state_timer = 0
 
     def patrol(self):
         """Patrol between predefined points."""
@@ -263,15 +262,44 @@ class Knight(pygame.sprite.Sprite):
         dist = math.hypot(dx, dy)
         if dist > tolerance:  # Only move if the distance is greater than tolerance
             dx, dy = dx / dist, dy / dist  # Normalize the movement vector
-            self.rect.centerx += dx * 2  # Adjust speed as needed
-            self.rect.centery += dy * 2
+            self.rect.centerx += dx * self.speed  
+            self.rect.centery += dy * self.speed
 
             # Handle facing direction
             self.facing_right = dx > 0
             return False
         return True
 
+    def move_towards_pos(self, target, tolerance=10, random_offset=50):
+        """Move the knight towards the target position with a tolerance and random offset."""
+        # Add random offset to the target position
+        target = (target[0] + random.randint(-random_offset, random_offset), 
+                target[1] + random.randint(-random_offset, random_offset))
+        
+        dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
+        dist = math.hypot(dx, dy)
+        self.speed = 3
+        if dist > tolerance:  # Only move if the distance is greater than tolerance
+            dx, dy = dx / dist, dy / dist  # Normalize the movement vector
+            self.rect.centerx += dx * self.speed  
+            self.rect.centery += dy * self.speed
 
+            # Handle facing direction
+            self.facing_right = dx > 0
+            return False
+        self.speed = 2
+        return True
+
+    def avoid_overlap(self, other_knights, min_distance=50):
+        """Avoid overlapping with other knights."""
+        for knight in other_knights:
+            if knight != self:
+                dx, dy = self.rect.centerx - knight.rect.centerx, self.rect.centery - knight.rect.centery
+                dist = math.hypot(dx, dy)
+                if dist < min_distance:
+                    dx, dy = dx / dist, dy / dist  # Normalize the movement vector
+                    self.rect.centerx += dx * (min_distance - dist)
+                    self.rect.centery += dy * (min_distance - dist)
     def detect_enemy(self, enemies):
         """Detect the closest alive enemy and move towards it if within range."""
         closest_enemy = None
@@ -284,54 +312,45 @@ class Knight(pygame.sprite.Sprite):
                     closest_distance = distance
                     closest_enemy = enemy
 
-        if closest_enemy and closest_distance <= 200:  # Only consider enemies within 500 pixels
+        if closest_enemy and closest_distance <= 200:  # Only consider enemies within 200 pixels
             self.target = closest_enemy.rect.center
             if self.rect.colliderect(closest_enemy.rect.inflate(5, 5)):
-                if self.rect.centery < closest_enemy.rect.centery:
-                    if self.state == State.ATTACK_3 and self.current_sprite == len(self.sprites[State.ATTACK_3]) - 1:
-                        self.state = State.ATTACK_4
-                        self.current_sprite = 0
-                        closest_enemy.take_damage(10)
-                    elif self.state == State.ATTACK_4 and self.current_sprite == len(self.sprites[State.ATTACK_4]) - 1:
-                        self.state = State.ATTACK_3
-                        self.current_sprite = 0
-                        closest_enemy.take_damage(10)
-                    elif self.state != State.ATTACK_3 and self.state != State.ATTACK_4:
-                        self.state = State.ATTACK_3
-                        self.current_sprite = 0
-                        closest_enemy.take_damage(10)
-                elif self.rect.centery > closest_enemy.rect.centery:
-                    if self.state == State.ATTACK_5 and self.current_sprite == len(self.sprites[State.ATTACK_5]) - 1:
-                        self.state = State.ATTACK_5
-                        self.current_sprite = 0
-                        closest_enemy.take_damage(10)
-                    elif self.state == State.ATTACK_1 and self.current_sprite == len(self.sprites[State.ATTACK_1]) - 1:
-                        self.state = State.ATTACK_5
-                        self.current_sprite = 0
-                        closest_enemy.take_damage(10)
-                    elif self.state != State.ATTACK_5 and self.state != State.ATTACK_1:
-                        self.state = State.ATTACK_5
-                        self.current_sprite = 0
-                        closest_enemy.take_damage(10)
-                else:
-                    if self.state == State.ATTACK_1 and self.current_sprite == len(self.sprites[State.ATTACK_1]) - 1:
-                        self.state = State.ATTACK_2
-                        self.current_sprite = 0
-                        closest_enemy.take_damage(10)
-                    elif self.state == State.ATTACK_2 and self.current_sprite == len(self.sprites[State.ATTACK_2]) - 1:
-                        self.state = State.ATTACK_1
-                        self.current_sprite = 0
-                        closest_enemy.take_damage(10)
-                    elif self.state != State.ATTACK_1 and self.state != State.ATTACK_2:
-                        self.state = State.ATTACK_1
-                        self.current_sprite = 0
-                        closest_enemy.take_damage(10)
-                if closest_enemy.health <= 0:
-                    self.target = None
-                    self.state = State.SEARCH
-                    self.state_timer = pygame.time.get_ticks()
-                    self.current_sprite = 0
-                    enemies.remove(closest_enemy)  # Remove the enemy from the list
-                    closest_enemy.kill()  # Remove the enemy from all sprite groups
+                self.handle_attack(closest_enemy,enemies)
             else:
                 self.state = State.RUN  # Move toward the enemy if not close enough
+
+    def handle_attack(self, enemy, enemies):
+        """Handle the attack logic based on the knight's position relative to the enemy."""
+        if self.rect.centery < enemy.rect.centery:
+            self.perform_attack(enemy, State.ATTACK_3, State.ATTACK_4)
+        elif self.rect.centery > enemy.rect.centery:
+            self.perform_attack(enemy, State.ATTACK_5, State.ATTACK_1)
+        else:
+            self.perform_attack(enemy, State.ATTACK_1, State.ATTACK_2)
+    
+        if enemy.health <= 0:
+            self.target = None
+            self.state = State.SEARCH
+            self.state_timer = pygame.time.get_ticks()
+            self.current_sprite = 0
+            enemies.remove(enemy)  # Remove the enemy from the list
+            enemy.kill()  # Remove the enemy from all sprite groups
+
+    def perform_attack(self, enemy, primary_attack, secondary_attack):
+        """Perform the attack sequence on the enemy."""
+        if not self.selected:
+            if self.state == primary_attack and self.current_sprite == len(self.sprites[primary_attack]) - 1:
+                self.state = secondary_attack
+                self.current_sprite = 0
+                enemy.take_damage(10)
+                print("Attacking enemy")
+            elif self.state == secondary_attack and self.current_sprite == len(self.sprites[secondary_attack]) - 1:
+                self.state = primary_attack
+                self.current_sprite = 0
+                enemy.take_damage(10)
+                print("Attacking enemy")
+            elif self.state not in (primary_attack, secondary_attack):
+                self.state = primary_attack
+                self.current_sprite = 0
+                enemy.take_damage(10)
+                print("Attacking enemy")

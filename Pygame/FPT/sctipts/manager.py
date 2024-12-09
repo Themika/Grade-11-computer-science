@@ -41,7 +41,7 @@ player = Player()
 camera = Camera(WINDOW_WIDTH, WINDOW_HIEGHT)
 all_sprites = pygame.sprite.Group(player)
 
-for _ in range(25):
+for _ in range(30):
     knight = Knight()
     knight.rect.x = random.randint(0, 2000)
     knight.rect.y = random.randint(0, 2000)
