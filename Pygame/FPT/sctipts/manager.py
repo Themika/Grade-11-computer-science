@@ -41,21 +41,27 @@ player = Player()
 camera = Camera(WINDOW_WIDTH, WINDOW_HIEGHT)
 all_sprites = pygame.sprite.Group(player)
 
-# Create a knight and add it to the center of the screen
-knight_1 = Knight()
-all_sprites.add(knight_1)
-
-# Create an enemy and add it to the screen
-enemy_1 = Enemy()
-all_sprites.add(enemy_1)
+for _ in range(25):
+    knight = Knight()
+    knight.rect.x = random.randint(0, 2000)
+    knight.rect.y = random.randint(0, 2000)
+    all_sprites.add(knight)
+for _ in range(200):  # Change the number to spawn more or fewer enemies
+    enemy = Enemy()
+    enemy.rect.x = random.randint(0, 2000)
+    enemy.rect.y = random.randint(0, 2000)
+    all_sprites.add(enemy)
 
 rps_manager = RPSManager()
 
 clock = pygame.time.Clock()
+last_print_time = 0  # Initialize the last print time
 
 while running:
     dt = clock.tick(60) / 1000  # Amount of seconds between each loop
     keys = pygame.key.get_pressed()
+    current_time = pygame.time.get_ticks()  # Get the current time in milliseconds
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -70,17 +76,22 @@ while running:
                 camera.zoom(0.9, mouse_pos, all_sprites)
         rps_manager.handle_event(event, camera, all_sprites)
 
-    # Update player with keys and dt, update knight with dt only
     for sprite in all_sprites:
         if isinstance(sprite, Player):
             sprite.update(keys, dt)
         elif isinstance(sprite, Knight):
-            sprite.update(dt, [enemy_1])
+            # Filter out dead enemies dynamically
+            alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Enemy) and enemy.health > 0]
+            sprite.update(dt, alive_enemies)
+        elif isinstance(sprite, Enemy):
+            if sprite.health <= 0:
+                all_sprites.remove(sprite)  # Remove dead enemy
         else:
             sprite.update(dt)
-
+    # Update the camera
     camera.update(player)
 
+    # Render the scene
     display_surface.fill('darkgray')
     draw_grid(display_surface, camera)
     rps_manager.draw_marker(display_surface)
