@@ -68,6 +68,10 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Check if it is a left click
+                mouse_pos = pygame.mouse.get_pos()
+                knight.move_to_click_position(mouse_pos)
         elif event.type == pygame.MOUSEWHEEL:
             mouse_pos = pygame.mouse.get_pos()
             if event.y > 0:  # Scroll up

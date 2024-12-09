@@ -96,6 +96,7 @@ class Knight(pygame.sprite.Sprite):
             ]
         }
         self.target = None
+        self.mouse_pos = None
         self.current_sprite = 0
         self.animation_timer = 0
         self.animation_speed = 750  
@@ -115,16 +116,31 @@ class Knight(pygame.sprite.Sprite):
     
     def movement(self):
         """Determine what the knight should do based on its state."""
-        if self.state == State.RUN:
-            self.chase_target()
-        elif self.state == State.PATROL:
-            self.patrol()
-        elif self.state == State.SEARCH:
-            self.search()
-        elif self.state == State.IDLE:
-            if pygame.time.get_ticks() - self.state_timer >= self.idle_time:
-                self.state = State.PATROL 
-                self.state_timer = pygame.time.get_ticks()  
+        if self.mouse_pos:
+            # Always prioritize moving to the target
+            self.state = State.RUN  # Ensure the state is RUN when there's a target
+            print(f"Moving to: {self.mouse_pos}")  # Print to debug mouse position
+            self.move_to_click_position(self.mouse_pos)
+
+        elif self.selected:
+            # Handle when the knight is selected but no specific target is set
+            # Allow movement even when selected (don't change state to IDLE)
+            if self.state != State.RUN:  # Only set to RUN if it's not already running
+                self.state = State.RUN
+            self.move_to_click_position(self.mouse_pos)  # Move to the mouse position when selected
+            
+        else:
+            # Normal behavior when not selected
+            if self.state == State.RUN:
+                self.chase_target()
+            elif self.state == State.PATROL:
+                self.patrol()
+            elif self.state == State.SEARCH:
+                self.search()
+            elif self.state == State.IDLE:
+                if pygame.time.get_ticks() - self.state_timer >= self.idle_time:
+                    self.state = State.PATROL
+                    self.state_timer = pygame.time.get_ticks()
 
 
     def search(self):
@@ -158,6 +174,7 @@ class Knight(pygame.sprite.Sprite):
             self.state = State.PATROL
             self.search_targets = []
             self.state_timer = pygame.time.get_ticks()
+
     def draw(self, surface):
         if self.selected:
             pygame.draw.rect(surface, (255, 0, 0), self.rect.inflate(10, 10), 2) 
@@ -175,7 +192,6 @@ class Knight(pygame.sprite.Sprite):
             self.state = State.SEARCH
             self.state_timer = pygame.time.get_ticks()
             self.current_sprite = 0
-
 
     def animate(self, dt):
         self.animation_timer += dt * 8500  
@@ -202,11 +218,19 @@ class Knight(pygame.sprite.Sprite):
         self.target = target
         self.state = State.RUN  
         self.state_timer = 0  
+
     def move_to_potion(self, potion_position):
         """Stop current actions and move to the potion marker."""
         self.target = potion_position
         self.state = State.RUN  
         self.state_timer = 0  
+
+    def move_to_click_position(self, click_position):
+        """Set the target to the click position and move without attacking enemies."""
+        self.mouse_pos = click_position
+        self.target = click_position
+        self.state = State.RUN
+        self.state_timer = 0
 
     def patrol(self):
         """Patrol between predefined points."""
@@ -226,30 +250,27 @@ class Knight(pygame.sprite.Sprite):
         """Move toward the set target with tolerance."""
         if self.target:
             reached_target = self.move_towards(self.target, tolerance=10)  # Adjust tolerance as needed
-            
             if reached_target:
                 self.target = None 
                 self.state = State.IDLE 
                 self.idle_time = 600000 
                 self.state_timer = pygame.time.get_ticks()  
+                
 
     def move_towards(self, target, tolerance=10):
         """Move the knight towards the target position with a tolerance."""
         dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
-        dist = (dx**2 + dy**2) ** 0.5
-        if dist != 0:
-            dx, dy = dx / dist, dy / dist
-        self.rect.x += dx * 2
-        self.rect.y += dy * 2
+        dist = math.hypot(dx, dy)
+        if dist > tolerance:  # Only move if the distance is greater than tolerance
+            dx, dy = dx / dist, dy / dist  # Normalize the movement vector
+            self.rect.centerx += dx * 2  # Adjust speed as needed
+            self.rect.centery += dy * 2
 
-        if dx > 0 and not self.facing_right:
-            self.facing_right = True
-        elif dx < 0 and self.facing_right:
-            self.facing_right = False
+            # Handle facing direction
+            self.facing_right = dx > 0
+            return False
+        return True
 
-        if abs(dx * dist) < tolerance and abs(dy * dist) < tolerance:
-            return True
-        return False
 
     def detect_enemy(self, enemies):
         """Detect the closest alive enemy and move towards it if within range."""
