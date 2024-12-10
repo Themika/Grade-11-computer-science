@@ -12,6 +12,12 @@ display_surface = pygame.display.set_mode((WINDOW_HIEGHT,WINDOW_WIDTH))
 running = True
 pygame.display.set_caption("Protector of the Realm")
 
+# Load the cursor image
+cursor_image = pygame.image.load('Tiny_Swords_Assets/UI/Pointers/01.png')
+cursor_image = pygame.transform.scale(cursor_image, (64, 64))  # Scale the image if necessary
+cursor_data = pygame.cursors.Cursor((0, 0), cursor_image)
+pygame.mouse.set_cursor(cursor_data)
+
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -37,28 +43,36 @@ def draw_grid(surface, camera):
             adjusted_rect = rect.move(camera.camera.topleft)
             pygame.draw.rect(surface, (200, 200, 200), adjusted_rect, 1)
 
+def draw_grid_coordinates(surface, camera):
+    font = pygame.font.SysFont(None, 24)
+    for x in range(0, 2000, 100):
+        for y in range(0, 2000, 100):
+            adjusted_x, adjusted_y = x + camera.camera.topleft[0], y + camera.camera.topleft[1]
+            text_surface = font.render(f'({x}, {y})', True, (255, 255, 255))
+            surface.blit(text_surface, (adjusted_x + 5, adjusted_y + 5))
+
 player = Player()
 camera = Camera(WINDOW_WIDTH, WINDOW_HIEGHT)
 all_sprites = pygame.sprite.Group(player)
 
-for _ in range(30):
+for _ in range(25):
     knight = Knight()
-    knight.rect.x = random.randint(0, 2000)
-    knight.rect.y = random.randint(0, 2000)
+    knight.rect.x = random.randint(0, 500)
+    knight.rect.y = random.randint(0, 500)
     all_sprites.add(knight)
-for _ in range(200):  # Change the number to spawn more or fewer enemies
+
+for _ in range(100):
     enemy = Enemy()
     enemy.rect.x = random.randint(0, 2000)
     enemy.rect.y = random.randint(0, 2000)
     all_sprites.add(enemy)
-
 rps_manager = RPSManager()
 
 clock = pygame.time.Clock()
 last_print_time = 0  # Initialize the last print time
 
 while running:
-    dt = clock.tick(60) / 1000  # Amount of seconds between each loop
+    dt = clock.tick(60) / 1000 # Amount of seconds between each loop
     keys = pygame.key.get_pressed()
     current_time = pygame.time.get_ticks()  # Get the current time in milliseconds
 
@@ -70,8 +84,7 @@ while running:
                 running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Check if it is a left click
-                mouse_pos = pygame.mouse.get_pos()
-                knight.move_to_click_position(mouse_pos)
+                rps_manager.handle_event(event, camera, all_sprites)
         elif event.type == pygame.MOUSEWHEEL:
             mouse_pos = pygame.mouse.get_pos()
             if event.y > 0:  # Scroll up
@@ -79,7 +92,7 @@ while running:
             elif event.y < 0:  # Scroll down
                 camera.zoom(0.9, mouse_pos, all_sprites)
         rps_manager.handle_event(event, camera, all_sprites)
-
+        
     for sprite in all_sprites:
         if isinstance(sprite, Player):
             sprite.update(keys, dt)
@@ -98,8 +111,11 @@ while running:
     # Render the scene
     display_surface.fill('darkgray')
     draw_grid(display_surface, camera)
+    draw_grid_coordinates(display_surface, camera)
     rps_manager.draw_marker(display_surface)
     camera.custom_draw(display_surface, all_sprites)
+    rps_manager.draw_ui(display_surface)  # Draw the UI elements last to ensure they are on top
+    
     pygame.display.update()
 
 pygame.quit()

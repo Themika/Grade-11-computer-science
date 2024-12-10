@@ -2,6 +2,10 @@ import pygame
 import math
 import random
 
+
+#TODO
+# Play test 
+# Add ARcher
 class State:
     IDLE = 'idle'
     PATROL = 'patrol'
@@ -12,6 +16,8 @@ class State:
     ATTACK_4 = "attack_4"
     ATTACK_5 = "attack_5"
     SEARCH = 'search'  # New search state
+    WATCH = "watch"
+    POS = "pos"
 
 class Knight(pygame.sprite.Sprite):
     def __init__(self, *groups):
@@ -23,6 +29,14 @@ class Knight(pygame.sprite.Sprite):
         self.idle_duration_at_target = 6 
         self.sprites = {
             'idle': [
+                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle.png'),
+                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_1.png'),
+                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_2.png'),
+                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_3.png'),
+                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_4.png'),
+                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_5.png')
+            ],
+            "watch" : [
                 pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle.png'),
                 pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_1.png'),
                 pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_2.png'),
@@ -93,6 +107,14 @@ class Knight(pygame.sprite.Sprite):
                 pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_4.png'),
                 pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_5.png'),
                 pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_6.png')
+            ],
+            "pos":[
+                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_1.png'),
+                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_2.png'),
+                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_3.png'),
+                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_4.png'),
+                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_5.png'),
+                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_6.png')
             ]
         }
         self.target = None
@@ -102,6 +124,7 @@ class Knight(pygame.sprite.Sprite):
         self.animation_speed = 750  
         self.facing_right = True
         self.selected = False
+        self.has_reached = False
 
         self.image = self.sprites['idle'][self.current_sprite]
         self.rect = self.image.get_rect()
@@ -115,24 +138,22 @@ class Knight(pygame.sprite.Sprite):
         """Generate a list of random patrol points within the given range."""
         return [(random.randint(0, max_x), random.randint(0, max_y)) for _ in range(num_points)]
     def move_to_click_position(self, pos):
-        """Set the mouse position when clicked, only if the knight is selected."""
-        if self.selected:
+        """Set the mouse position when clicked, only if the knight is selected and not already idle."""
+        if self.selected and self.state != State.WATCH:
             print(f"Setting target to: {pos}")
             self.mouse_pos = pos
-            self.state = State.RUN
+            self.state = State.POS
+            self.has_reached = False
+
 
     def movement(self):
         """Determine what the knight should do based on its state."""
         if self.mouse_pos:
-            self.state = State.RUN  # Ensure the state is RUN when there's a target
-            print(f"Moving to: {self.mouse_pos} State: {self.state}")  # Debug mouse position
+            self.state = State.POS  # Ensure the state is RUN when there's a target
             if self.move_towards_pos(self.mouse_pos):  # Continue moving toward the mouse position
-                print(f"Reached target: {self.mouse_pos}")  # Debug when target is reached
                 self.mouse_pos = None  # Clear the mouse position when the target is reached
-                self.state = State.IDLE  # Reset to idle state after reaching the target
-                return  # Exit the function to prevent further actions
-        elif self.selected:
-            self.state = State.IDLE
+                self.watch()  # Call the watch method instead of setting the state to IDLE
+                return  # Exit the function to prevent further action
         else:
             # Normal behavior when not selected
             if self.state == State.RUN:
@@ -145,6 +166,7 @@ class Knight(pygame.sprite.Sprite):
                 if pygame.time.get_ticks() - self.state_timer >= self.idle_time:
                     self.state = State.PATROL
                     self.state_timer = pygame.time.get_ticks()
+
 
 
 
@@ -190,7 +212,7 @@ class Knight(pygame.sprite.Sprite):
         self.detect_enemy(enemies)
         self.movement()
         self.animate(dt)
-
+        print(self.state)
         # Check if the target enemy is dead and transition to SEARCH state
         if self.target and not any(enemy.rect.center == self.target and enemy.health > 0 for enemy in enemies):
             self.target = None
@@ -217,6 +239,7 @@ class Knight(pygame.sprite.Sprite):
         """Handle deselection of the knight."""
         self.selected = False
         self.state = State.PATROL
+        self.has_reached = False
         print("Knight deselected")
 
     def move_to(self, target):
@@ -301,23 +324,24 @@ class Knight(pygame.sprite.Sprite):
                     self.rect.centerx += dx * (min_distance - dist)
                     self.rect.centery += dy * (min_distance - dist)
     def detect_enemy(self, enemies):
-        """Detect the closest alive enemy and move towards it if within range."""
-        closest_enemy = None
-        closest_distance = float('inf')
+        if self.state != State.WATCH:
+            """Detect the closest alive enemy and move towards it if within range."""
+            closest_enemy = None
+            closest_distance = float('inf')
 
-        for enemy in enemies:
-            if enemy.health > 0:  # Only consider alive enemies
-                distance = math.hypot(enemy.rect.centerx - self.rect.centerx, enemy.rect.centery - self.rect.centery)
-                if distance < closest_distance:
-                    closest_distance = distance
-                    closest_enemy = enemy
+            for enemy in enemies:
+                if enemy.health > 0:  # Only consider alive enemies
+                    distance = math.hypot(enemy.rect.centerx - self.rect.centerx, enemy.rect.centery - self.rect.centery)
+                    if distance < closest_distance:
+                        closest_distance = distance
+                        closest_enemy = enemy
 
-        if closest_enemy and closest_distance <= 200:  # Only consider enemies within 200 pixels
-            self.target = closest_enemy.rect.center
-            if self.rect.colliderect(closest_enemy.rect.inflate(5, 5)):
-                self.handle_attack(closest_enemy,enemies)
-            else:
-                self.state = State.RUN  # Move toward the enemy if not close enough
+            if closest_enemy and closest_distance <= 200:  # Only consider enemies within 200 pixels
+                self.target = closest_enemy.rect.center
+                if self.rect.colliderect(closest_enemy.rect.inflate(3, 3)):
+                    self.handle_attack(closest_enemy,enemies)
+                else:
+                    self.state = State.RUN  # Move toward the enemy if not close enough
 
     def handle_attack(self, enemy, enemies):
         """Handle the attack logic based on the knight's position relative to the enemy."""
@@ -338,19 +362,27 @@ class Knight(pygame.sprite.Sprite):
 
     def perform_attack(self, enemy, primary_attack, secondary_attack):
         """Perform the attack sequence on the enemy."""
-        if not self.selected:
+        if not self.mouse_pos or (self.selected and self.rect.center == self.mouse_pos) or self.state != State.POS:
             if self.state == primary_attack and self.current_sprite == len(self.sprites[primary_attack]) - 1:
                 self.state = secondary_attack
                 self.current_sprite = 0
                 enemy.take_damage(10)
-                print("Attacking enemy")
             elif self.state == secondary_attack and self.current_sprite == len(self.sprites[secondary_attack]) - 1:
                 self.state = primary_attack
                 self.current_sprite = 0
                 enemy.take_damage(10)
-                print("Attacking enemy")
             elif self.state not in (primary_attack, secondary_attack):
                 self.state = primary_attack
                 self.current_sprite = 0
                 enemy.take_damage(10)
-                print("Attacking enemy")
+        
+    def watch(self):
+        """Stay idle at the mouse position until deselected."""
+        if self.selected:
+            self.state = State.WATCH
+            self.image = self.sprites['idle'][self.current_sprite]
+            self.has_reached = True
+            self.mouse_pos = None  # Ignore mouse commands to move the knight
+        else:
+            self.state = State.SEARCH
+            self.state_timer = pygame.time.get_ticks()
