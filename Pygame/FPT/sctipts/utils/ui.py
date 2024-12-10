@@ -19,8 +19,8 @@ class UI:
 
     def draw_knight_faces(self, surface, selected_knights):
         for index, knight in enumerate(selected_knights):
-            row = index // 3
-            col = index % 3
+            row = index // 4
+            col = index % 4
             x = 10 + col * (self.knight_face_size[0] + self.margin)
             y = 10 + row * (self.knight_face_size[1] + self.margin)
             if knight.has_reached:
