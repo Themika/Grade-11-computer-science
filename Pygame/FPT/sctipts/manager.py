@@ -1,10 +1,11 @@
 import pygame   
+import random
 from utils.camera import Camera
 from player.player import Player
 from allies.knight import Knight
+from allies.archer import Archer
 from enemy.enemy import Enemy
 from utils.rps_manager import RPSManager
-import random
 
 pygame.init()
 WINDOW_HIEGHT, WINDOW_WIDTH = 1280,720
@@ -55,16 +56,16 @@ player = Player()
 camera = Camera(WINDOW_WIDTH, WINDOW_HIEGHT)
 all_sprites = pygame.sprite.Group(player)
 
-for _ in range(25):
-    knight = Knight()
-    knight.rect.x = random.randint(0, 500)
-    knight.rect.y = random.randint(0, 500)
-    all_sprites.add(knight)
+for _ in range(15):
+    archer = Archer()
+    archer.rect.x = random.randint(0, 500)
+    archer.rect.y = random.randint(0, 500)
+    all_sprites.add(archer)
 
-for _ in range(100):
+for _ in range(50):
     enemy = Enemy()
-    enemy.rect.x = random.randint(0, 2000)
-    enemy.rect.y = random.randint(0, 2000)
+    enemy.rect.x = random.randint(500, 2000)
+    enemy.rect.y = random.randint(500, 2000)
     all_sprites.add(enemy)
 rps_manager = RPSManager()
 
@@ -75,7 +76,7 @@ while running:
     dt = clock.tick(60) / 1000 # Amount of seconds between each loop
     keys = pygame.key.get_pressed()
     current_time = pygame.time.get_ticks()  # Get the current time in milliseconds
-
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -92,11 +93,12 @@ while running:
             elif event.y < 0:  # Scroll down
                 camera.zoom(0.9, mouse_pos, all_sprites)
         rps_manager.handle_event(event, camera, all_sprites)
-        
+
+
     for sprite in all_sprites:
         if isinstance(sprite, Player):
             sprite.update(keys, dt)
-        elif isinstance(sprite, Knight):
+        elif isinstance(sprite, Knight) or isinstance(sprite, Archer):
             # Filter out dead enemies dynamically
             alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Enemy) and enemy.health > 0]
             sprite.update(dt, alive_enemies)
@@ -105,9 +107,9 @@ while running:
                 all_sprites.remove(sprite)  # Remove dead enemy
         else:
             sprite.update(dt)
+
     # Update the camera
     camera.update(player)
-
     # Render the scene
     display_surface.fill('darkgray')
     draw_grid(display_surface, camera)

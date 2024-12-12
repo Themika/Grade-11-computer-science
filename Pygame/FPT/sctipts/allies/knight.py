@@ -29,92 +29,92 @@ class Knight(pygame.sprite.Sprite):
         self.idle_duration_at_target = 6 
         self.sprites = {
             'idle': [
-                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_5.png')
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_1.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_2.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_3.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_4.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_5.png')
             ],
             "watch" : [
-                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Idle/Warrior_Blue_Idle_5.png')
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_1.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_2.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_3.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_4.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_5.png')
             ],
             'run': [
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_6.png')
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_1.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_2.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_3.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_4.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_5.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_6.png')
             ],
             'patrol': [
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_6.png')
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_1.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_2.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_3.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_4.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_5.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_6.png')
             ],
             "attack_1": [
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_1/Warrior_Blue_Attack_1_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_1/Warrior_Blue_Attack_1_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_1/Warrior_Blue_Attack_1_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_1/Warrior_Blue_Attack_1_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_1/Warrior_Blue_Attack_1_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_1/Warrior_Blue_Attack_1_6.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_1/Warrior_Blue_Attack_1_1.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_1/Warrior_Blue_Attack_1_2.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_1/Warrior_Blue_Attack_1_3.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_1/Warrior_Blue_Attack_1_4.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_1/Warrior_Blue_Attack_1_5.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_1/Warrior_Blue_Attack_1_6.png'),
             ],
             "attack_2": [
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_2/Warrior_Blue_attack_2_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_2/Warrior_Blue_Attack_2_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_2/Warrior_Blue_Attack_2_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_2/Warrior_Blue_Attack_2_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_2/Warrior_Blue_Attack_2_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_2/Warrior_Blue_Attack_2_6.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_2/Warrior_Blue_attack_2_1.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_2/Warrior_Blue_Attack_2_2.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_2/Warrior_Blue_Attack_2_3.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_2/Warrior_Blue_Attack_2_4.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_2/Warrior_Blue_Attack_2_5.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_2/Warrior_Blue_Attack_2_6.png'),
             ],
             "attack_3":[
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_3/Warrior_Blue_Attack_3_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_3/Warrior_Blue_Attack_3_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_3/Warrior_Blue_Attack_3_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_3/Warrior_Blue_Attack_3_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_3/Warrior_Blue_Attack_3_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_3/Warrior_Blue_Attack_3_6.png')
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_3/Warrior_Blue_Attack_3_1.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_3/Warrior_Blue_Attack_3_2.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_3/Warrior_Blue_Attack_3_3.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_3/Warrior_Blue_Attack_3_4.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_3/Warrior_Blue_Attack_3_5.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_3/Warrior_Blue_Attack_3_6.png')
             ],
             "attack_4":[
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_4/Warrior_Blue_Attack_4_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_4/Warrior_Blue_Attack_4_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_4/Warrior_Blue_Attack_4_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_4/Warrior_Blue_Attack_4_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_4/Warrior_Blue_Attack_4_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_4/Warrior_Blue_Attack_4_6.png')
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_4/Warrior_Blue_Attack_4_1.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_4/Warrior_Blue_Attack_4_2.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_4/Warrior_Blue_Attack_4_3.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_4/Warrior_Blue_Attack_4_4.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_4/Warrior_Blue_Attack_4_5.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_4/Warrior_Blue_Attack_4_6.png')
             ],
             "attack_5":[
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_5/Warrior_Blue_Attack_5_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_5/Warrior_Blue_Attack_5_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_5/Warrior_Blue_Attack_5_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_5/Warrior_Blue_Attack_5_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_5/Warrior_Blue_Attack_5_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Attack_5/Warrior_Blue_Attack_5_6.png')
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_1.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_2.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_3.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_4.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_5.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_6.png')
             ],
             'search': [  # New search animation
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_6.png')
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_1.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_2.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_3.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_4.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_5.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_6.png')
             ],
             "pos":[
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Blue_Run/Warrior_Blue_Run_6.png')
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_1.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_2.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_3.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_4.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_5.png'),
+                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_6.png')
             ]
         }
         self.target = None
@@ -139,7 +139,7 @@ class Knight(pygame.sprite.Sprite):
         return [(random.randint(0, max_x), random.randint(0, max_y)) for _ in range(num_points)]
     def move_to_click_position(self, pos):
         """Set the mouse position when clicked, only if the knight is selected and not already idle."""
-        if self.selected and self.state != State.WATCH:
+        if self.selected and self.state != State.WATCH and self.state != State.POS:
             print(f"Setting target to: {pos}")
             self.mouse_pos = pos
             self.state = State.POS
@@ -155,17 +155,18 @@ class Knight(pygame.sprite.Sprite):
                 self.watch()  # Call the watch method instead of setting the state to IDLE
                 return  # Exit the function to prevent further action
         else:
-            # Normal behavior when not selected
-            if self.state == State.RUN:
-                self.chase_target()
-            elif self.state == State.PATROL:
-                self.patrol()
-            elif self.state == State.SEARCH:
-                self.search()
-            elif self.state == State.IDLE:
-                if pygame.time.get_ticks() - self.state_timer >= self.idle_time:
-                    self.state = State.PATROL
-                    self.state_timer = pygame.time.get_ticks()
+            if self.state != State.WATCH:    # Normal behavior when not selected
+                if self.state == State.RUN:
+                    self.chase_target()
+                elif self.state == State.PATROL:
+                    self.patrol()
+                elif self.state == State.SEARCH:
+                    self.search()
+                elif self.state == State.IDLE:
+                    if pygame.time.get_ticks() - self.state_timer >= self.idle_time:
+                        self.state = State.PATROL
+                        self.state_timer = pygame.time.get_ticks()
+
 
 
 
@@ -201,18 +202,13 @@ class Knight(pygame.sprite.Sprite):
             self.state = State.PATROL
             self.search_targets = []
             self.state_timer = pygame.time.get_ticks()
-
-    def draw(self, surface):
-        if self.selected:
-            pygame.draw.rect(surface, (255, 0, 0), self.rect.inflate(10, 10), 2) 
-        surface.blit(self.image, self.rect)
+        
 
     def update(self, dt, enemies):
         """Update knight's behavior and animations."""
         self.detect_enemy(enemies)
         self.movement()
         self.animate(dt)
-        print(self.state)
         # Check if the target enemy is dead and transition to SEARCH state
         if self.target and not any(enemy.rect.center == self.target and enemy.health > 0 for enemy in enemies):
             self.target = None
