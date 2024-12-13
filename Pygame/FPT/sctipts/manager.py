@@ -92,9 +92,11 @@ while running:
     display_surface.fill('darkgray')
     draw_grid(display_surface, camera)
     draw_grid_coordinates(display_surface, camera)
-    rps_manager.draw_marker(display_surface)
     camera.custom_draw(display_surface, all_sprites)
+
+    rps_manager.draw_marker(display_surface)
     rps_manager.draw_ui(display_surface)  # Draw the UI elements last to ensure they are on top
+    rps_manager.handle_event(event, camera, all_sprites)
 
     alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Torch) and enemy.health > 0]
     alive_knights = [ally for ally in all_sprites if isinstance(ally, Knight)]
@@ -102,10 +104,11 @@ while running:
     for sprite in all_sprites:
         if isinstance(sprite, Player):
             sprite.update(keys, dt)
-        elif isinstance(sprite, (Knight, Archer)):
+        elif isinstance(sprite, Archer):
+            sprite.draw(display_surface, camera.camera.topleft)
             sprite.update(dt, alive_enemies)
-            if isinstance(sprite, Archer):
-                sprite.draw(display_surface, camera.camera.topleft)  # Pass the camera offset to the draw method
+        elif isinstance(sprite, Knight):
+            sprite.update(dt, alive_enemies, alive_knights)
         elif isinstance(sprite, Torch):
             sprite.update(alive_knights, alive_archers)
 

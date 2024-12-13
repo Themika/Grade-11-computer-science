@@ -149,7 +149,7 @@ class Knight(pygame.sprite.Sprite):
             self.has_reached = False
 
 
-    def movement(self):
+    def movement(self,other_knights):
         """Determine what the knight should do based on its state."""
         if self.mouse_pos:
             self.state = State.POS  # Ensure the state is RUN when there's a target
@@ -169,6 +169,7 @@ class Knight(pygame.sprite.Sprite):
                     if pygame.time.get_ticks() - self.state_timer >= self.idle_time:
                         self.state = State.PATROL
                         self.state_timer = pygame.time.get_ticks()
+            self.avoid_overlap(other_knights)
 
 
 
@@ -207,10 +208,10 @@ class Knight(pygame.sprite.Sprite):
             self.state_timer = pygame.time.get_ticks()
         
 
-    def update(self, dt, enemies):
+    def update(self, dt, enemies,other_knights):
         """Update knight's behavior and animations."""
         self.detect_enemy(enemies)
-        self.movement()
+        self.movement(other_knights)
         self.animate(dt)
         # Check if the target enemy is dead and transition to SEARCH state
         if self.target and not any(enemy.rect.center == self.target and enemy.health > 0 for enemy in enemies):
@@ -312,16 +313,21 @@ class Knight(pygame.sprite.Sprite):
         self.speed = 2
         return True
 
-    def avoid_overlap(self, other_knights, min_distance=50):
+    def avoid_overlap(self, other_knights, min_distance=25):
         """Avoid overlapping with other knights."""
-        for knight in other_knights:
-            if knight != self:
-                dx, dy = self.rect.centerx - knight.rect.centerx, self.rect.centery - knight.rect.centery
-                dist = math.hypot(dx, dy)
-                if dist < min_distance:
-                    dx, dy = dx / dist, dy / dist  # Normalize the movement vector
-                    self.rect.centerx += dx * (min_distance - dist)
-                    self.rect.centery += dy * (min_distance - dist)
+        if self.state in [State.ATTACK_1, State.ATTACK_2, State.ATTACK_3, State.ATTACK_4, State.ATTACK_5]:
+            for knight in other_knights:
+                if knight != self:
+                    dx, dy = self.rect.centerx - knight.rect.centerx, self.rect.centery - knight.rect.centery
+                    dist = math.hypot(dx, dy)
+                    if dist < min_distance:
+                        dx, dy = dx / dist, dy / dist  # Normalize the movement vector
+                        offset = random.randint(-10, 10)  # Add random offset
+                        self.rect.centerx += dx * (min_distance - dist + offset) / 2
+                        self.rect.centery += dy * (min_distance - dist + offset) / 2
+                        knight.rect.centerx -= dx * (min_distance - dist + offset) / 2
+                        knight.rect.centery -= dy * (min_distance - dist + offset) / 2
+
     def detect_enemy(self, enemies):
         if self.state != State.WATCH:
             """Detect the closest alive enemy and move towards it if within range."""
