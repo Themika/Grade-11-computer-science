@@ -1,4 +1,4 @@
-import pygame   
+import pygame
 import random
 from utils.camera import Camera
 from player.player import Player
@@ -8,8 +8,8 @@ from enemy.enemy import Enemy
 from utils.rps_manager import RPSManager
 
 pygame.init()
-WINDOW_HIEGHT, WINDOW_WIDTH = 1280,720
-display_surface = pygame.display.set_mode((WINDOW_HIEGHT,WINDOW_WIDTH))
+WINDOW_HEIGHT, WINDOW_WIDTH = 1280, 720
+display_surface = pygame.display.set_mode((WINDOW_HEIGHT, WINDOW_WIDTH))
 running = True
 pygame.display.set_caption("Protector of the Realm")
 
@@ -24,18 +24,17 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.Surface((50, 50))
         self.image.fill('blue')
-        self.rect = self.image.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HIEGHT // 2))
+        self.rect = self.image.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
         self.speed = 5
-
     def update(self, keys, dt):
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-            self.rect.x += self.speed
+            self.rect.move_ip(self.speed, 0)
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-            self.rect.x -= self.speed
+            self.rect.move_ip(-self.speed, 0)
         if keys[pygame.K_UP] or keys[pygame.K_w]:
-            self.rect.y += self.speed
+            self.rect.move_ip(0, self.speed)
         if keys[pygame.K_DOWN] or keys[pygame.K_s]:
-            self.rect.y -= self.speed
+            self.rect.move_ip(0, -self.speed)
 
 def draw_grid(surface, camera):
     for x in range(0, 2000, 100):
@@ -53,60 +52,40 @@ def draw_grid_coordinates(surface, camera):
             surface.blit(text_surface, (adjusted_x + 5, adjusted_y + 5))
 
 player = Player()
-camera = Camera(WINDOW_WIDTH, WINDOW_HIEGHT)
+camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
 all_sprites = pygame.sprite.Group(player)
 
-for _ in range(15):
-    archer = Archer()
-    archer.rect.x = random.randint(0, 500)
-    archer.rect.y = random.randint(0, 500)
-    all_sprites.add(archer)
-
 for _ in range(50):
+    for AllyClass in (Archer, Knight):
+        ally = AllyClass()
+        ally.rect.x = random.randint(0, 2000)
+        ally.rect.y = random.randint(0, 2000)
+        all_sprites.add(ally)
+
+for _ in range(150):
     enemy = Enemy()
     enemy.rect.x = random.randint(500, 2000)
     enemy.rect.y = random.randint(500, 2000)
     all_sprites.add(enemy)
-rps_manager = RPSManager()
 
+rps_manager = RPSManager()
 clock = pygame.time.Clock()
-last_print_time = 0  # Initialize the last print time
 
 while running:
-    dt = clock.tick(60) / 1000 # Amount of seconds between each loop
+    dt = clock.tick(60) / 1000  # Amount of seconds between each loop
     keys = pygame.key.get_pressed()
-    current_time = pygame.time.get_ticks()  # Get the current time in milliseconds
-    
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
-                running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:  # Check if it is a left click
-                rps_manager.handle_event(event, camera, all_sprites)
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Check if it is a left click
+            rps_manager.handle_event(event, camera, all_sprites)
         elif event.type == pygame.MOUSEWHEEL:
             mouse_pos = pygame.mouse.get_pos()
-            if event.y > 0:  # Scroll up
-                camera.zoom(1.1, mouse_pos, all_sprites)
-            elif event.y < 0:  # Scroll down
-                camera.zoom(0.9, mouse_pos, all_sprites)
+            camera.zoom(1.1 if event.y > 0 else 0.9, mouse_pos, all_sprites)
         rps_manager.handle_event(event, camera, all_sprites)
-
-
-    for sprite in all_sprites:
-        if isinstance(sprite, Player):
-            sprite.update(keys, dt)
-        elif isinstance(sprite, Knight) or isinstance(sprite, Archer):
-            # Filter out dead enemies dynamically
-            alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Enemy) and enemy.health > 0]
-            sprite.update(dt, alive_enemies)
-        elif isinstance(sprite, Enemy):
-            if sprite.health <= 0:
-                all_sprites.remove(sprite)  # Remove dead enemy
-        else:
-            sprite.update(dt)
 
     # Update the camera
     camera.update(player)
@@ -117,7 +96,16 @@ while running:
     rps_manager.draw_marker(display_surface)
     camera.custom_draw(display_surface, all_sprites)
     rps_manager.draw_ui(display_surface)  # Draw the UI elements last to ensure they are on top
-    
+
+    alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Enemy) and enemy.health > 0]
+    for sprite in all_sprites:
+        if isinstance(sprite, Player):
+            sprite.update(keys, dt)
+        elif isinstance(sprite, (Knight, Archer)):
+            sprite.update(dt, alive_enemies)
+            if isinstance(sprite, Archer):
+                sprite.draw(display_surface, camera.camera.topleft)  # Pass the camera offset to the draw method
+
     pygame.display.update()
 
 pygame.quit()

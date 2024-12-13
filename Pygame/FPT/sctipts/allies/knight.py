@@ -23,6 +23,7 @@ class Knight(pygame.sprite.Sprite):
     def __init__(self, *groups):
         super().__init__(*groups)
         self.state = State.PATROL 
+        self.type = "knight"
         self.patrol_points = self.generate_random_patrol_points(5, 2000, 2000)  # Generate 5 random patrol points within a 2000x2000 area
         self.current_patrol_point = 0
         self.target_idle_time = 600000
@@ -258,7 +259,7 @@ class Knight(pygame.sprite.Sprite):
         target_point = self.patrol_points[self.current_patrol_point]
         self.move_towards(target_point)
 
-        if self.rect.center == target_point or self.rect.colliderect(pygame.Rect(target_point, (5,5))):
+        if self.rect.center == target_point or self.rect.colliderect(pygame.Rect(target_point, (10,10))):
             self.state = State.IDLE  
             self.idle_time = random.randint(2000, 5000)  
             self.state_timer = pygame.time.get_ticks()  #
@@ -335,8 +336,10 @@ class Knight(pygame.sprite.Sprite):
             if closest_enemy and closest_distance <= 200:  # Only consider enemies within 200 pixels
                 self.target = closest_enemy.rect.center
                 if self.rect.colliderect(closest_enemy.rect.inflate(3, 3)):
-                    self.handle_attack(closest_enemy,enemies)
+                    print(f"Attacking enemy at {closest_enemy.rect.center}")
+                    self.handle_attack(closest_enemy, enemies)
                 else:
+                    print(f"Moving towards enemy at {closest_enemy.rect.center}")
                     self.state = State.RUN  # Move toward the enemy if not close enough
 
     def handle_attack(self, enemy, enemies):

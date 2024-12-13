@@ -1,10 +1,11 @@
 import pygame
 from allies.knight import Knight
+from allies.archer import Archer
 from utils.ui import UI
 
 class RPSManager:
     def __init__(self):
-        self.selected_knights = []
+        self.selected_units = []  # Changed to a more generic name
         self.move_marker = None
         self.marker_time = None  # Store the time when the marker is set
         self.ui = UI()  # Initialize the UI class
@@ -19,18 +20,18 @@ class RPSManager:
             print(f"Mouse position: {mouse_pos}, Map position: {map_pos}")
             if event.button == 3:  # Right click
                 for sprite in all_sprites:
-                    if isinstance(sprite, Knight) and sprite.rect.collidepoint(map_pos):
-                        if sprite in self.selected_knights:
+                    if isinstance(sprite, (Knight, Archer)) and sprite.rect.collidepoint(map_pos):
+                        if sprite in self.selected_units:
                             sprite.deselect()
-                            self.selected_knights.remove(sprite)
+                            self.selected_units.remove(sprite)
                         else:
-                            self.selected_knights.append(sprite)
+                            self.selected_units.append(sprite)
                             sprite.selection()
                         break
             elif event.button == 1:  # Left click
-                if self.selected_knights:
-                    for knight in self.selected_knights:
-                        knight.move_to_click_position(map_pos)
+                if self.selected_units:
+                    for unit in self.selected_units:
+                        unit.move_to_click_position(map_pos)
                     self.move_marker = map_pos
                     self.marker_time = pygame.time.get_ticks()  # Set the time when the marker is set
                     self.marker_alpha = 255  # Reset alpha to full opacity
@@ -62,5 +63,5 @@ class RPSManager:
                 surface.blit(scaled_image, marker_rect)
 
     def draw_ui(self, surface):
-        if self.selected_knights:
-            self.ui.draw_knight_faces(surface, self.selected_knights)
+        if self.selected_units:
+            self.ui.draw_knight_faces(surface, self.selected_units)
