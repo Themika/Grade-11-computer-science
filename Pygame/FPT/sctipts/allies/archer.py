@@ -21,8 +21,8 @@ class Archer(pygame.sprite.Sprite):
     PATROL_POINTS = 5
     PATROL_AREA = (2000, 2000)
     SPEED = 3
-    DETECTION_RADIUS = 150
-    TOLERANCE = 10
+    DETECTION_RADIUS = 250
+    TOLERANCE = 5
 
     def __init__(self, *groups):
         super().__init__(*groups)
@@ -48,6 +48,7 @@ class Archer(pygame.sprite.Sprite):
         self.has_reached = False
         self.selected = False
         self.target_position = None
+        self.health = 100  # Add health attribute
 
     def load_sprites(self):
         idle_sprites = [
@@ -69,12 +70,18 @@ class Archer(pygame.sprite.Sprite):
         }
 
     def generate_random_patrol_points(self, num_points, max_x, max_y):
-        return [(random.randint(0, max_x), random.randint(0, max_y)) for _ in range(num_points)]
+        points = []
+        while len(points) < num_points:
+            point = (random.randint(0, max_x), random.randint(0, max_y))
+            if all(math.hypot(point[0] - p[0], point[1] - p[1]) > 50 for p in points):
+                points.append(point)
+        return points
 
     def update(self, dt, enemies):
         print(self.state)
         self.detect_enemy(enemies)
         self.movement()
+        self.maintain_distance()
         self.animate(dt)
         self.projectiles.update(dt, enemies)
 
@@ -114,7 +121,8 @@ class Archer(pygame.sprite.Sprite):
                 self.image = pygame.transform.flip(self.image, True, False)
 
     def patrol(self):
-        if self.target:
+        if self.target and self.state != State.ATTACK:
+            self.state = State.ATTACK
             return
         target_point = self.patrol_points[self.current_patrol_point]
         self.move_towards(target_point)
@@ -199,6 +207,10 @@ class Archer(pygame.sprite.Sprite):
         if target:
             projectile = Projectile(self.rect.center, target.rect.center, 10, 'Tiny_Swords_Assets/Factions/Knights/Troops/Archer/Arrow/Arrow_Stand_Alone.png')
             self.projectiles.add(projectile)
+            # Determine the direction of the target and set facing_right accordingly
+            dx = target.rect.centerx - self.rect.centerx
+            self.facing_right = dx > 0
+
 
     def selection(self):
         self.selected = True
@@ -224,3 +236,21 @@ class Archer(pygame.sprite.Sprite):
         else:
             self.state = State.SEARCH
             self.state_timer = pygame.time.get_ticks()
+
+    def take_damage(self, amount):
+        """Reduce health by the given amount and destroy if health is 0 or less."""
+        self.health -= amount
+        if self.health <= 0:
+            self.state = State.DEAD
+            self.kill()
+    def maintain_distance(self):
+        if self.target:
+            distance = math.hypot(self.target.rect.centerx - self.rect.centerx, self.target.rect.centery - self.rect.centery)
+            if distance < self.DETECTION_RADIUS:
+                angle = math.atan2(self.target.rect.centery - self.rect.centery, self.target.rect.centerx - self.rect.centerx)
+                target_x = self.target.rect.centerx - math.cos(angle) * self.DETECTION_RADIUS
+                target_y = self.target.rect.centery - math.sin(angle) * self.DETECTION_RADIUS
+                if not self.move_towards((target_x, target_y)):
+                    self.state = State.SEARCH
+
+        

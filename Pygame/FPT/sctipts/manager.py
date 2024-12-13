@@ -4,7 +4,7 @@ from utils.camera import Camera
 from player.player import Player
 from allies.knight import Knight
 from allies.archer import Archer
-from enemy.enemy import Enemy
+from enemy.torch import Torch
 from utils.rps_manager import RPSManager
 
 pygame.init()
@@ -54,18 +54,20 @@ def draw_grid_coordinates(surface, camera):
 player = Player()
 camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
 all_sprites = pygame.sprite.Group(player)
+# Create allies and enemies
+for _ in range(10):
+    archer = Archer()
+    archer.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
+    all_sprites.add(archer)
+
+for _ in range(10):
+    knight = Knight()
+    knight.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
+    all_sprites.add(knight)
 
 for _ in range(50):
-    for AllyClass in (Archer, Knight):
-        ally = AllyClass()
-        ally.rect.x = random.randint(0, 2000)
-        ally.rect.y = random.randint(0, 2000)
-        all_sprites.add(ally)
-
-for _ in range(150):
-    enemy = Enemy()
-    enemy.rect.x = random.randint(500, 2000)
-    enemy.rect.y = random.randint(500, 2000)
+    enemy = Torch()
+    enemy.rect.topleft = (random.randint(500, 2000), random.randint(500, 2000))
     all_sprites.add(enemy)
 
 rps_manager = RPSManager()
@@ -76,16 +78,13 @@ while running:
     keys = pygame.key.get_pressed()
 
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+        if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Check if it is a left click
             rps_manager.handle_event(event, camera, all_sprites)
         elif event.type == pygame.MOUSEWHEEL:
             mouse_pos = pygame.mouse.get_pos()
             camera.zoom(1.1 if event.y > 0 else 0.9, mouse_pos, all_sprites)
-        rps_manager.handle_event(event, camera, all_sprites)
 
     # Update the camera
     camera.update(player)
@@ -97,7 +96,9 @@ while running:
     camera.custom_draw(display_surface, all_sprites)
     rps_manager.draw_ui(display_surface)  # Draw the UI elements last to ensure they are on top
 
-    alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Enemy) and enemy.health > 0]
+    alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Torch) and enemy.health > 0]
+    alive_knights = [ally for ally in all_sprites if isinstance(ally, Knight)]
+    alive_archers = [ally for ally in all_sprites if isinstance(ally, Archer)]
     for sprite in all_sprites:
         if isinstance(sprite, Player):
             sprite.update(keys, dt)
@@ -105,6 +106,8 @@ while running:
             sprite.update(dt, alive_enemies)
             if isinstance(sprite, Archer):
                 sprite.draw(display_surface, camera.camera.topleft)  # Pass the camera offset to the draw method
+        elif isinstance(sprite, Torch):
+            sprite.update(alive_knights, alive_archers)
 
     pygame.display.update()
 

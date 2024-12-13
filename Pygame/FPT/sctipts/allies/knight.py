@@ -18,6 +18,7 @@ class State:
     SEARCH = 'search'  # New search state
     WATCH = "watch"
     POS = "pos"
+    DEAD = 'dead'
 
 class Knight(pygame.sprite.Sprite):
     def __init__(self, *groups):
@@ -134,6 +135,7 @@ class Knight(pygame.sprite.Sprite):
         self.state_timer = 0 
         self.idle_time = 0 
         self.speed = 2
+        self.health = 100  
 
     def generate_random_patrol_points(self, num_points, max_x, max_y):
         """Generate a list of random patrol points within the given range."""
@@ -333,7 +335,7 @@ class Knight(pygame.sprite.Sprite):
                         closest_distance = distance
                         closest_enemy = enemy
 
-            if closest_enemy and closest_distance <= 200:  # Only consider enemies within 200 pixels
+            if closest_enemy and closest_distance <= 250:  # Only consider enemies within 200 pixels
                 self.target = closest_enemy.rect.center
                 if self.rect.colliderect(closest_enemy.rect.inflate(3, 3)):
                     print(f"Attacking enemy at {closest_enemy.rect.center}")
@@ -385,3 +387,9 @@ class Knight(pygame.sprite.Sprite):
         else:
             self.state = State.SEARCH
             self.state_timer = pygame.time.get_ticks()
+    def take_damage(self, amount):
+        """Reduce health by the given amount and destroy if health is 0 or less."""
+        self.health -= amount
+        if self.health <= 0:
+            self.state = State.DEAD
+            self.kill()
