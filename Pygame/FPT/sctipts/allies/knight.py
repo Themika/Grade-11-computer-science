@@ -135,7 +135,7 @@ class Knight(pygame.sprite.Sprite):
         self.state_timer = 0 
         self.idle_time = 0 
         self.speed = 2
-        self.health = 100  
+        self.health = 200  
 
     def generate_random_patrol_points(self, num_points, max_x, max_y):
         """Generate a list of random patrol points within the given range."""
@@ -143,7 +143,6 @@ class Knight(pygame.sprite.Sprite):
     def move_to_click_position(self, pos):
         """Set the mouse position when clicked, only if the knight is selected and not already idle."""
         if self.selected and self.state != State.WATCH and self.state != State.POS:
-            print(f"Setting target to: {pos}")
             self.mouse_pos = pos
             self.state = State.POS
             self.has_reached = False
@@ -320,7 +319,7 @@ class Knight(pygame.sprite.Sprite):
                 if knight != self:
                     dx, dy = self.rect.centerx - knight.rect.centerx, self.rect.centery - knight.rect.centery
                     dist = math.hypot(dx, dy)
-                    if dist < min_distance:
+                    if dist < min_distance and dist != 0:
                         dx, dy = dx / dist, dy / dist  # Normalize the movement vector
                         offset = random.randint(-10, 10)  # Add random offset
                         self.rect.centerx += dx * (min_distance - dist + offset) / 2
@@ -344,10 +343,8 @@ class Knight(pygame.sprite.Sprite):
             if closest_enemy and closest_distance <= 250:  # Only consider enemies within 200 pixels
                 self.target = closest_enemy.rect.center
                 if self.rect.colliderect(closest_enemy.rect.inflate(0.2, .2)):
-                    print(f"Attacking enemy at {closest_enemy.rect.center}")
                     self.handle_attack(closest_enemy, enemies)
                 else:
-                    print(f"Moving towards enemy at {closest_enemy.rect.center}")
                     self.state = State.RUN  # Move toward the enemy if not close enough
 
     def handle_attack(self, enemy, enemies):

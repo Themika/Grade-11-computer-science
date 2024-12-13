@@ -78,7 +78,6 @@ class Archer(pygame.sprite.Sprite):
         return points
 
     def update(self, dt, enemies):
-        print(self.state)
         self.detect_enemy(enemies)
         self.movement()
         self.maintain_distance()
@@ -205,7 +204,7 @@ class Archer(pygame.sprite.Sprite):
 
     def shoot_projectile(self, target):
         if target:
-            projectile = Projectile(self.rect.center, target.rect.center, 10, 'Tiny_Swords_Assets/Factions/Knights/Troops/Archer/Arrow/Arrow_Stand_Alone.png')
+            projectile = Projectile(self.rect.center, target.rect.center, 50, 'Tiny_Swords_Assets/Factions/Knights/Troops/Archer/Arrow/Arrow_Stand_Alone.png')
             self.projectiles.add(projectile)
             # Determine the direction of the target and set facing_right accordingly
             dx = target.rect.centerx - self.rect.centerx
@@ -215,11 +214,9 @@ class Archer(pygame.sprite.Sprite):
     def selection(self):
         self.selected = True
         self.state = State.IDLE
-        print(f"Archer at {self.rect.center} selected")
 
     def deselect(self):
         self.selected = False
-        print(f"Archer at {self.rect.center} deselected")
 
     def move_to_click_position(self, position):
         if self.state not in [State.WATCH, State.POS]:

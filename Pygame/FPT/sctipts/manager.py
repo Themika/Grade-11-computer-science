@@ -5,6 +5,7 @@ from player.player import Player
 from allies.knight import Knight
 from allies.archer import Archer
 from enemy.torch import Torch
+from enemy.TNT import TNT
 from utils.rps_manager import RPSManager
 
 pygame.init()
@@ -26,7 +27,7 @@ class Player(pygame.sprite.Sprite):
         self.image.fill('blue')
         self.rect = self.image.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
         self.speed = 5
-    def update(self, keys, dt):
+    def update(self, keys):
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.rect.move_ip(self.speed, 0)
         if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
@@ -54,6 +55,8 @@ def draw_grid_coordinates(surface, camera):
 player = Player()
 camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
 all_sprites = pygame.sprite.Group(player)
+projectiles = pygame.sprite.Group()
+
 # Create allies and enemies
 for _ in range(10):
     archer = Archer()
@@ -65,8 +68,12 @@ for _ in range(10):
     knight.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
     all_sprites.add(knight)
 
-for _ in range(50):
-    enemy = Torch()
+# for _ in range(25):
+#     enemy = Torch()
+#     enemy.rect.topleft = (random.randint(500, 2000), random.randint(500, 2000))
+#     all_sprites.add(enemy)
+for _ in range(25):
+    enemy = TNT(projectiles)
     enemy.rect.topleft = (random.randint(500, 2000), random.randint(500, 2000))
     all_sprites.add(enemy)
 
@@ -98,19 +105,24 @@ while running:
     rps_manager.draw_ui(display_surface)  # Draw the UI elements last to ensure they are on top
     rps_manager.handle_event(event, camera, all_sprites)
 
-    alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Torch) and enemy.health > 0]
+    alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Torch) or isinstance(enemy, TNT) and enemy.health > 0]
     alive_knights = [ally for ally in all_sprites if isinstance(ally, Knight)]
     alive_archers = [ally for ally in all_sprites if isinstance(ally, Archer)]
     for sprite in all_sprites:
         if isinstance(sprite, Player):
-            sprite.update(keys, dt)
+            sprite.update(keys)
         elif isinstance(sprite, Archer):
             sprite.draw(display_surface, camera.camera.topleft)
             sprite.update(dt, alive_enemies)
         elif isinstance(sprite, Knight):
             sprite.update(dt, alive_enemies, alive_knights)
-        elif isinstance(sprite, Torch):
+        elif isinstance(sprite, TNT) or isinstance(sprite, Torch):
             sprite.update(alive_knights, alive_archers)
+
+    # Update and draw projectiles
+    projectiles.update(dt, alive_knights, alive_archers)
+    for projectile in projectiles:
+        projectile.draw(display_surface, camera.camera.topleft)
 
     pygame.display.update()
 

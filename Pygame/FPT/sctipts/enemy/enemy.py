@@ -5,10 +5,9 @@ class Enemy(pygame.sprite.Sprite):
     IDLE = 'idle'
     RUN = 'run'
     SEARCH = 'search'
-    ATTACK_RANGE = 0.2
-    DAMAGE = 1
+    ATTACK_RANGE = 5
+    DAMAGE = 5
     ATTACK_COOLDOWN = 1000
-    ANIMATION_INTERVAL = 100
 
     def __init__(self, *groups):
         super().__init__(*groups)
@@ -25,14 +24,6 @@ class Enemy(pygame.sprite.Sprite):
         self.state = self.RUN
         self.facing_right = True
 
-        self.animations = {
-            self.IDLE: [pygame.image.load(f'Animations/Goblins/Torch/Blue/Idle/Torch_Blue_Idle_{i}.png') for i in range(1, 8)],
-            self.RUN: [pygame.image.load(f'Animations/Goblins/Torch/Blue/Run/Torch_Blue_Run_{i}.png') for i in range(1, 7)],
-            self.SEARCH: [pygame.image.load(f'Animations/Goblins/Torch/Blue/Run/Torch_Blue_Run_{i}.png') for i in range(1, 7)]
-        }
-        self.current_frame = 0
-        self.animation_time = 0
-
     def update(self, knights, archers):
         if self.attacking_target and self.attacking_target.health > 0:
             self.attack_if_close([self.attacking_target], [])
@@ -42,7 +33,6 @@ class Enemy(pygame.sprite.Sprite):
             self.attack_if_close(knights, archers)
 
         self.update_state()
-        self.update_animation()
 
     def patrol(self):
         target = self.patrol_points[self.current_patrol_point]
@@ -94,15 +84,6 @@ class Enemy(pygame.sprite.Sprite):
 
     def update_state(self):
         self.state = self.IDLE if self.attacking_target else self.RUN
-
-    def update_animation(self):
-        current_time = pygame.time.get_ticks()
-        if current_time - self.animation_time > self.ANIMATION_INTERVAL:
-            self.current_frame = (self.current_frame + 1) % len(self.animations[self.state])
-            self.image = self.animations[self.state][self.current_frame]
-            self.animation_time = current_time
-            if not self.facing_right:
-                self.image = pygame.transform.flip(self.image, True, False)
 
     def distance_to(self, target):
         return ((self.rect.centerx - target[0]) ** 2 + (self.rect.centery - target[1]) ** 2) ** 0.5
