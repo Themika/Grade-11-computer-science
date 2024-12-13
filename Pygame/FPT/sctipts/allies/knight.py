@@ -337,7 +337,7 @@ class Knight(pygame.sprite.Sprite):
 
             if closest_enemy and closest_distance <= 250:  # Only consider enemies within 200 pixels
                 self.target = closest_enemy.rect.center
-                if self.rect.colliderect(closest_enemy.rect.inflate(3, 3)):
+                if self.rect.colliderect(closest_enemy.rect.inflate(0.2, .2)):
                     print(f"Attacking enemy at {closest_enemy.rect.center}")
                     self.handle_attack(closest_enemy, enemies)
                 else:

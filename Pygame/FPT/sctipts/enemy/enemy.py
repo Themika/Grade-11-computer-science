@@ -4,8 +4,9 @@ import pygame
 class Enemy(pygame.sprite.Sprite):
     IDLE = 'idle'
     RUN = 'run'
-    ATTACK_RANGE = 5
-    DAMAGE = 5
+    SEARCH = 'search'
+    ATTACK_RANGE = 0.2
+    DAMAGE = 1
     ATTACK_COOLDOWN = 1000
     ANIMATION_INTERVAL = 100
 
@@ -26,7 +27,8 @@ class Enemy(pygame.sprite.Sprite):
 
         self.animations = {
             self.IDLE: [pygame.image.load(f'Animations/Goblins/Torch/Blue/Idle/Torch_Blue_Idle_{i}.png') for i in range(1, 8)],
-            self.RUN: [pygame.image.load(f'Animations/Goblins/Torch/Blue/Run/Torch_Blue_Run_{i}.png') for i in range(1, 7)]
+            self.RUN: [pygame.image.load(f'Animations/Goblins/Torch/Blue/Run/Torch_Blue_Run_{i}.png') for i in range(1, 7)],
+            self.SEARCH: [pygame.image.load(f'Animations/Goblins/Torch/Blue/Run/Torch_Blue_Run_{i}.png') for i in range(1, 7)]
         }
         self.current_frame = 0
         self.animation_time = 0
