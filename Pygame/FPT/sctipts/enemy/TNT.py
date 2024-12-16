@@ -44,7 +44,6 @@ class TNT(Enemy):
 
     def update(self, knights, archers):
         super().update(knights, archers)
-        print(len(self.projectiles_group))
         self.update_animation()
         if self.health <= 0:
             self.kill()  # Destroy the TNT enemy if health is below zero

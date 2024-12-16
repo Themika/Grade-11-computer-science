@@ -1,12 +1,14 @@
 import pygame
 import random
+import time
 from utils.camera import Camera
-from player.player import Player
 from allies.knight import Knight
 from allies.archer import Archer
 from enemy.torch import Torch
 from enemy.TNT import TNT
 from utils.rps_manager import RPSManager
+from buildings.House import House
+from buildings.Tower import Tower
 
 pygame.init()
 WINDOW_HEIGHT, WINDOW_WIDTH = 1280, 720
@@ -52,33 +54,68 @@ def draw_grid_coordinates(surface, camera):
             text_surface = font.render(f'({x}, {y})', True, (255, 255, 255))
             surface.blit(text_surface, (adjusted_x + 5, adjusted_y + 5))
 
+def spawn_wave(wave, all_sprites, projectiles, houses):
+    for _ in range(1 + wave * 1):  # Increase the number of enemies with each wave
+        enemy = TNT(projectiles)
+        enemy.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
+        all_sprites.add(enemy)
+    for house in houses:
+        for _ in range(2):  # Spawn 2 archers and 2 knights per house
+            archer = Archer()
+            house.spawn_archer(archer)
+            all_sprites.add(archer)
+            knight = Knight()
+            house.spawn_knight(knight)
+            all_sprites.add(knight)
+
+def get_nearest_archer(tower, archers):
+    nearest_archer = None
+    min_distance = float('inf')
+    for archer in archers:
+        distance = ((archer.rect.centerx - tower.rect.centerx) ** 2 + (archer.rect.centery - tower.rect.centery) ** 2) ** 0.5
+        if distance < min_distance:
+            min_distance = distance
+            nearest_archer = archer
+    return nearest_archer
+
 player = Player()
 camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
 all_sprites = pygame.sprite.Group(player)
 projectiles = pygame.sprite.Group()
+houses = []
+towers = []
 
-# Create allies and enemies
+# Create a House instance
+house = House(x=1000, y=500, image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png')
+
+# Add the house to the all_sprites group and houses list
+all_sprites.add(house)
+houses.append(house)
+
 for _ in range(10):
     archer = Archer()
-    archer.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
+    house.spawn_archer(archer)
     all_sprites.add(archer)
 
 for _ in range(10):
     knight = Knight()
-    knight.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
+    house.spawn_knight(knight)
     all_sprites.add(knight)
 
-# for _ in range(25):
-#     enemy = Torch()
-#     enemy.rect.topleft = (random.randint(500, 2000), random.randint(500, 2000))
-#     all_sprites.add(enemy)
-for _ in range(25):
-    enemy = TNT(projectiles)
-    enemy.rect.topleft = (random.randint(500, 2000), random.randint(500, 2000))
-    all_sprites.add(enemy)
+wave = 1
+grace_period = 60  # 3 minutes in seconds
+grace_period_start_time = None
+spawn_wave(wave, all_sprites, projectiles, houses)
 
 rps_manager = RPSManager()
 clock = pygame.time.Clock()
+
+# Variable to track if a house or tower is being placed
+placing_house = False
+placing_tower = False
+house_to_place = None
+tower_to_place = None
+placed_houses = []
 
 while running:
     dt = clock.tick(60) / 1000  # Amount of seconds between each loop
@@ -89,10 +126,42 @@ while running:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
             rps_manager.handle_event(event, camera, alive_allies)
-        elif event.type == pygame.MOUSEWHEEL:
             mouse_pos = pygame.mouse.get_pos()
-            camera.zoom(1.1 if event.y > 0 else 0.9, mouse_pos, all_sprites)
-
+            map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
+            for tower in towers:
+                if tower.rect.collidepoint(map_pos):
+                    nearest_archer = get_nearest_archer(tower, alive_archers)
+                    if nearest_archer:
+                        tower.place_unit(nearest_archer)
+                        break
+        elif event.type == pygame.MOUSEWHEEL and grace_period_start_time is not None:
+            # Start placing a house or tower if the scroll wheel is used during the grace period
+            if event.y > 0:
+                placing_house = True
+                house_to_place = House(x=0, y=0, image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png')
+            else:
+                placing_tower = True
+                tower_to_place = Tower(x=0, y=0, width=100, height=200, image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Blue.png')
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if placing_house and event.button == 1:
+                # Place the house on left mouse button release
+                mouse_pos = pygame.mouse.get_pos()
+                map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
+                house_to_place.rect.topleft = map_pos
+                all_sprites.add(house_to_place)
+                houses.append(house_to_place)
+                placed_houses.append((house_to_place, time.time()))  # Track the house placement time
+                placing_house = False
+                house_to_place = None
+            elif placing_tower and event.button == 1:
+                # Place the tower on left mouse button release
+                mouse_pos = pygame.mouse.get_pos()
+                map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
+                tower_to_place.rect.topleft = map_pos
+                all_sprites.add(tower_to_place)
+                towers.append(tower_to_place)
+                placing_tower = False
+                tower_to_place = None
     # Update the camera
     camera.update(player)
     # Render the scene
@@ -122,6 +191,48 @@ while running:
     projectiles.update(dt, alive_knights, alive_archers)
     for projectile in projectiles:
         projectile.draw(display_surface, camera.camera.topleft)
+
+    # Check if all enemies are dead
+    if not alive_enemies:
+        if grace_period_start_time is None:
+            grace_period_start_time = time.time()
+        current_time = time.time()
+        if current_time - grace_period_start_time >= grace_period:
+            wave += 1
+            spawn_wave(wave, all_sprites, projectiles, houses)
+            grace_period_start_time = None
+
+    # Display wave and grace period timer
+    font = pygame.font.SysFont(None, 36)
+    wave_text = font.render(f'Wave: {wave}', True, (255, 255, 255))
+    display_surface.blit(wave_text, (10, 10))
+    if grace_period_start_time is not None:
+        grace_period_text = font.render(f'Grace Period: {max(0, int(grace_period - (time.time() - grace_period_start_time)))}s', True, (255, 255, 255))
+        display_surface.blit(grace_period_text, (10, 50))
+
+    # Draw the house or tower being placed
+    if placing_house and house_to_place is not None:
+        mouse_pos = pygame.mouse.get_pos()
+        map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
+        house_to_place.rect.topleft = map_pos
+        house_to_place.draw(display_surface)
+    elif placing_tower and tower_to_place is not None:
+        mouse_pos = pygame.mouse.get_pos()
+        map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
+        tower_to_place.rect.topleft = map_pos
+        tower_to_place.draw_tower(display_surface)
+
+    # Check if it's time to spawn knights and archers for placed houses
+    for house, placement_time in placed_houses[:]:
+        if time.time() - placement_time >= 60:  # 1 minute delay
+            for _ in range(2):
+                archer = Archer()
+                house.spawn_archer(archer)
+                all_sprites.add(archer)
+                knight = Knight()
+                house.spawn_knight(knight)
+                all_sprites.add(knight)
+            placed_houses.remove((house, placement_time))
 
     pygame.display.update()
 

@@ -49,6 +49,7 @@ class Archer(pygame.sprite.Sprite):
         self.selected = False
         self.target_position = None
         self.health = 100  # Add health attribute
+        self.on_tower = False  # Add flag to indicate if the archer is on a tower
 
     def load_sprites(self):
         idle_sprites = [
@@ -90,6 +91,14 @@ class Archer(pygame.sprite.Sprite):
             projectile.draw(surface, camera_offset)
 
     def movement(self):
+        if self.on_tower:
+            self.DETECTION_RADIUS = 500
+            self.SHOOT_COOLDOWN = 700
+            self.health = 400  # Increase health by 300
+            self.state = State.IDLE if not self.target else State.ATTACK
+            if self.target:
+                self.attack()
+            return  
         if self.selected and self.target_position:
             self.move_towards(self.target_position)
             self.state = State.POS
@@ -196,7 +205,6 @@ class Archer(pygame.sprite.Sprite):
         if current_time - self.last_shot_time >= self.SHOOT_COOLDOWN:
             self.shoot_projectile(self.target)
             self.last_shot_time = current_time
-            self.state = State.PATROL
         if self.target and self.target.health <= 0:
             self.target.kill()
             self.target = None
@@ -211,7 +219,6 @@ class Archer(pygame.sprite.Sprite):
             # Determine the direction of the target and set facing_right accordingly
             dx = target.rect.centerx - self.rect.centerx
             self.facing_right = dx > 0
-
 
     def selection(self):
         self.selected = True
@@ -244,14 +251,14 @@ class Archer(pygame.sprite.Sprite):
         if self.health <= 0:
             self.state = State.DEAD
             self.kill()
-    def maintain_distance(self):
-        if self.target:
-            distance = math.hypot(self.target.rect.centerx - self.rect.centerx, self.target.rect.centery - self.rect.centery)
-            if distance < self.DETECTION_RADIUS:
-                angle = math.atan2(self.target.rect.centery - self.rect.centery, self.target.rect.centerx - self.rect.centerx)
-                target_x = self.target.rect.centerx - math.cos(angle) * self.DETECTION_RADIUS
-                target_y = self.target.rect.centery - math.sin(angle) * self.DETECTION_RADIUS
-                if not self.move_towards((target_x, target_y)):
-                    self.state = State.SEARCH
 
-        
+    def maintain_distance(self):
+        if self.on_tower == False:
+            if self.target:
+                distance = math.hypot(self.target.rect.centerx - self.rect.centerx, self.target.rect.centery - self.rect.centery)
+                if distance < self.DETECTION_RADIUS:
+                    angle = math.atan2(self.target.rect.centery - self.rect.centery, self.target.rect.centerx - self.rect.centerx)
+                    target_x = self.target.rect.centerx - math.cos(angle) * self.DETECTION_RADIUS
+                    target_y = self.target.rect.centery - math.sin(angle) * self.DETECTION_RADIUS
+                    if not self.move_towards((target_x, target_y)):
+                        self.state = State.SEARCH

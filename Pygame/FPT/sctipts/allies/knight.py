@@ -26,7 +26,7 @@ class Knight(pygame.sprite.Sprite):
         super().__init__(*groups)
         self.state = State.PATROL 
         self.type = "knight"
-        self.patrol_points = self.generate_random_patrol_points(5, 2000, 2000)  # Generate 5 random patrol points within a 2000x2000 area
+        self.patrol_points = self.generate_random_patrol_points(5, 600, 2000)  # Generate 5 random patrol points within a 2000x2000 area
         self.current_patrol_point = 0
         self.target_idle_time = 600000
         self.idle_duration_at_target = 6 

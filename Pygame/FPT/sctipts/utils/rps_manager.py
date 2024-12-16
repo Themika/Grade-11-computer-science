@@ -1,6 +1,7 @@
 import pygame
 from allies.knight import Knight
 from allies.archer import Archer
+from enemy.enemy import Enemy  # Import the enemy class
 from utils.ui import UI
 
 class RPSManager:
@@ -29,7 +30,15 @@ class RPSManager:
                             sprite.selection()
                         break  # Stop checking other sprites once a unit is selected or deselected
             elif event.button == 1:  # Left click
-                if self.selected_units:
+                enemy_clicked = False
+                for sprite in all_sprites:
+                    if isinstance(sprite, Enemy) and sprite.rect.collidepoint(map_pos):
+                        enemy_clicked = True
+                        for unit in self.selected_units:
+                            unit.move_towards(sprite)  # Make the unit chase the enemy
+                        break  # Stop checking other sprites once an enemy is clicked
+
+                if not enemy_clicked and self.selected_units:
                     for unit in self.selected_units:
                         unit.move_to_click_position(map_pos)
                     self.move_marker = map_pos
