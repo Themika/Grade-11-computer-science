@@ -27,7 +27,7 @@ class RPSManager:
                         else:
                             self.selected_units.append(sprite)
                             sprite.selection()
-                        break
+                        break  # Stop checking other sprites once a unit is selected or deselected
             elif event.button == 1:  # Left click
                 if self.selected_units:
                     for unit in self.selected_units:

@@ -83,12 +83,12 @@ clock = pygame.time.Clock()
 while running:
     dt = clock.tick(60) / 1000  # Amount of seconds between each loop
     keys = pygame.key.get_pressed()
-
+    alive_allies = [allies for allies in all_sprites if isinstance(allies, Knight) or isinstance(allies, Archer) and allies.health > 0]
     for event in pygame.event.get():
         if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
             running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Check if it is a left click
-            rps_manager.handle_event(event, camera, all_sprites)
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            rps_manager.handle_event(event, camera, alive_allies)
         elif event.type == pygame.MOUSEWHEEL:
             mouse_pos = pygame.mouse.get_pos()
             camera.zoom(1.1 if event.y > 0 else 0.9, mouse_pos, all_sprites)
@@ -103,7 +103,6 @@ while running:
 
     rps_manager.draw_marker(display_surface)
     rps_manager.draw_ui(display_surface)  # Draw the UI elements last to ensure they are on top
-    rps_manager.handle_event(event, camera, all_sprites)
 
     alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Torch) or isinstance(enemy, TNT) and enemy.health > 0]
     alive_knights = [ally for ally in all_sprites if isinstance(ally, Knight)]

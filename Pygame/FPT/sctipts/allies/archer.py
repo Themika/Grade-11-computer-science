@@ -93,7 +93,7 @@ class Archer(pygame.sprite.Sprite):
         if self.selected and self.target_position:
             self.move_towards(self.target_position)
             self.state = State.POS
-            if self.rect.center == self.target_position or self.rect.colliderect(pygame.Rect(self.target_position, (55, 55))):
+            if self.rect.center == self.target_position or self.rect.colliderect(pygame.Rect(self.target_position, (25, 25))):
                 if self.state != State.WATCH:
                     self.state = State.WATCH
                     self.target_position = None
@@ -171,7 +171,9 @@ class Archer(pygame.sprite.Sprite):
             dx, dy = dx / dist, dy / dist
             self.rect.centerx += dx * self.SPEED
             self.rect.centery += dy * self.SPEED
-            self.facing_right = dx > 0
+            if (dx > 0 and not self.facing_right) or (dx < 0 and self.facing_right):
+                self.facing_right = dx > 0
+                self.image = pygame.transform.flip(self.image, True, False)
             return False
         return True
 
@@ -217,6 +219,8 @@ class Archer(pygame.sprite.Sprite):
 
     def deselect(self):
         self.selected = False
+        if self.state == State.WATCH:
+            self.state = State.PATROL
 
     def move_to_click_position(self, position):
         if self.state not in [State.WATCH, State.POS]:

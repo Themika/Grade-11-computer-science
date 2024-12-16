@@ -21,6 +21,7 @@ class State:
     DEAD = 'dead'
 
 class Knight(pygame.sprite.Sprite):
+    SEARCH_RADIUS = 200  # Search radius for the search state
     def __init__(self, *groups):
         super().__init__(*groups)
         self.state = State.PATROL 
@@ -183,12 +184,11 @@ class Knight(pygame.sprite.Sprite):
             self.state = State.SEARCH
     
         if not self.search_targets:
-            search_radius = 200  # Set the search radius to 200 pixels
             self.search_targets = []
             for _ in range(5):  # Generate 5 random search targets
                 search_angle = random.uniform(0, 360)  # Random angle for wandering direction
-                dx = search_radius * math.cos(math.radians(search_angle))
-                dy = search_radius * math.sin(math.radians(search_angle))
+                dx = self.SEARCH_RADIUS * math.cos(math.radians(search_angle))
+                dy = self.SEARCH_RADIUS * math.sin(math.radians(search_angle))
                 self.search_targets.append((self.rect.centerx + dx, self.rect.centery + dy))
             self.search_index = 0
     
@@ -355,7 +355,7 @@ class Knight(pygame.sprite.Sprite):
             self.perform_attack(enemy, State.ATTACK_5, State.ATTACK_1)
         else:
             self.perform_attack(enemy, State.ATTACK_1, State.ATTACK_2)
-    
+
         if enemy.health <= 0:
             self.target = None
             self.state = State.SEARCH
@@ -366,19 +366,18 @@ class Knight(pygame.sprite.Sprite):
 
     def perform_attack(self, enemy, primary_attack, secondary_attack):
         """Perform the attack sequence on the enemy."""
-        if not self.mouse_pos or (self.selected and self.rect.center == self.mouse_pos) or self.state != State.POS:
-            if self.state == primary_attack and self.current_sprite == len(self.sprites[primary_attack]) - 1:
-                self.state = secondary_attack
-                self.current_sprite = 0
-                enemy.take_damage(10)
-            elif self.state == secondary_attack and self.current_sprite == len(self.sprites[secondary_attack]) - 1:
-                self.state = primary_attack
-                self.current_sprite = 0
-                enemy.take_damage(10)
-            elif self.state not in (primary_attack, secondary_attack):
-                self.state = primary_attack
-                self.current_sprite = 0
-                enemy.take_damage(10)
+        if self.state == primary_attack and self.current_sprite == len(self.sprites[primary_attack]) - 1:
+            self.state = secondary_attack
+            self.current_sprite = 0
+            enemy.take_damage(10)
+        elif self.state == secondary_attack and self.current_sprite == len(self.sprites[secondary_attack]) - 1:
+            self.state = primary_attack
+            self.current_sprite = 0
+            enemy.take_damage(10)
+        elif self.state not in (primary_attack, secondary_attack):
+            self.state = primary_attack
+            self.current_sprite = 0
+            enemy.take_damage(10)
         
     def watch(self):
         """Stay idle at the mouse position until deselected."""
