@@ -1,7 +1,6 @@
 1.) Add buidning system to create hosues and towers
     Make it so to create towers and hosue it takes 2 waves an 1 wave respectivily 
     Add reasource Collection 
-    Add RTS DRAG SELECTION
     Add a econmey
         You need gold and wood to create towers
         You need Wood and Gold To build hosues

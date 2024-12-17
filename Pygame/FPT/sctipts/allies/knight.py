@@ -30,6 +30,7 @@ class Knight(pygame.sprite.Sprite):
         self.current_patrol_point = 0
         self.target_idle_time = 600000
         self.idle_duration_at_target = 6 
+        self.on_tower = True
         self.sprites = {
             'idle': [
                 pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle.png'),

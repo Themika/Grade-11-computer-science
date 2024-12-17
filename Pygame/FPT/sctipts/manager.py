@@ -54,7 +54,7 @@ def draw_grid_coordinates(surface, camera):
             text_surface = font.render(f'({x}, {y})', True, (255, 255, 255))
             surface.blit(text_surface, (adjusted_x + 5, adjusted_y + 5))
 
-def spawn_wave(wave, all_sprites, projectiles, houses):
+def spawn_wave(wave, all_sprites, projectiles, houses, towers):
     for _ in range(1 + wave * 1):  # Increase the number of enemies with each wave
         enemy_tnt = TNT(projectiles)
         enemy_tnt.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
@@ -65,6 +65,7 @@ def spawn_wave(wave, all_sprites, projectiles, houses):
         all_sprites.add(enemy_torch)
         
     for house in houses:
+        house.update_construction_status(wave_ended=True)
         for _ in range(2):  # Spawn 2 archers and 2 knights per house
             archer = Archer()
             house.spawn_archer(archer)
@@ -72,16 +73,24 @@ def spawn_wave(wave, all_sprites, projectiles, houses):
             # knight = Knight()
             # house.spawn_knight(knight)
             # all_sprites.add(knight)
+    for tower in towers:
+        if tower.wave_counter is None:
+            tower.wave_counter = wave + 2  # Set the wave counter to the current wave + 2
+        if wave >= tower.wave_counter:
+            tower.update_construction_status(wave_ended=True)
+
 
 def get_nearest_archer(tower, archers):
     nearest_archer = None
     min_distance = float('inf')
     for archer in archers:
-        distance = ((archer.rect.centerx - tower.rect.centerx) ** 2 + (archer.rect.centery - tower.rect.centery) ** 2) ** 0.5
-        if distance < min_distance:
-            min_distance = distance
-            nearest_archer = archer
+        if not archer.on_tower:  # Check if the archer is not on a tower
+            distance = ((archer.rect.centerx - tower.rect.centerx) ** 2 + (archer.rect.centery - tower.rect.centery) ** 2) ** 0.5
+            if distance < min_distance:
+                min_distance = distance
+                nearest_archer = archer
     return nearest_archer
+
 
 player = Player()
 camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
@@ -91,26 +100,26 @@ houses = []
 towers = []
 
 # Create a House instance
-house = House(x=1000, y=500, image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png')
+house = House(x=1000, y=500, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png',construction_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png')
 
 # Add the house to the all_sprites group and houses list
 all_sprites.add(house)
 houses.append(house)
 
-for _ in range(1):
+for _ in range(20):
     archer = Archer()
     house.spawn_archer(archer)
     all_sprites.add(archer)
 
-# for _ in range(5):
-#     knight = Knight()
-#     house.spawn_knight(knight)
-#     all_sprites.add(knight)
+for _ in range(50):
+    knight = Knight()
+    house.spawn_knight(knight)
+    all_sprites.add(knight)
 
 wave = 1
 grace_period = 60  # 3 minutes in seconds
 grace_period_start_time = None
-spawn_wave(wave, all_sprites, projectiles, houses)
+spawn_wave(wave, all_sprites, projectiles, houses,towers)
 
 rps_manager = RPSManager()
 clock = pygame.time.Clock()
@@ -131,23 +140,25 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
             running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.MOUSEMOTION or event.type == pygame.MOUSEBUTTONUP and  grace_period_start_time is  None:
-            rps_manager.handle_event(event, camera, alive_allies,alive_enemies)
-            mouse_pos = pygame.mouse.get_pos()
-            map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
+        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and grace_period_start_time is not None:
+            print("TOWER")
             for tower in towers:
                 if tower.rect.collidepoint(map_pos):
-                    nearest_archer = get_nearest_archer(tower, alive_archers)
+                    nearest_archer = get_nearest_archer(tower, alive_allies)
                     if nearest_archer:
                         tower.place_unit(nearest_archer)
                         break
+        elif event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.MOUSEMOTION or event.type == pygame.MOUSEBUTTONUP and grace_period_start_time is None:
+            rps_manager.handle_event(event, camera, alive_allies, alive_enemies)
+            mouse_pos = pygame.mouse.get_pos()
+            map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
         elif event.type == pygame.MOUSEWHEEL and grace_period_start_time is not None:
             # Start placing a house or tower if the scroll wheel is used during the grace period
             placing_building = True
             if place_house_next:
-                building_to_place = House(x=0, y=0, image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png')
+                building_to_place = House(x=0, y=0, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png', construction_image_path="Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png")
             else:
-                building_to_place = Tower(x=0, y=0, width=100, height=200, image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Blue.png')
+                building_to_place = Tower(x=0, y=0, width=100, height=200, construction_image_path="Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Construction.png" ,finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Blue.png',total_waves=wave)
             place_house_next = not place_house_next  # Alternate the flag
         elif event.type == pygame.MOUSEBUTTONUP:
             if placing_building and event.button == 1:
@@ -200,7 +211,7 @@ while running:
         current_time = time.time()
         if current_time - grace_period_start_time >= grace_period:
             wave += 1
-            spawn_wave(wave, all_sprites, projectiles, houses)
+            spawn_wave(wave, all_sprites, projectiles, houses,towers)
             grace_period_start_time = None
 
     # Display wave and grace period timer

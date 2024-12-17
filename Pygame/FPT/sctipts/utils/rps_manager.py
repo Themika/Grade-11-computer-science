@@ -1,7 +1,6 @@
 import pygame
 from allies.knight import Knight
 from allies.archer import Archer
-from enemy.enemy import Enemy  # Import the enemy class
 from utils.ui import UI
 
 class RPSManager:
