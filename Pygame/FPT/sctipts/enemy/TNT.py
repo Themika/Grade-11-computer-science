@@ -11,7 +11,7 @@ class TNT(Enemy):
     ANIMATION_INTERVAL = 100
     ATTACK_COOLDOWN = 1100  # Cooldown time for attacks
     DAMAGE = 1  # Damage dealt by the TNT
-    ATTACK_RANGE = 500  # Attack range in pixels
+    ATTACK_RANGE = 350  # Attack range in pixels
 
     def __init__(self, projectiles_group, *groups):
         super().__init__(*groups)

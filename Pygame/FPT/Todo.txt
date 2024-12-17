@@ -1,0 +1,13 @@
+1.) Add buidning system to create hosues and towers
+    Make it so to create towers and hosue it takes 2 waves an 1 wave respectivily 
+    Add reasource Collection 
+    Add RTS DRAG SELECTION
+    Add a econmey
+        You need gold and wood to create towers
+        You need Wood and Gold To build hosues
+        You need FOod to maintian you army size
+            If you do not have enough wood or godl tell the user they do not have enough
+            IF you do not have food make it so the knights health be reduced to 50 % and Make them slower
+2.) Begin work on a map creator 
+3.) Create the relatoionship system
+4.) Make the goblins spanw in form teh edges of the map

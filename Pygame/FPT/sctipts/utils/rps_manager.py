@@ -13,8 +13,11 @@ class RPSManager:
         self.marker_image = pygame.image.load('Tiny_Swords_Assets/UI/Pointers/02.png').convert_alpha()
         self.marker_alpha = 255  # Full opacity
         self.marker_scale = 1.0  # Initial scale for the placement animation
+        self.dragging = False
+        self.drag_start = None
+        self.drag_rect = None
 
-    def handle_event(self, event, camera, all_sprites):
+    def handle_event(self, event, camera, all_sprites, enemies):
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = pygame.mouse.get_pos()
             map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
@@ -30,21 +33,37 @@ class RPSManager:
                             sprite.selection()
                         break  # Stop checking other sprites once a unit is selected or deselected
             elif event.button == 1:  # Left click
-                enemy_clicked = False
-                for sprite in all_sprites:
-                    if isinstance(sprite, Enemy) and sprite.rect.collidepoint(map_pos):
-                        enemy_clicked = True
-                        for unit in self.selected_units:
-                            unit.move_towards(sprite)  # Make the unit chase the enemy
-                        break  # Stop checking other sprites once an enemy is clicked
-
-                if not enemy_clicked and self.selected_units:
+                if self.selected_units:
                     for unit in self.selected_units:
                         unit.move_to_click_position(map_pos)
                     self.move_marker = map_pos
                     self.marker_time = pygame.time.get_ticks()  # Set the time when the marker is set
                     self.marker_alpha = 255  # Reset alpha to full opacity
                     self.marker_scale = 1.0  # Reset scale for the placement animation
+            elif event.button == 2:  # Middle click
+                self.dragging = True
+                self.drag_start = map_pos
+                self.drag_rect = pygame.Rect(self.drag_start, (0, 0))
+
+        elif event.type == pygame.MOUSEMOTION:
+            if self.dragging:
+                mouse_pos = pygame.mouse.get_pos()
+                map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
+                self.drag_rect.width = map_pos[0] - self.drag_start[0]
+                self.drag_rect.height = map_pos[1] - self.drag_start[1]
+
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 2 and self.dragging:
+                self.dragging = False
+                for sprite in all_sprites:
+                    if isinstance(sprite, (Knight, Archer)) and self.drag_rect.colliderect(sprite.rect):
+                        if sprite in self.selected_units:
+                            sprite.deselect()
+                            self.selected_units.remove(sprite)
+                        else:
+                            self.selected_units.append(sprite)
+                            sprite.selection()
+                self.drag_rect = None
 
     def draw_marker(self, surface):
         if self.move_marker:
@@ -71,6 +90,13 @@ class RPSManager:
                 marker_rect = scaled_image.get_rect(center=self.move_marker)
                 surface.blit(scaled_image, marker_rect)
 
-    def draw_ui(self, surface):
+    def draw_ui(self, surface, camera_offset):
         if self.selected_units:
+            for unit in self.selected_units:
+                exclamation_mark = pygame.font.SysFont(None, 24).render('!', True, (255, 0, 0))
+                adjusted_rect = unit.rect.move(camera_offset)
+                exclamation_rect = exclamation_mark.get_rect(center=(adjusted_rect.centerx, adjusted_rect.top - 10))
+                surface.blit(exclamation_mark, exclamation_rect)
             self.ui.draw_knight_faces(surface, self.selected_units)
+        if self.drag_rect:
+            pygame.draw.rect(surface, (0, 255, 0), self.drag_rect, 2)

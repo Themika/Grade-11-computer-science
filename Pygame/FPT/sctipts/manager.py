@@ -56,17 +56,22 @@ def draw_grid_coordinates(surface, camera):
 
 def spawn_wave(wave, all_sprites, projectiles, houses):
     for _ in range(1 + wave * 1):  # Increase the number of enemies with each wave
-        enemy = TNT(projectiles)
-        enemy.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
-        all_sprites.add(enemy)
+        enemy_tnt = TNT(projectiles)
+        enemy_tnt.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
+        all_sprites.add(enemy_tnt)
+        
+        enemy_torch = Torch()
+        enemy_torch.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
+        all_sprites.add(enemy_torch)
+        
     for house in houses:
         for _ in range(2):  # Spawn 2 archers and 2 knights per house
             archer = Archer()
             house.spawn_archer(archer)
             all_sprites.add(archer)
-            knight = Knight()
-            house.spawn_knight(knight)
-            all_sprites.add(knight)
+            # knight = Knight()
+            # house.spawn_knight(knight)
+            # all_sprites.add(knight)
 
 def get_nearest_archer(tower, archers):
     nearest_archer = None
@@ -92,15 +97,15 @@ house = House(x=1000, y=500, image_path='Tiny_Swords_Assets/Factions/Knights/Bui
 all_sprites.add(house)
 houses.append(house)
 
-for _ in range(10):
+for _ in range(1):
     archer = Archer()
     house.spawn_archer(archer)
     all_sprites.add(archer)
 
-for _ in range(10):
-    knight = Knight()
-    house.spawn_knight(knight)
-    all_sprites.add(knight)
+# for _ in range(5):
+#     knight = Knight()
+#     house.spawn_knight(knight)
+#     all_sprites.add(knight)
 
 wave = 1
 grace_period = 60  # 3 minutes in seconds
@@ -111,21 +116,23 @@ rps_manager = RPSManager()
 clock = pygame.time.Clock()
 
 # Variable to track if a house or tower is being placed
-placing_house = False
-placing_tower = False
-house_to_place = None
-tower_to_place = None
+placing_building = False
+building_to_place = None
 placed_houses = []
+
+# Flag to alternate between house and tower
+place_house_next = True
 
 while running:
     dt = clock.tick(60) / 1000  # Amount of seconds between each loop
     keys = pygame.key.get_pressed()
     alive_allies = [allies for allies in all_sprites if isinstance(allies, Knight) or isinstance(allies, Archer) and allies.health > 0]
+    alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Torch) or isinstance(enemy, TNT) and enemy.health > 0]
     for event in pygame.event.get():
         if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
             running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            rps_manager.handle_event(event, camera, alive_allies)
+        elif event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.MOUSEMOTION or event.type == pygame.MOUSEBUTTONUP and  grace_period_start_time is  None:
+            rps_manager.handle_event(event, camera, alive_allies,alive_enemies)
             mouse_pos = pygame.mouse.get_pos()
             map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
             for tower in towers:
@@ -136,32 +143,26 @@ while running:
                         break
         elif event.type == pygame.MOUSEWHEEL and grace_period_start_time is not None:
             # Start placing a house or tower if the scroll wheel is used during the grace period
-            if event.y > 0:
-                placing_house = True
-                house_to_place = House(x=0, y=0, image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png')
+            placing_building = True
+            if place_house_next:
+                building_to_place = House(x=0, y=0, image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png')
             else:
-                placing_tower = True
-                tower_to_place = Tower(x=0, y=0, width=100, height=200, image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Blue.png')
+                building_to_place = Tower(x=0, y=0, width=100, height=200, image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Blue.png')
+            place_house_next = not place_house_next  # Alternate the flag
         elif event.type == pygame.MOUSEBUTTONUP:
-            if placing_house and event.button == 1:
-                # Place the house on left mouse button release
+            if placing_building and event.button == 1:
+                # Place the building on left mouse button release
                 mouse_pos = pygame.mouse.get_pos()
                 map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
-                house_to_place.rect.topleft = map_pos
-                all_sprites.add(house_to_place)
-                houses.append(house_to_place)
-                placed_houses.append((house_to_place, time.time()))  # Track the house placement time
-                placing_house = False
-                house_to_place = None
-            elif placing_tower and event.button == 1:
-                # Place the tower on left mouse button release
-                mouse_pos = pygame.mouse.get_pos()
-                map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
-                tower_to_place.rect.topleft = map_pos
-                all_sprites.add(tower_to_place)
-                towers.append(tower_to_place)
-                placing_tower = False
-                tower_to_place = None
+                building_to_place.rect.topleft = map_pos
+                all_sprites.add(building_to_place)
+                if isinstance(building_to_place, House):
+                    houses.append(building_to_place)
+                    placed_houses.append((building_to_place, time.time()))  # Track the house placement time
+                else:
+                    towers.append(building_to_place)
+                placing_building = False
+                building_to_place = None
     # Update the camera
     camera.update(player)
     # Render the scene
@@ -169,11 +170,11 @@ while running:
     draw_grid(display_surface, camera)
     draw_grid_coordinates(display_surface, camera)
     camera.custom_draw(display_surface, all_sprites)
-
+    
     rps_manager.draw_marker(display_surface)
-    rps_manager.draw_ui(display_surface)  # Draw the UI elements last to ensure they are on top
+    rps_manager.draw_ui(display_surface, camera.camera.topleft)  # Draw the UI elements last to ensure they are on top
 
-    alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Torch) or isinstance(enemy, TNT) and enemy.health > 0]
+    
     alive_knights = [ally for ally in all_sprites if isinstance(ally, Knight)]
     alive_archers = [ally for ally in all_sprites if isinstance(ally, Archer)]
     for sprite in all_sprites:
@@ -210,17 +211,15 @@ while running:
         grace_period_text = font.render(f'Grace Period: {max(0, int(grace_period - (time.time() - grace_period_start_time)))}s', True, (255, 255, 255))
         display_surface.blit(grace_period_text, (10, 50))
 
-    # Draw the house or tower being placed
-    if placing_house and house_to_place is not None:
+    # Draw the building being placed
+    if placing_building and building_to_place is not None:
         mouse_pos = pygame.mouse.get_pos()
         map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
-        house_to_place.rect.topleft = map_pos
-        house_to_place.draw(display_surface)
-    elif placing_tower and tower_to_place is not None:
-        mouse_pos = pygame.mouse.get_pos()
-        map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
-        tower_to_place.rect.topleft = map_pos
-        tower_to_place.draw_tower(display_surface)
+        building_to_place.rect.topleft = map_pos
+        if isinstance(building_to_place, House):
+            building_to_place.draw(display_surface)
+        else:
+            building_to_place.draw_tower(display_surface)
 
     # Check if it's time to spawn knights and archers for placed houses
     for house, placement_time in placed_houses[:]:
@@ -229,9 +228,9 @@ while running:
                 archer = Archer()
                 house.spawn_archer(archer)
                 all_sprites.add(archer)
-                knight = Knight()
-                house.spawn_knight(knight)
-                all_sprites.add(knight)
+                # knight = Knight()
+                # house.spawn_knight(knight)
+                # all_sprites.add(knight)
             placed_houses.remove((house, placement_time))
 
     pygame.display.update()
