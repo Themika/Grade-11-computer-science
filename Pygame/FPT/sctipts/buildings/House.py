@@ -28,5 +28,6 @@ class House(pygame.sprite.Sprite):
             archer.rect.topleft = (self.x, self.y)
             self.archers.append(archer)
 
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
+    def draw(self, surface, camera_offset):
+        adjusted_rect = self.rect.move(camera_offset)
+        surface.blit(self.image, adjusted_rect)

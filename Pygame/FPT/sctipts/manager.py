@@ -4,11 +4,13 @@ import time
 from utils.camera import Camera
 from allies.knight import Knight
 from allies.archer import Archer
+from allies.pawn import Pawn
 from enemy.torch import Torch
 from enemy.TNT import TNT
 from utils.rps_manager import RPSManager
 from buildings.House import House
 from buildings.Tower import Tower
+from Reasources.Tree import Tree
 
 pygame.init()
 WINDOW_HEIGHT, WINDOW_WIDTH = 1280, 720
@@ -70,9 +72,9 @@ def spawn_wave(wave, all_sprites, projectiles, houses, towers):
             archer = Archer()
             house.spawn_archer(archer)
             all_sprites.add(archer)
-            # knight = Knight()
-            # house.spawn_knight(knight)
-            # all_sprites.add(knight)
+            knight = Knight()
+            house.spawn_knight(knight)
+            all_sprites.add(knight)
     for tower in towers:
         if tower.wave_counter is None:
             tower.wave_counter = wave + 2  # Set the wave counter to the current wave + 2
@@ -91,7 +93,6 @@ def get_nearest_archer(tower, archers):
                 nearest_archer = archer
     return nearest_archer
 
-
 player = Player()
 camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
 all_sprites = pygame.sprite.Group(player)
@@ -102,24 +103,34 @@ towers = []
 # Create a House instance
 house = House(x=1000, y=500, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png',construction_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png')
 
-# Add the house to the all_sprites group and houses list
-all_sprites.add(house)
+# Add the house to the houses list
 houses.append(house)
 
-for _ in range(20):
-    archer = Archer()
-    house.spawn_archer(archer)
-    all_sprites.add(archer)
-
+# Spawn 50 trees
+trees = pygame.sprite.Group()
 for _ in range(50):
+    x = random.randint(0, 2000)
+    y = random.randint(0, 2000)
+    tree = Tree(x, y)
+    trees.add(tree)
+    all_sprites.add(tree)
+
+for i in range(10):
+    pawn = Pawn()
+    all_sprites.add(pawn)
+
+for _ in range(2):
+    archer = Archer()
+    all_sprites.add(archer)
+for _ in range(2):
     knight = Knight()
-    house.spawn_knight(knight)
     all_sprites.add(knight)
+
 
 wave = 1
 grace_period = 60  # 3 minutes in seconds
 grace_period_start_time = None
-spawn_wave(wave, all_sprites, projectiles, houses,towers)
+spawn_wave(wave, all_sprites, projectiles, houses, towers)
 
 rps_manager = RPSManager()
 clock = pygame.time.Clock()
@@ -132,16 +143,21 @@ placed_houses = []
 # Flag to alternate between house and tower
 place_house_next = True
 
+# Set to keep track of targeted trees
+targeted_trees = set()
+
 while running:
     dt = clock.tick(60) / 1000  # Amount of seconds between each loop
     keys = pygame.key.get_pressed()
     alive_allies = [allies for allies in all_sprites if isinstance(allies, Knight) or isinstance(allies, Archer) and allies.health > 0]
     alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Torch) or isinstance(enemy, TNT) and enemy.health > 0]
+    alive_pawns = [pawn for pawn in all_sprites if isinstance(pawn, Pawn) and pawn.health > 0]
+    alive_knights = [ally for ally in all_sprites if isinstance(ally, Knight)]
+    alive_archers = [ally for ally in all_sprites if isinstance(ally, Archer)]
     for event in pygame.event.get():
         if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and grace_period_start_time is not None:
-            print("TOWER")
             for tower in towers:
                 if tower.rect.collidepoint(map_pos):
                     nearest_archer = get_nearest_archer(tower, alive_allies)
@@ -166,7 +182,6 @@ while running:
                 mouse_pos = pygame.mouse.get_pos()
                 map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
                 building_to_place.rect.topleft = map_pos
-                all_sprites.add(building_to_place)
                 if isinstance(building_to_place, House):
                     houses.append(building_to_place)
                     placed_houses.append((building_to_place, time.time()))  # Track the house placement time
@@ -184,10 +199,7 @@ while running:
     
     rps_manager.draw_marker(display_surface)
     rps_manager.draw_ui(display_surface, camera.camera.topleft)  # Draw the UI elements last to ensure they are on top
-
     
-    alive_knights = [ally for ally in all_sprites if isinstance(ally, Knight)]
-    alive_archers = [ally for ally in all_sprites if isinstance(ally, Archer)]
     for sprite in all_sprites:
         if isinstance(sprite, Player):
             sprite.update(keys)
@@ -198,11 +210,22 @@ while running:
             sprite.update(dt, alive_enemies, alive_knights)
         elif isinstance(sprite, TNT) or isinstance(sprite, Torch):
             sprite.update(alive_knights, alive_archers)
+        elif isinstance(sprite, Pawn):
+            sprite.update(dt, trees, alive_pawns, targeted_trees)
 
     # Update and draw projectiles
     projectiles.update(dt, alive_knights, alive_archers)
     for projectile in projectiles:
         projectile.draw(display_surface, camera.camera.topleft)
+    # Draw trees once
+    for tree in trees:
+        tree.draw(display_surface, camera.camera.topleft)
+
+    # Draw houses and towers after other sprites
+    for house in houses:
+        house.draw(display_surface,camera.camera.topleft)
+    for tower in towers:
+        tower.draw_tower(display_surface)
 
     # Check if all enemies are dead
     if not alive_enemies:
@@ -211,7 +234,7 @@ while running:
         current_time = time.time()
         if current_time - grace_period_start_time >= grace_period:
             wave += 1
-            spawn_wave(wave, all_sprites, projectiles, houses,towers)
+            spawn_wave(wave, all_sprites, projectiles, houses, towers)
             grace_period_start_time = None
 
     # Display wave and grace period timer
@@ -239,9 +262,6 @@ while running:
                 archer = Archer()
                 house.spawn_archer(archer)
                 all_sprites.add(archer)
-                # knight = Knight()
-                # house.spawn_knight(knight)
-                # all_sprites.add(knight)
             placed_houses.remove((house, placement_time))
 
     pygame.display.update()
