@@ -7,6 +7,11 @@ RUN = 'run'
 CHOPPING = 'chopping'
 WANDERING = 'wandering'
 
+"""
+Have it so it eitehr chooses ot cut  a tree, kill a sheep or mine for gold. After that they take  a 
+break and wander around for a bit and idle aroud add a ffect shoing tehy are taking a break
+Finish AI for the pawn
+"""
 class Pawn(pygame.sprite.Sprite):
     ANIMATION_SPEED = 750
     SPEED = 2  # Define a speed for the pawn
@@ -25,6 +30,7 @@ class Pawn(pygame.sprite.Sprite):
         self.health = 100
         self.facing_right = True  # Track the direction the pawn is facing
         self.wander_timer = 0
+        self.wander_direction = pygame.math.Vector2(0, 0)  # Initialize wander_direction
 
     def load_sprites(self):
         idle_sprites = [
@@ -85,21 +91,23 @@ class Pawn(pygame.sprite.Sprite):
                         self.rect.top = pawn.rect.bottom
 
     def update(self, dt, trees, pawns, targeted_trees):
-        if self.state == IDLE:
-            print("Searching for trees")
-            self.search_for_trees(trees, targeted_trees)
-        if self.target_tree is None or self.target_tree not in trees:
-            self.target_tree = self.get_nearest_tree(trees, targeted_trees)
-            if self.target_tree:
-                targeted_trees.add(self.target_tree)
-
-        if self.target_tree:
-            self.move_towards_tree(dt)
-
-        if self.state == CHOPPING:
-            self.chop_tree()
-        elif self.state == WANDERING:
+        print(self.wander_timer)
+        if self.state == WANDERING:
             self.wander(dt)
+        else:
+            if self.state == IDLE:
+                print("Searching for trees")
+                self.search_for_trees(trees, targeted_trees)
+            if self.target_tree is None or self.target_tree not in trees:
+                self.target_tree = self.get_nearest_tree(trees, targeted_trees)
+                if self.target_tree:
+                    targeted_trees.add(self.target_tree)
+
+            if self.target_tree:
+                self.move_towards_tree(dt)
+
+            if self.state == CHOPPING:
+                self.chop_tree()
         self.animate(dt)
 
     def search_for_trees(self, trees, targeted_trees):
@@ -162,22 +170,39 @@ class Pawn(pygame.sprite.Sprite):
                 self.state = CHOPPING
 
     def wander(self, dt):
+        """Wander between random points."""
         if pygame.time.get_ticks() - self.wander_timer > self.WANDER_TIME:
             self.state = IDLE
+            self.wander_timer = pygame.time.get_ticks()  # Reset the wander timer
             return
 
-        if random.random() < 0.01:  # Change direction randomly
-            self.wander_direction = pygame.math.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
+        if not hasattr(self, 'wander_points'):
+            self.wander_points = self.generate_random_patrol_points(10, 1280, 720)
+            self.current_wander_point = 0
 
-        self.rect.move_ip(self.wander_direction * self.SPEED * dt)
+        target_position = self.wander_points[self.current_wander_point]
+        self.move_towards(target_position)
 
-        # Flip the sprite based on the direction
-        if self.wander_direction.x < 0 and self.facing_right:
-            self.facing_right = False
-            self.image = pygame.transform.flip(self.image, True, False)  # Flip the sprite if moving left
-        elif self.wander_direction.x > 0 and not self.facing_right:
-            self.facing_right = True
-            self.image = pygame.transform.flip(self.image, True, False)  # Flip the sprite if moving right
+        if self.rect.center == target_position or self.rect.colliderect(pygame.Rect(target_position, (10, 10))):
+            self.current_wander_point = (self.current_wander_point + 1) % len(self.wander_points)
+
+    def move_towards(self, target_position):
+        direction = pygame.math.Vector2(target_position) - pygame.math.Vector2(self.rect.center)
+        if direction.length() != 0:
+            direction = direction.normalize() * self.SPEED
+            self.rect.move_ip(direction)
+
+            # Flip the sprite based on the direction
+            if direction.x < 0 and self.facing_right:
+                self.facing_right = False
+                self.image = pygame.transform.flip(self.image, True, False)  # Flip the sprite if moving left
+            elif direction.x > 0 and not self.facing_right:
+                self.facing_right = True
+                self.image = pygame.transform.flip(self.image, True, False)  # Flip the sprite if moving right
+
+    def generate_random_patrol_points(self, num_points, max_x, max_y):
+        """Generate a list of random patrol points within the given range."""
+        return [(random.randint(0, max_x), random.randint(0, max_y)) for _ in range(num_points)]
 
     def selection(self):
         pass

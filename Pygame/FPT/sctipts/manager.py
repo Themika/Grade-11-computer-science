@@ -115,14 +115,14 @@ for _ in range(50):
     trees.add(tree)
     all_sprites.add(tree)
 
-for i in range(10):
+for i in range(1):
     pawn = Pawn()
     all_sprites.add(pawn)
 
-for _ in range(2):
+for _ in range(10):
     archer = Archer()
     all_sprites.add(archer)
-for _ in range(2):
+for _ in range(50):
     knight = Knight()
     all_sprites.add(knight)
 
@@ -225,7 +225,7 @@ while running:
     for house in houses:
         house.draw(display_surface,camera.camera.topleft)
     for tower in towers:
-        tower.draw_tower(display_surface)
+        tower.draw_tower(display_surface,camera.camera.topleft)
 
     # Check if all enemies are dead
     if not alive_enemies:
@@ -251,9 +251,9 @@ while running:
         map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
         building_to_place.rect.topleft = map_pos
         if isinstance(building_to_place, House):
-            building_to_place.draw(display_surface)
+            building_to_place.draw(display_surface, camera.camera.topleft)
         else:
-            building_to_place.draw_tower(display_surface)
+            building_to_place.draw_tower(display_surface, camera.camera.topleft)
 
     # Check if it's time to spawn knights and archers for placed houses
     for house, placement_time in placed_houses[:]:

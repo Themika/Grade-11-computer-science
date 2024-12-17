@@ -23,25 +23,12 @@ class Tower(pygame.sprite.Sprite):
                 self.image = pygame.transform.scale(self.finished_image, (self.width, self.height))
                 self.construction_complete = True
 
-    def draw_tower(self, screen):
-        screen.blit(self.image, self.rect)
-        self.draw_progress_bar(screen)
+    def draw_tower(self, surface,camera_offset):
+        adjusted_rect = self.rect.move(camera_offset)
+        surface.blit(self.image, adjusted_rect)
         for unit in self.units:
             if unit.type == "archer":
-                unit.draw(screen)
-
-    def draw_progress_bar(self, screen):
-        if not self.construction_complete:
-            progress = self.wave_counter / self.total_waves
-            bar_width = self.width
-            bar_height = 5
-            fill_width = int(bar_width * progress)
-            bar_color = (0, 255, 0)
-            background_color = (255, 0, 0)
-            bar_rect = pygame.Rect(self.rect.x, self.rect.y - bar_height - 2, bar_width, bar_height)
-            fill_rect = pygame.Rect(self.rect.x, self.rect.y - bar_height - 2, fill_width, bar_height)
-            pygame.draw.rect(screen, background_color, bar_rect)
-            pygame.draw.rect(screen, bar_color, fill_rect)
+                unit.draw(surface,camera_offset)
 
     def place_unit(self, unit):
         if self.construction_complete and unit.type == "archer":
