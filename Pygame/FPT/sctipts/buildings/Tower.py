@@ -15,13 +15,14 @@ class Tower(pygame.sprite.Sprite):
         self.wave_counter = 0
         self.total_waves = total_waves
         self.construction_complete = False
-
+        self.construction_status = 'under_construction'
     def update_construction_status(self, wave_ended):
         if wave_ended:
             self.wave_counter += 1
             if self.wave_counter >= self.total_waves:
                 self.image = pygame.transform.scale(self.finished_image, (self.width, self.height))
                 self.construction_complete = True
+                self.is_fully_constructed()
 
     def draw_tower(self, surface,camera_offset):
         adjusted_rect = self.rect.move(camera_offset)
@@ -44,3 +45,5 @@ class Tower(pygame.sprite.Sprite):
             unit.on_tower = False  # Reset the flag to indicate the archer is no longer on the tower
             self.units.remove(unit)
             unit.rect.midbottom = (self.rect.midbottom[0], self.rect.midbottom[1] + 90)  # Adjust the position as needed
+    def is_fully_constructed(self):
+        return self.construction_status == 'finished'

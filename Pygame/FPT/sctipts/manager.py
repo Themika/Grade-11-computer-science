@@ -102,7 +102,7 @@ towers = []
 
 # Create a House instance
 house = House(x=1000, y=500, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png',construction_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png')
-
+house.construction_status = "finished"
 # Add the house to the houses list
 houses.append(house)
 
@@ -154,22 +154,26 @@ while running:
     alive_pawns = [pawn for pawn in all_sprites if isinstance(pawn, Pawn) and pawn.health > 0]
     alive_knights = [ally for ally in all_sprites if isinstance(ally, Knight)]
     alive_archers = [ally for ally in all_sprites if isinstance(ally, Archer)]
+    not_fully_constructed_buildings = []
+
+    # Add this code inside the game loop to update the list
+    not_fully_constructed_buildings = [building for building in houses + towers if not building.is_fully_constructed()]
     for event in pygame.event.get():
         if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
             running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and grace_period_start_time is not None:
-            for tower in towers:
-                if tower.rect.collidepoint(map_pos):
-                    nearest_archer = get_nearest_archer(tower, alive_allies)
-                    if nearest_archer:
-                        tower.place_unit(nearest_archer)
-                        break
-        elif event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.MOUSEMOTION or event.type == pygame.MOUSEBUTTONUP and grace_period_start_time is None:
+        elif event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.MOUSEMOTION or event.type == pygame.MOUSEBUTTONUP:
             rps_manager.handle_event(event, camera, alive_allies, alive_enemies)
             mouse_pos = pygame.mouse.get_pos()
             map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
-        elif event.type == pygame.MOUSEWHEEL and grace_period_start_time is not None:
-            # Start placing a house or tower if the scroll wheel is used during the grace period
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                for tower in towers:
+                    if tower.rect.collidepoint(map_pos):
+                        nearest_archer = get_nearest_archer(tower, alive_allies)
+                        if nearest_archer:
+                            tower.place_unit(nearest_archer)
+                            break
+        if event.type == pygame.MOUSEWHEEL:
+            # Start placing a house or tower if the scroll wheel is used
             placing_building = True
             if place_house_next:
                 building_to_place = House(x=0, y=0, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png', construction_image_path="Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png")
@@ -199,7 +203,6 @@ while running:
     
     rps_manager.draw_marker(display_surface)
     rps_manager.draw_ui(display_surface, camera.camera.topleft)  # Draw the UI elements last to ensure they are on top
-    
     for sprite in all_sprites:
         if isinstance(sprite, Player):
             sprite.update(keys)
@@ -211,7 +214,7 @@ while running:
         elif isinstance(sprite, TNT) or isinstance(sprite, Torch):
             sprite.update(alive_knights, alive_archers)
         elif isinstance(sprite, Pawn):
-            sprite.update(dt, trees, alive_pawns, targeted_trees)
+            sprite.update(dt, trees, targeted_trees,not_fully_constructed_buildings,grace_period_start_time,grace_period)
 
     # Update and draw projectiles
     projectiles.update(dt, alive_knights, alive_archers)
@@ -220,6 +223,10 @@ while running:
     # Draw trees once
     for tree in trees:
         tree.draw(display_surface, camera.camera.topleft)
+        if tree.is_destroyed and tree.destroy_time is None:
+            resource = tree.spawn_resource()
+            if resource:
+                all_sprites.add(resource)
 
     # Draw houses and towers after other sprites
     for house in houses:

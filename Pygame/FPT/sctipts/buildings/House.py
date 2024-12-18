@@ -12,11 +12,13 @@ class House(pygame.sprite.Sprite):
         self.knights = []
         self.archers = []
         self.construction_complete = False
+        self.construction_status = 'under_construction'
 
     def update_construction_status(self, wave_ended):
         if wave_ended:
             self.image = self.finished_image
             self.construction_complete = True
+            self.is_fully_constructed()
 
     def spawn_knight(self, knight):
         if self.construction_complete:
@@ -31,3 +33,5 @@ class House(pygame.sprite.Sprite):
     def draw(self, surface, camera_offset):
         adjusted_rect = self.rect.move(camera_offset)
         surface.blit(self.image, adjusted_rect)
+    def is_fully_constructed(self):
+        return self.construction_status == 'finished'
