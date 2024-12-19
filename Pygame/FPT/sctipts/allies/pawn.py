@@ -1,11 +1,9 @@
 import pygame
-import random
-import time
 
 IDLE = 'idle'
 RUN = 'run'
 CHOPPING = 'chopping'
-CONSTRUCTING = 'constructing'
+COLLECTING = 'collecting'
 
 class Pawn(pygame.sprite.Sprite):
     ANIMATION_SPEED = 750
@@ -14,7 +12,7 @@ class Pawn(pygame.sprite.Sprite):
     def __init__(self, *groups):
         super().__init__(*groups)
         self.target_tree = None
-        self.target_building = None
+        self.target_resource = None
         self.state = IDLE  # Ensure the initial state is IDLE
         self.sprites = self.load_sprites()
         self.current_sprite = 0
@@ -24,7 +22,6 @@ class Pawn(pygame.sprite.Sprite):
         self.rect.center = (1280 // 2, 720 // 2)  
         self.health = 100
         self.facing_right = True  # Track the direction the pawn is facing
-        self.layer = 0  # Initialize layer attribute
 
     def load_sprites(self):
         idle_sprites = [
@@ -36,14 +33,11 @@ class Pawn(pygame.sprite.Sprite):
         chopping_sprites = [
             pygame.image.load(f'Animations/Pawn/Chopping/Pawn_Blue_Chopping_{i}.png') for i in range(1, 6)
         ]
-        building_sprites = [
-            pygame.image.load(f'Animations/Pawn/Building/Pawn_Blue_Building_{i}.png') for i in range(1, 6)
-        ]
         return {
             IDLE: idle_sprites,
             RUN: run_sprites,
             CHOPPING: chopping_sprites,
-            CONSTRUCTING: building_sprites,
+            COLLECTING: run_sprites,  # Use run sprites for collecting as a placeholder
         }
 
     def animate(self, dt):
@@ -72,7 +66,6 @@ class Pawn(pygame.sprite.Sprite):
             else:
                 self.rect.center = self.target_tree.rect.center
                 self.state = CHOPPING
-                print("Reached tree, starting to chop")
             
             # Check for collisions with other pawns
             for pawn in pawns:
@@ -87,47 +80,26 @@ class Pawn(pygame.sprite.Sprite):
                     elif dy < 0:
                         self.rect.top = pawn.rect.bottom
 
-    def update(self, dt, trees, targeted_trees, buildings, grace_period_start_time, grace_period):
-        print(self.state)
+    def update(self, dt, trees, targeted_trees, resources):
+        if self.state == CHOPPING:
+            self.chop_tree()
+
         if self.state == IDLE:
-            self.check_for_buildings(buildings)
-            if self.state == IDLE:  # Only search for trees if no buildings need construction
-                self.search_for_trees(trees, targeted_trees)
-        if self.target_building:
-            if self.state != CONSTRUCTING:
-                self.move_towards_building(dt)
-            if self.state == CONSTRUCTING:
-                self.construct_building(grace_period_start_time, grace_period)
-        else:
-            if self.target_tree is None or self.target_tree not in trees:
-                self.target_tree = self.get_nearest_tree(trees, targeted_trees)
-                if self.target_tree:
-                    targeted_trees.add(self.target_tree)
+            self.search_for_trees(trees, targeted_trees)
+            if not self.target_tree:
+                self.search_for_resources(resources)
 
+        if self.target_tree is None or self.target_tree not in trees:
+            self.target_tree = self.get_nearest_tree(trees, targeted_trees)
             if self.target_tree:
-                self.move_towards_tree(dt)
+                targeted_trees.add(self.target_tree)
 
-            if self.state == CHOPPING:
-                self.chop_tree()
+        if self.target_tree:
+            self.move_towards_tree(dt)
+        elif self.target_resource:
+            self.move_towards_resource(dt)
+
         self.animate(dt)
-    
-    def move_towards_building(self, dt):
-        if self.target_building:
-            target_position = pygame.math.Vector2(self.target_building.rect.centerx-10, self.target_building.rect.centery +60)  # Move a bit lower than the target position
-            direction = target_position - pygame.math.Vector2(self.rect.center)
-            if direction.length() != 0:
-                direction = direction.normalize() * 100 * dt  # Move at a speed of 100 pixels per second
-                self.rect.move_ip(direction)
-                
-                # Flip the sprite based on the direction
-                if direction.x < 0 and self.facing_right:
-                    self.facing_right = False
-                    self.image = pygame.transform.flip(self.image, True, False)  # Flip the sprite if moving left
-                elif direction.x > 0 and not self.facing_right:
-                    self.facing_right = True
-                    self.image = pygame.transform.flip(self.image, True, False)  # Flip the sprite if moving right
-            else:
-                self.state = CONSTRUCTING  # Transition to CONSTRUCTING state once the building is reached
 
     def search_for_trees(self, trees, targeted_trees):
         for tree in trees:
@@ -152,7 +124,7 @@ class Pawn(pygame.sprite.Sprite):
                 self.target_tree.take_damage(1)  # Deal damage to the tree
                 if self.target_tree.health <= 0:
                     self.target_tree = None
-                    self.state = IDLE
+                    self.state = IDLE  # Transition to IDLE state after chopping down the tree
 
     def get_nearest_tree(self, trees, targeted_trees):
         nearest_tree = None
@@ -184,27 +156,35 @@ class Pawn(pygame.sprite.Sprite):
             else:
                 self.state = CHOPPING
 
-    def check_for_buildings(self, buildings):
-        for building in buildings:
-            if building.construction_status == "under_construction":
-                self.target_building = building
-                self.state = RUN  # Set state to RUN when a building is found
-                break
-
-    def construct_building(self, grace_period_start_time, grace_period):
-        if grace_period_start_time is None:
-            grace_period_start_time = time.time()
-        if self.target_building:
-            current_time = time.time()
-            if current_time - grace_period_start_time < grace_period:
-                self.state = CONSTRUCTING
-                for group in self.groups():
-                    if isinstance(group, pygame.sprite.LayeredUpdates):
-                        group.change_layer(self, 3)  # Set the layer to 1 (top layer) when constructing
+    def move_towards_resource(self, dt):
+        if self.target_resource:
+            self.state = COLLECTING  # Set state to COLLECTING when moving towards the resource
+            target_position = pygame.math.Vector2(self.target_resource.rect.center)
+            direction = target_position - pygame.math.Vector2(self.rect.center)
+            if direction.length() != 0:
+                direction = direction.normalize() * 100 * dt  # Move at a speed of 100 pixels per second
+                self.rect.move_ip(direction)
+                
+                # Flip the sprite based on the direction
+                if direction.x < 0 and self.facing_right:
+                    self.facing_right = False
+                    self.image = pygame.transform.flip(self.image, True, False)  # Flip the sprite if moving left
+                elif direction.x > 0 and not self.facing_right:
+                    self.facing_right = True
+                    self.image = pygame.transform.flip(self.image, True, False)  # Flip the sprite if moving right
             else:
-                self.target_building = None
-                for group in self.groups():
-                    if isinstance(group, pygame.sprite.LayeredUpdates):
-                        group.change_layer(self, 0)  # Reset the layer to 0 when not constructing
-                    group.change_layer(self, 0)  # Reset the layer to 0 when not constructing
-                self.layer = 0  # Reset the layer to 0 when not constructing
+                self.collect_resource()
+
+    def collect_resource(self):
+        if self.target_resource:
+            self.rect.center = self.target_resource.rect.center
+            self.target_resource.kill()
+            self.target_resource = None
+            self.state = IDLE
+
+    def search_for_resources(self, resources):
+        for resource in resources:
+            if self.rect.colliderect(resource.rect.inflate(100, 100)):
+                self.target_resource = resource
+                self.state = COLLECTING
+                break

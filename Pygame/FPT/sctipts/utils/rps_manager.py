@@ -22,24 +22,6 @@ class RPSManager:
             map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
             print(f"Mouse position: {mouse_pos}, Map position: {map_pos}")
             if event.button == 3:  # Right click
-                for sprite in all_sprites:
-                    if isinstance(sprite, (Knight, Archer)) and sprite.rect.collidepoint(map_pos):
-                        if sprite in self.selected_units:
-                            sprite.deselect()
-                            self.selected_units.remove(sprite)
-                        else:
-                            self.selected_units.append(sprite)
-                            sprite.selection()
-                        break  # Stop checking other sprites once a unit is selected or deselected
-            elif event.button == 1:  # Left click
-                if self.selected_units:
-                    for unit in self.selected_units:
-                        unit.move_to_click_position(map_pos)
-                    self.move_marker = map_pos
-                    self.marker_time = pygame.time.get_ticks()  # Set the time when the marker is set
-                    self.marker_alpha = 255  # Reset alpha to full opacity
-                    self.marker_scale = 1.0  # Reset scale for the placement animation
-            elif event.button == 2:  # Middle click
                 self.dragging = True
                 self.drag_start = map_pos
                 self.drag_rect = pygame.Rect(self.drag_start, (0, 0))
@@ -52,17 +34,41 @@ class RPSManager:
                 self.drag_rect.height = map_pos[1] - self.drag_start[1]
 
         elif event.type == pygame.MOUSEBUTTONUP:
-            if event.button == 2 and self.dragging:
+            mouse_pos = pygame.mouse.get_pos()
+            map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
+            if event.button == 3:  # Right click
                 self.dragging = False
-                for sprite in all_sprites:
-                    if isinstance(sprite, (Knight, Archer)) and self.drag_rect.colliderect(sprite.rect):
-                        if sprite in self.selected_units:
-                            sprite.deselect()
-                            self.selected_units.remove(sprite)
-                        else:
-                            self.selected_units.append(sprite)
-                            sprite.selection()
+                if self.drag_rect.width == 0 and self.drag_rect.height == 0:
+                    # Single unit selection
+                    for sprite in all_sprites:
+                        if isinstance(sprite, (Knight, Archer)) and sprite.rect.collidepoint(map_pos):
+                            if sprite in self.selected_units:
+                                sprite.deselect()
+                                self.selected_units.remove(sprite)
+                            else:
+                                self.selected_units.append(sprite)
+                                sprite.selection()
+                            break  # Stop checking other sprites once a unit is selected or deselected
+                else:
+                    # Drag selection
+                    for sprite in all_sprites:
+                        if isinstance(sprite, (Knight, Archer)) and self.drag_rect.colliderect(sprite.rect):
+                            if sprite in self.selected_units:
+                                sprite.deselect()
+                                self.selected_units.remove(sprite)
+                            else:
+                                self.selected_units.append(sprite)
+                                sprite.selection()
                 self.drag_rect = None
+
+            elif event.button == 1:  # Left click
+                if self.selected_units:
+                    for unit in self.selected_units:
+                        unit.move_to_click_position(map_pos)
+                    self.move_marker = map_pos
+                    self.marker_time = pygame.time.get_ticks()  # Set the time when the marker is set
+                    self.marker_alpha = 255  # Reset alpha to full opacity
+                    self.marker_scale = 1.0  # Reset scale for the placement animation
 
     def draw_marker(self, surface):
         if self.move_marker:
@@ -98,4 +104,5 @@ class RPSManager:
                 surface.blit(exclamation_mark, exclamation_rect)
             self.ui.draw_knight_faces(surface, self.selected_units)
         if self.drag_rect:
-            pygame.draw.rect(surface, (0, 255, 0), self.drag_rect, 2)
+            adjusted_drag_rect = self.drag_rect.move(camera_offset)
+            pygame.draw.rect(surface, (0, 255, 0), adjusted_drag_rect, 2)

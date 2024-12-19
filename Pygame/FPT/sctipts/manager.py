@@ -10,7 +10,7 @@ from enemy.TNT import TNT
 from utils.rps_manager import RPSManager
 from buildings.House import House
 from buildings.Tower import Tower
-from Reasources.Tree import Tree
+from Resources.Tree import Tree
 
 pygame.init()
 WINDOW_HEIGHT, WINDOW_WIDTH = 1280, 720
@@ -23,6 +23,11 @@ cursor_image = pygame.image.load('Tiny_Swords_Assets/UI/Pointers/01.png')
 cursor_image = pygame.transform.scale(cursor_image, (64, 64))  # Scale the image if necessary
 cursor_data = pygame.cursors.Cursor((0, 0), cursor_image)
 pygame.mouse.set_cursor(cursor_data)
+
+"""
+    1.) Fix it so the amount of units spawned from the house is fixed
+    2.) Fix the issue with the idle animation
+"""
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -42,16 +47,24 @@ class Player(pygame.sprite.Sprite):
             self.rect.move_ip(0, -self.speed)
 
 def draw_grid(surface, camera):
-    for x in range(0, 2000, 100):
-        for y in range(0, 2000, 100):
+    start_x = max(0, camera.camera.x // 100 * 100)
+    start_y = max(0, camera.camera.y // 100 * 100)
+    end_x = min(2000, (camera.camera.x + WINDOW_WIDTH) // 100 * 100 + 100)
+    end_y = min(2000, (camera.camera.y + WINDOW_HEIGHT) // 100 * 100 + 100)
+    for x in range(start_x, end_x, 100):
+        for y in range(start_y, end_y, 100):
             rect = pygame.Rect(x, y, 100, 100)
             adjusted_rect = rect.move(camera.camera.topleft)
             pygame.draw.rect(surface, (200, 200, 200), adjusted_rect, 1)
 
 def draw_grid_coordinates(surface, camera):
     font = pygame.font.SysFont(None, 24)
-    for x in range(0, 2000, 100):
-        for y in range(0, 2000, 100):
+    start_x = max(0, camera.camera.x // 100 * 100)
+    start_y = max(0, camera.camera.y // 100 * 100)
+    end_x = min(2000, (camera.camera.x + WINDOW_WIDTH) // 100 * 100 + 100)
+    end_y = min(2000, (camera.camera.y + WINDOW_HEIGHT) // 100 * 100 + 100)
+    for x in range(start_x, end_x, 100):
+        for y in range(start_y, end_y, 100):
             adjusted_x, adjusted_y = x + camera.camera.topleft[0], y + camera.camera.topleft[1]
             text_surface = font.render(f'({x}, {y})', True, (255, 255, 255))
             surface.blit(text_surface, (adjusted_x + 5, adjusted_y + 5))
@@ -68,19 +81,17 @@ def spawn_wave(wave, all_sprites, projectiles, houses, towers):
         
     for house in houses:
         house.update_construction_status(wave_ended=True)
-        for _ in range(2):  # Spawn 2 archers and 2 knights per house
-            archer = Archer()
-            house.spawn_archer(archer)
-            all_sprites.add(archer)
-            knight = Knight()
-            house.spawn_knight(knight)
-            all_sprites.add(knight)
+        archer = Archer()
+        house.spawn_archer(archer)
+        all_sprites.add(archer)
+        knight = Knight()
+        house.spawn_knight(knight)
+        all_sprites.add(knight)
     for tower in towers:
         if tower.wave_counter is None:
             tower.wave_counter = wave + 2  # Set the wave counter to the current wave + 2
         if wave >= tower.wave_counter:
             tower.update_construction_status(wave_ended=True)
-
 
 def get_nearest_archer(tower, archers):
     nearest_archer = None
@@ -99,6 +110,7 @@ all_sprites = pygame.sprite.Group(player)
 projectiles = pygame.sprite.Group()
 houses = []
 towers = []
+resources = []
 
 # Create a House instance
 house = House(x=1000, y=500, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png',construction_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png')
@@ -122,10 +134,9 @@ for i in range(1):
 for _ in range(10):
     archer = Archer()
     all_sprites.add(archer)
-for _ in range(50):
+for _ in range(10):
     knight = Knight()
     all_sprites.add(knight)
-
 
 wave = 1
 grace_period = 60  # 3 minutes in seconds
@@ -134,7 +145,7 @@ spawn_wave(wave, all_sprites, projectiles, houses, towers)
 
 rps_manager = RPSManager()
 clock = pygame.time.Clock()
-
+resources = pygame.sprite.Group()
 # Variable to track if a house or tower is being placed
 placing_building = False
 building_to_place = None
@@ -172,7 +183,19 @@ while running:
                         if nearest_archer:
                             tower.place_unit(nearest_archer)
                             break
-        if event.type == pygame.MOUSEWHEEL:
+                for house in houses:
+                    if house.rect.collidepoint(map_pos):
+                        print("House UI should be shown")
+                        house.ui_visible = not house.ui_visible  # Toggle UI visibility
+                        if house.ui_visible:
+                            house.show_spawn_ui(display_surface, pygame.font.SysFont(None, 24), camera.camera.topleft)
+                        else:
+                            house.ui_visible = False
+            # Handle clicks on the house UI buttons
+            for house in houses:
+                if house.ui_visible:
+                    house.handle_click(mouse_pos)
+        if event.type == pygame.MOUSEWHEEL and grace_period_start_time is not None:
             # Start placing a house or tower if the scroll wheel is used
             placing_building = True
             if place_house_next:
@@ -214,8 +237,7 @@ while running:
         elif isinstance(sprite, TNT) or isinstance(sprite, Torch):
             sprite.update(alive_knights, alive_archers)
         elif isinstance(sprite, Pawn):
-            sprite.update(dt, trees, targeted_trees,not_fully_constructed_buildings,grace_period_start_time,grace_period)
-
+            sprite.update(dt,trees,targeted_trees,resources)
     # Update and draw projectiles
     projectiles.update(dt, alive_knights, alive_archers)
     for projectile in projectiles:
@@ -223,16 +245,22 @@ while running:
     # Draw trees once
     for tree in trees:
         tree.draw(display_surface, camera.camera.topleft)
-        if tree.is_destroyed and tree.destroy_time is None:
+        tree.update()
+        if tree.is_destroyed and not tree.resource_spawned:
             resource = tree.spawn_resource()
-            if resource:
+            if resource is not None:
+                resources.add(resource)
                 all_sprites.add(resource)
+    
+    # Update and draw resources
+    resources.update(dt)
 
     # Draw houses and towers after other sprites
     for house in houses:
         house.draw(display_surface,camera.camera.topleft)
+        
     for tower in towers:
-        tower.draw_tower(display_surface,camera.camera.topleft)
+        tower.draw_tower(display_surface, camera.camera.topleft)
 
     # Check if all enemies are dead
     if not alive_enemies:
@@ -265,12 +293,18 @@ while running:
     # Check if it's time to spawn knights and archers for placed houses
     for house, placement_time in placed_houses[:]:
         if time.time() - placement_time >= 60:  # 1 minute delay
-            for _ in range(2):
-                archer = Archer()
-                house.spawn_archer(archer)
-                all_sprites.add(archer)
+            archer = Archer()
+            knight = Knight()
+            house.spawn_archer(archer)
+            house.spawn_knight(knight)
+            all_sprites.add(archer)
+            all_sprites.add(knight)
             placed_houses.remove((house, placement_time))
 
+    # Ensure the house UI is drawn last
+    for house in houses:
+        if house.ui_visible:
+            house.show_spawn_ui(display_surface, pygame.font.SysFont(None, 24), camera.camera.topleft)
     pygame.display.update()
 
 pygame.quit()
