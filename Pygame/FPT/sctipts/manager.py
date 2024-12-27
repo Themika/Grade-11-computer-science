@@ -9,9 +9,11 @@ from enemy.torch import Torch
 from enemy.TNT import TNT
 from utils.rps_manager import RPSManager
 from buildings.House import House
+from Resources.GoldMine import GoldMine
 from buildings.Tower import Tower
 from Resources.Tree import Tree
 from Resources.RawReasources.log import Log
+from Resources.Sheep import Sheep
 
 pygame.init()
 WINDOW_HEIGHT, WINDOW_WIDTH = 1280, 720
@@ -100,9 +102,11 @@ def get_nearest_archer(tower, archers):
                 nearest_archer = archer
     return nearest_archer
 
+gold_mines = pygame.sprite.Group()
+sheeps = pygame.sprite.Group()
 trees = pygame.sprite.Group()
 logs = pygame.sprite.Group()
-
+golds = pygame.sprite.Group()
 
 player = Player()
 camera = Camera(WINDOW_HEIGHT, WINDOW_WIDTH)
@@ -125,10 +129,21 @@ for _ in range(50):
     tree = Tree(x, y, logs)
     trees.add(tree)
     all_sprites.add(tree)
+for _ in range(1):
+    x = random.randint(0, 2000)
+    y = random.randint(0, 2000)
+    gold_mine = GoldMine(x, y, logs)
+    gold_mines.add(gold_mine)
+    all_sprites.add(gold_mine)
 
 for i in range(5):
     pawn = Pawn()
     all_sprites.add(pawn)
+
+for _ in range(5):
+    sheep = Sheep(random.randint(0, 2000), random.randint(0, 2000),sheeps)
+    sheeps.add(sheep)
+    all_sprites.add(sheep)
 
 for _ in range(10):
     archer = Archer()
@@ -234,7 +249,7 @@ while running:
         elif isinstance(sprite, Knight):
             sprite.update(dt, alive_enemies, alive_knights)
         elif isinstance(sprite, Pawn):
-            sprite.update(dt, trees, targeted_trees, logs)
+            sprite.update(dt, trees, targeted_trees, logs, gold_mines)
         elif isinstance(sprite, TNT) or isinstance(sprite, Torch):
             sprite.update(alive_knights, alive_archers)
     # Update and draw projectiles
@@ -254,7 +269,10 @@ while running:
     for log in logs:
         log.draw(display_surface, camera.camera.topleft)
         log.update()
-
+    for gold in gold_mines:
+        gold.update()
+    for sheep in sheeps:
+        sheep.update()
     # Draw houses and towers after other sprites
     for house in houses:
         house.draw(display_surface,camera.camera.topleft)
