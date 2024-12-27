@@ -1,59 +1,34 @@
 import pygame
-import os
 
 class Resource(pygame.sprite.Sprite):
-    ANIMATION_SPEED = 700
-    ANIMATION_DURATION = 500  # 3 seconds in milliseconds
-
-    def __init__(self, x, y, images_folder, spawn_animation_frames, final_image):
+    def __init__(self, x, y, final_image, spawn_images=None, spawn_duration=0):
         super().__init__()
         self.x = x
         self.y = y
-        self.images_folder = images_folder
-        self.spawn_animation_frames = spawn_animation_frames
-        self.current_frame = 0
-        self.image = self.spawn_animation_frames[self.current_frame]
-        self.rect = self.image.get_rect(topleft=(self.x, self.y))
-        self.animation_timer = 0
-        self.sprites = {'spawn': self.spawn_animation_frames}
-        self.animation_done = False
         self.final_image = pygame.image.load(final_image).convert_alpha()
+        self.image = self.final_image
+        self.rect = self.image.get_rect(topleft=(self.x, self.y))
+        self.spawn_images = spawn_images if spawn_images else []
+        self.spawn_duration = spawn_duration
         self.spawn_start_time = pygame.time.get_ticks()
+        self.image_index = 0
 
-    def load_sprites(self):
-        sprites = {
-            'spawn': self.load_images(self.images_folder)
-        }
-        return sprites
+    def add_spawn_image(self, image):
+        self.spawn_images.append(image)
+        if len(self.spawn_images) == 1:
+            self.image = image
 
-    def load_images(self, folder):
-        images = []
-        for filename in os.listdir(folder):
-            if filename.endswith('.png'):
-                img = pygame.image.load(os.path.join(folder, filename)).convert_alpha()
-                images.append(img)
-        return images
-
-    def update(self, dt):
+    def update(self):
         current_time = pygame.time.get_ticks()
-        if current_time - self.spawn_start_time >= self.ANIMATION_DURATION:
-            self.animation_done = True
-            self.sprites['spawn'] = []  # Destroy the spawn animation frames
+        elapsed_time = current_time - self.spawn_start_time
+
+        if elapsed_time < self.spawn_duration and self.spawn_images:
+            frame_duration = self.spawn_duration // len(self.spawn_images)
+            self.image_index = min(elapsed_time // frame_duration, len(self.spawn_images) - 1)
+            self.image = self.spawn_images[self.image_index]
+        else:
             self.image = self.final_image
-            self.rect = self.image.get_rect(topleft=(self.x, self.y))
 
-        if not self.animation_done:
-            self.animate(dt)
-
-    def animate(self, dt):
-        self.animation_timer += dt * 1000
-        if self.animation_timer >= self.ANIMATION_SPEED:
-            self.animation_timer = 0
-            self.current_frame += 1
-            if self.current_frame >= len(self.sprites['spawn']):
-                self.animation_done = True
-                self.image = self.final_image
-            else:
-                self.image = self.sprites['spawn'][self.current_frame]
-            self.rect = self.image.get_rect(topleft=(self.x, self.y))
-        self.animation_done = True
+    def draw(self, surface, camera_offset):
+        adjusted_rect = self.rect.move(camera_offset)
+        surface.blit(self.image, adjusted_rect)

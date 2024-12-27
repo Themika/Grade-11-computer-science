@@ -1,13 +1,12 @@
 import pygame
 import os
-import time
-
+import random
 from Resources.RawReasources.log import Log
 
 class Tree(pygame.sprite.Sprite):
     ANIMATION_SPEED = 60 / 1000
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, log_group):
         super().__init__()
         self.x = x
         self.y = y
@@ -17,10 +16,10 @@ class Tree(pygame.sprite.Sprite):
         self.image = self.idle_images[self.current_image]
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
         self.animation_counter = 0
-        self.health = 100
+        self.health = 500
         self.is_destroyed = False
-        self.destroy_time = None
-        self.resource_spawned = False  # Flag to track if resource has been spawned
+        self.logs_spawned = False  
+        self.log_group = log_group  
 
     def load_images(self, folder):
         images = []
@@ -32,10 +31,8 @@ class Tree(pygame.sprite.Sprite):
 
     def update(self):
         self.animate()
-        if self.is_destroyed and self.destroy_time and time.time() - self.destroy_time >= 0.5:
-            self.destroy_time = None
-            if not self.resource_spawned:
-                self.spawn_resource()
+        if self.health <= 0 and not self.is_destroyed:
+            self.spawn_log()
 
     def animate(self):
         self.animation_counter += self.ANIMATION_SPEED
@@ -44,7 +41,7 @@ class Tree(pygame.sprite.Sprite):
             if not self.is_destroyed:
                 self.current_image = (self.current_image + 1) % len(self.idle_images)
                 self.image = self.idle_images[self.current_image]
-            elif self.resource_spawned:
+            else:
                 self.current_image = (self.current_image + 1) % len(self.destroyed_images)
                 self.image = self.destroyed_images[self.current_image]
             self.rect = self.image.get_rect(topleft=(self.x, self.y))
@@ -55,15 +52,16 @@ class Tree(pygame.sprite.Sprite):
 
     def take_damage(self, amount):
         self.health -= amount
-        if self.health <= 0 and not self.is_destroyed:
-            self.health = 0
+        if self.health <= 0:
             self.is_destroyed = True
-            self.current_image = 0
-            self.destroy_time = time.time()
 
-    def spawn_resource(self):
-        if not self.resource_spawned:  # Check if resource has already been spawned
-            log = Log(self.x, self.y + 100, "Animations/Reasources/Tree/Logs", self.destroyed_images, "Tiny_Swords_Assets/Resources/Resources/W_Idle.png")
-            self.resource_spawned = True  # Set the flag to True after spawning the resource
-            return log
-        return None
+    def spawn_log(self):
+        """Spawns 3 logs at the tree's location within a 10 by 10 radius and marks the tree as destroyed."""
+        if not self.logs_spawned:  
+            for _ in range(3):
+                offset_x = random.randint(-30, 20)
+                offset_y = random.randint(-20, 20)
+                log = Log(self.rect.centerx + offset_x, self.rect.centery + offset_y, "Animations/Reasources/Tree/Logs/W_Spawn_7.png",500)
+                self.log_group.add(log)
+            self.logs_spawned = True  
+        self.is_destroyed = True

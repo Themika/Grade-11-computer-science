@@ -11,6 +11,7 @@ from utils.rps_manager import RPSManager
 from buildings.House import House
 from buildings.Tower import Tower
 from Resources.Tree import Tree
+from Resources.RawReasources.log import Log
 
 pygame.init()
 WINDOW_HEIGHT, WINDOW_WIDTH = 1280, 720
@@ -23,11 +24,6 @@ cursor_image = pygame.image.load('Tiny_Swords_Assets/UI/Pointers/01.png')
 cursor_image = pygame.transform.scale(cursor_image, (64, 64))  # Scale the image if necessary
 cursor_data = pygame.cursors.Cursor((0, 0), cursor_image)
 pygame.mouse.set_cursor(cursor_data)
-
-"""
-    1.) Fix it so the amount of units spawned from the house is fixed
-    2.) Fix the issue with the idle animation
-"""
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -104,13 +100,16 @@ def get_nearest_archer(tower, archers):
                 nearest_archer = archer
     return nearest_archer
 
+trees = pygame.sprite.Group()
+logs = pygame.sprite.Group()
+
+
 player = Player()
-camera = Camera(WINDOW_WIDTH, WINDOW_HEIGHT)
+camera = Camera(WINDOW_HEIGHT, WINDOW_WIDTH)
 all_sprites = pygame.sprite.Group(player)
 projectiles = pygame.sprite.Group()
 houses = []
 towers = []
-resources = []
 
 # Create a House instance
 house = House(x=1000, y=500, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png',construction_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png')
@@ -123,11 +122,11 @@ trees = pygame.sprite.Group()
 for _ in range(50):
     x = random.randint(0, 2000)
     y = random.randint(0, 2000)
-    tree = Tree(x, y)
+    tree = Tree(x, y, logs)
     trees.add(tree)
     all_sprites.add(tree)
 
-for i in range(1):
+for i in range(5):
     pawn = Pawn()
     all_sprites.add(pawn)
 
@@ -145,7 +144,6 @@ spawn_wave(wave, all_sprites, projectiles, houses, towers)
 
 rps_manager = RPSManager()
 clock = pygame.time.Clock()
-resources = pygame.sprite.Group()
 # Variable to track if a house or tower is being placed
 placing_building = False
 building_to_place = None
@@ -226,6 +224,7 @@ while running:
     
     rps_manager.draw_marker(display_surface)
     rps_manager.draw_ui(display_surface, camera.camera.topleft)  # Draw the UI elements last to ensure they are on top
+    
     for sprite in all_sprites:
         if isinstance(sprite, Player):
             sprite.update(keys)
@@ -234,26 +233,27 @@ while running:
             sprite.update(dt, alive_enemies)
         elif isinstance(sprite, Knight):
             sprite.update(dt, alive_enemies, alive_knights)
+        elif isinstance(sprite, Pawn):
+            sprite.update(dt, trees, targeted_trees, logs)
         elif isinstance(sprite, TNT) or isinstance(sprite, Torch):
             sprite.update(alive_knights, alive_archers)
-        elif isinstance(sprite, Pawn):
-            sprite.update(dt,trees,targeted_trees,resources)
     # Update and draw projectiles
     projectiles.update(dt, alive_knights, alive_archers)
     for projectile in projectiles:
         projectile.draw(display_surface, camera.camera.topleft)
     # Draw trees once
     for tree in trees:
-        tree.draw(display_surface, camera.camera.topleft)
         tree.update()
-        if tree.is_destroyed and not tree.resource_spawned:
-            resource = tree.spawn_resource()
-            if resource is not None:
-                resources.add(resource)
-                all_sprites.add(resource)
-    
-    # Update and draw resources
-    resources.update(dt)
+        tree.draw(display_surface, camera.camera.topleft)
+        if tree.health <= 0:
+            log = tree.spawn_log()
+            if log:
+                logs.add(log)
+                all_sprites.add(log)
+
+    for log in logs:
+        log.draw(display_surface, camera.camera.topleft)
+        log.update()
 
     # Draw houses and towers after other sprites
     for house in houses:
