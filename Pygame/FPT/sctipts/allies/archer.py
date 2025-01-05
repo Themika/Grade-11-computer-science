@@ -92,7 +92,7 @@ class Archer(pygame.sprite.Sprite):
 
     def movement(self):
         if self.on_tower:
-            self.DETECTION_RADIUS = 500
+            self.DETECTION_RADIUS = 800
             self.SHOOT_COOLDOWN = 700
             self.health = 400  # Increase health by 300
             self.state = State.IDLE if not self.target else State.ATTACK

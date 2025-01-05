@@ -6,7 +6,7 @@ from Resources.RawReasources.log import Log
 class Tree(pygame.sprite.Sprite):
     ANIMATION_SPEED = 60 / 1000
 
-    def __init__(self, x, y, log_group):
+    def __init__(self, x, y, log_group,reasouces_group):
         super().__init__()
         self.x = x
         self.y = y
@@ -20,6 +20,7 @@ class Tree(pygame.sprite.Sprite):
         self.is_destroyed = False
         self.logs_spawned = False  
         self.log_group = log_group  
+        self.reasouces_group = reasouces_group
 
     def load_images(self, folder):
         images = []
@@ -63,5 +64,6 @@ class Tree(pygame.sprite.Sprite):
                 offset_y = random.randint(-20, 20)
                 log = Log(self.rect.centerx + offset_x, self.rect.centery + offset_y, "Animations/Reasources/Tree/Logs/W_Spawn_7.png",500)
                 self.log_group.add(log)
+                self.reasouces_group.add(log)
             self.logs_spawned = True  
         self.is_destroyed = True

@@ -9,10 +9,11 @@ CHOPPING = 'chopping'
 MOVING_TO_DROP = 'moving_to_drop'
 MOVING_TO_MINE = 'moving_to_mine'
 CARRYING = 'carrying'
-POS = 'pos'  # New state for moving to mouse position
-WATCH = 'watch'  # New state for watching
+POS = 'pos'
+WATCH = 'watch'
 
 TOLERANCE = 20
+
 class Pawn(pygame.sprite.Sprite):
     ANIMATION_SPEED = 750
     SPEED = 3
@@ -40,6 +41,7 @@ class Pawn(pygame.sprite.Sprite):
         self.facing_right = True
         self.selected = False
         self.has_reached = False
+        self.on_tower = False
 
         self.drop_position = None
         self.mine_start_time = None
@@ -58,8 +60,8 @@ class Pawn(pygame.sprite.Sprite):
             MOVING_TO_DROP: load_images('Animations/Pawn/Carrying/Pawn_Blue_Carrying', 6),
             MOVING_TO_MINE: load_images('Animations/Pawn/Run/Pawn_Blue_Run', 5),
             CARRYING: load_images('Animations/Pawn/Carrying/Pawn_Blue_Carrying', 6),
-            POS: load_images('Animations/Pawn/Run/Pawn_Blue_Run', 5),  # Use the same animations as RUN
-            WATCH: load_images('Animations/Pawn/Idle/Pawn_Blue_Idle', 5),  # Use the same animations as IDLE
+            POS: load_images('Animations/Pawn/Run/Pawn_Blue_Run', 5),
+            WATCH: load_images('Animations/Pawn/Idle/Pawn_Blue_Idle', 5),
         }
 
     def flip_sprite(self):
@@ -94,9 +96,8 @@ class Pawn(pygame.sprite.Sprite):
             self.state = CHOPPING if target == self.target_tree else MOVING_TO_MINE
             if target == self.target_gold_mine:
                 self.mine_start_time = time.time()
-                print(f"Mine start time set to: {self.mine_start_time}")  # Debug print
                 self.target_gold_mine.image = self.target_gold_mine.destroyed_image
-                self.image.set_alpha(0)  # Make the pawn invisible
+                self.image.set_alpha(0)
         self.avoid_collisions(pawns, dx, dy)
 
     def update_facing_direction(self, dx):
@@ -119,27 +120,21 @@ class Pawn(pygame.sprite.Sprite):
                 elif dy < 0:
                     self.rect.top = pawn.rect.bottom
 
-    
-    def find_nearest_pawn(self, pawns):
-        nearest_pawn = min(
-            pawns,
-            key=lambda pawn: ((pawn.rect.centerx - self.rect.centerx) ** 2 + (pawn.rect.centery - self.rect.centery) ** 2) ** 0.5,
+    def find_nearest(self, sprites):
+        nearest_sprite = min(
+            sprites,
+            key=lambda sprite: ((sprite.rect.centerx - self.rect.centerx) ** 2 + (sprite.rect.centery - self.rect.centery) ** 2) ** 0.5,
             default=None
         )
-        return nearest_pawn
-    def find_nearest_sheep(self, sheep_sprites):
-        nearest_sheep = min(
-            sheep_sprites,
-            key=lambda sheep: ((sheep.rect.centerx - self.rect.centerx) ** 2 + (sheep.rect.centery - self.rect.centery) ** 2) ** 0.5,
-            default=None
-        )
-        return nearest_sheep
+        return nearest_sprite
 
-    def is_within_radius(self, sheep, radius):
-        dx, dy = sheep.rect.centerx - self.rect.centerx, sheep.rect.centery - self.rect.centery
+    def is_within_radius(self, sprite, radius):
+        dx, dy = sprite.rect.centerx - self.rect.centerx, sprite.rect.centery - self.rect.centery
         return abs(dx) <= radius and abs(dy) <= radius
 
     def chase_sheep(self, sheep, dt):
+        if self.holding_resources:
+            self.drop_resources()
         self.state = RUN
         target_position = pygame.math.Vector2(sheep.rect.center)
         if self.move_towards(target_position):
@@ -147,18 +142,17 @@ class Pawn(pygame.sprite.Sprite):
 
     def attack_sheep(self, sheep):
         self.state = CHOPPING
-        sheep.take_damage(10)  # Assuming the sheep has a take_damage method
+        sheep.take_damage(10)
 
-
-    def update(self, dt, trees, targeted_trees, resources, gold_mines, pawns,sheep_sprites):
+    def update(self, dt, trees, targeted_trees, resources, gold_mines, pawns, sheep_sprites):
         current_time = time.time()
-        nearest_sheep = self.find_nearest_sheep(sheep_sprites)
+        nearest_sheep = self.find_nearest(sheep_sprites)
         if nearest_sheep and self.is_within_radius(nearest_sheep, 50):
             self.chase_sheep(nearest_sheep, dt)
         else:
             if self.selected and self.target_position:
                 if self.move_towards(self.target_position):
-                    self.state = WATCH  # Switch to WATCH state once the pawn reaches the mouse position
+                    self.state = WATCH
                     self.target_position = None
                     self.has_reached = True
                     for tree in trees:
@@ -186,18 +180,16 @@ class Pawn(pygame.sprite.Sprite):
                     self.handle_idle_state(dt, trees, targeted_trees, resources, gold_mines, current_time)
         self.animate(dt)
 
-        # Assign the nearest pawn to the gold mine
         if Pawn.mine_pawn is None and current_time - Pawn.mine_cooldown_timer >= 30 and gold_mines:
-            nearest_pawn = self.find_nearest_pawn(pawns)
+            nearest_pawn = self.find_nearest(pawns)
             if nearest_pawn:
                 Pawn.mine_pawn = nearest_pawn
-                nearest_pawn.target_gold_mine = gold_mines.sprites()[0]  # Use sprites() to get the list of gold mine objects
+                nearest_pawn.target_gold_mine = gold_mines.sprites()[0]
                 nearest_pawn.state = RUN
         elif self == Pawn.mine_pawn and self.mine_start_time is not None and current_time - self.mine_start_time >= 30:
             Pawn.mine_pawn = None
             Pawn.mine_cooldown_timer = current_time
             self.state = IDLE
-
 
     def move_towards(self, target, tolerance=TOLERANCE):
         dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
@@ -212,8 +204,8 @@ class Pawn(pygame.sprite.Sprite):
             self.update_held_resources_position()
             return False
         return True
+
     def handle_mining(self, current_time):
-        print(self.mine_start_time is not None and current_time - self.mine_start_time >= 2)
         if self.mine_start_time is not None and current_time - self.mine_start_time >= 2:
             if hasattr(self.target_gold_mine, 'spawn_gold'):
                 self.target_gold_mine.spawn_gold()
@@ -250,7 +242,7 @@ class Pawn(pygame.sprite.Sprite):
 
             if Pawn.mine_pawn is None and current_time - Pawn.mine_cooldown_timer >= 30 and gold_mines:
                 Pawn.mine_pawn = self
-                self.target_gold_mine = gold_mines.sprites()[0]  # Use sprites() to get the list of gold mine objects
+                self.target_gold_mine = gold_mines.sprites()[0]
                 self.state = RUN
             elif self == Pawn.mine_pawn and self.mine_start_time is not None and current_time - self.mine_start_time >= 30:
                 Pawn.mine_pawn = None
@@ -319,7 +311,7 @@ class Pawn(pygame.sprite.Sprite):
             self.mine_start_time = time.time()
 
     def pick_up_resource(self, resource):
-        resource.rect.midbottom = (self.rect.midtop[0], self.rect.midtop[1] - 150)  # Adjusted to place the resource lower
+        resource.rect.midbottom = (self.rect.midtop[0], self.rect.midtop[1] - 150)
         self.holding_resources.append(resource)
         self.target_resources.pop(0)
         if not self.target_resources or len(self.holding_resources) >= 2:
@@ -334,9 +326,9 @@ class Pawn(pygame.sprite.Sprite):
                 nearby_resources.sort(key=lambda resource: ((resource.rect.centerx - self.rect.centerx) ** 2 + (resource.rect.centery - self.rect.centery) ** 2) ** 0.5)
                 self.target_resources = nearby_resources[:3]
                 self.state = RUN
-                self.search_radius = 50  # Reset search radius after finding resources
+                self.search_radius = 50
             else:
-                self.search_radius += 50  # Increase search radius if no resources found
+                self.search_radius += 50
         elif len(resources) > 5:
             self.target_resources = sorted(resources, key=lambda resource: ((resource.rect.centerx - self.rect.centerx) ** 2 + (resource.rect.centery - self.rect.centery) ** 2) ** 0.5)[:3]
             self.state = RUN
@@ -360,7 +352,6 @@ class Pawn(pygame.sprite.Sprite):
             self.rect.move_ip(direction)
             self.update_facing_direction(direction.x)
 
-
     def update_held_resources_position(self):
         for i, resource in enumerate(self.holding_resources):
             resource.rect.midbottom = (self.rect.midtop[0], self.rect.midtop[1] - i * 10)
@@ -374,15 +365,15 @@ class Pawn(pygame.sprite.Sprite):
     def draw(self, screen):
         for resource in self.holding_resources:
             screen.blit(resource.image, resource.rect.topleft)
-    
+
     def selection(self):
         self.selected = True
+
     def deselect(self):
         self.selected = False
         self.state = IDLE
-        
+
     def move_to_click_position(self, position):
         self.target_position = position
         self.state = POS  
         self.has_reached = False
-        

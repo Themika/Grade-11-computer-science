@@ -105,7 +105,10 @@ def get_nearest_archer(tower, archers):
 gold_mines = pygame.sprite.Group()
 sheeps = pygame.sprite.Group()
 trees = pygame.sprite.Group()
+
+reasources = pygame.sprite.Group()
 logs = pygame.sprite.Group()
+meats = pygame.sprite.Group()
 golds = pygame.sprite.Group()
 
 player = Player()
@@ -126,22 +129,22 @@ trees = pygame.sprite.Group()
 for _ in range(50):
     x = random.randint(0, 2000)
     y = random.randint(0, 2000)
-    tree = Tree(x, y, logs)
+    tree = Tree(x, y, logs,reasources)
     trees.add(tree)
     all_sprites.add(tree)
 for _ in range(1):
     x = random.randint(0, 2000)
     y = random.randint(0, 2000)
-    gold_mine = GoldMine(x, y, logs)
+    gold_mine = GoldMine(x, y, golds,reasources)
     gold_mines.add(gold_mine)
     all_sprites.add(gold_mine)
 
-for i in range(3):
+for i in range(10):
     pawn = Pawn()
     all_sprites.add(pawn)
 
 for _ in range(5):
-    sheep = Sheep(random.randint(0, 2000), random.randint(0, 2000),sheeps)
+    sheep = Sheep(random.randint(0, 2000), random.randint(0, 2000),sheeps,meats)
     sheeps.add(sheep)
     all_sprites.add(sheep)
 
@@ -192,13 +195,16 @@ while running:
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 for tower in towers:
                     if tower.rect.collidepoint(map_pos):
-                        nearest_archer = get_nearest_archer(tower, alive_allies)
-                        if nearest_archer:
-                            tower.place_unit(nearest_archer)
-                            break
+                        if tower.unit_on_tower:
+                            tower.remove_unit()
+                        else:
+                            nearest_archer = get_nearest_archer(tower, alive_archers)
+                            if nearest_archer:
+                                tower.place_unit(nearest_archer)
+                                nearest_archer.on_tower = True
+                        break
                 for house in houses:
                     if house.rect.collidepoint(map_pos):
-                        print("House UI should be shown")
                         house.ui_visible = not house.ui_visible  # Toggle UI visibility
                         if house.ui_visible:
                             house.show_spawn_ui(display_surface, pygame.font.SysFont(None, 24), camera.camera.topleft)
@@ -249,7 +255,7 @@ while running:
         elif isinstance(sprite, Knight):
             sprite.update(dt, alive_enemies, alive_knights)
         elif isinstance(sprite, Pawn):
-            sprite.update(dt, trees, targeted_trees, logs, gold_mines, alive_pawns,sheeps)
+            sprite.update(dt, trees, targeted_trees, reasources, gold_mines, alive_pawns,sheeps)
         elif isinstance(sprite, TNT) or isinstance(sprite, Torch):
             sprite.update(alive_knights, alive_archers)
     # Update and draw projectiles
@@ -269,11 +275,34 @@ while running:
     for log in logs:
         log.draw(display_surface, camera.camera.topleft)
         log.update()
+
+    for gold_mine in gold_mines:
+        gold_mine.update()
+        gold_mine.draw(display_surface, camera.camera.topleft)
+        if gold_mine.is_destroyed:
+            for gold in gold_mine.gold_group:
+                gold.draw(display_surface, camera.camera.topleft)
+                gold.update()
+        if gold_mine.gold_spawned:
+            gold = gold_mine.spawn_gold()
+            if gold:
+                golds.add(gold)
+                all_sprites.add(gold)
+
+
     for gold in gold_mines:
         gold.update()
+
     for sheep in sheeps:
         sheep.update()
-    # Draw houses and towers after other sprites
+        if sheep.health <= 0:
+            meat = sheep.spawn_meat()
+            if meat:
+                meats.add(meat)
+                all_sprites.add(meat)
+    for meat in meats:
+        meat.update()
+    
     for house in houses:
         house.draw(display_surface,camera.camera.topleft)
         

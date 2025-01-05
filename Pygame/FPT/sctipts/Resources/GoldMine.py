@@ -5,7 +5,7 @@ from Resources.RawReasources.gold import Gold
 
 class GoldMine(pygame.sprite.Sprite):
 
-    def __init__(self, x, y, gold_group):
+    def __init__(self, x, y, gold_group,reasources_group):
         super().__init__()
         self.x = x
         self.y = y
@@ -17,6 +17,7 @@ class GoldMine(pygame.sprite.Sprite):
         self.is_destroyed = False
         self.gold_spawned = False  
         self.gold_group = gold_group  
+        self.reasources_group = reasources_group
 
     def update(self):
         if self.health <= 0 and not self.is_destroyed:
@@ -40,5 +41,6 @@ class GoldMine(pygame.sprite.Sprite):
                 offset_y = random.randint(-20, 20)
                 gold = Gold(self.rect.centerx + offset_x, self.rect.centery + offset_y, "Animations/Reasources/Gold_Mine/Gold/G_Spawn_6.png", 500)
                 self.gold_group.add(gold)
+                self.reasources_group.add(gold)
             self.gold_spawned = True  
         self.is_destroyed = True
