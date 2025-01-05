@@ -1,7 +1,9 @@
 import pygame
 from allies.knight import Knight
 from allies.archer import Archer
+from allies.pawn import Pawn
 from utils.ui import UI
+
 
 class RPSManager:
     def __init__(self):
@@ -52,7 +54,7 @@ class RPSManager:
                 else:
                     # Drag selection
                     for sprite in all_sprites:
-                        if isinstance(sprite, (Knight, Archer)) and self.drag_rect.colliderect(sprite.rect):
+                        if isinstance(sprite, (Knight, Archer, Pawn)) and self.drag_rect.colliderect(sprite.rect):
                             if sprite in self.selected_units:
                                 sprite.deselect()
                                 self.selected_units.remove(sprite)

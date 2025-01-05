@@ -1,6 +1,7 @@
 import pygame
 import random
 import time
+import math
 
 IDLE = 'idle'
 RUN = 'run'
@@ -8,31 +9,43 @@ CHOPPING = 'chopping'
 MOVING_TO_DROP = 'moving_to_drop'
 MOVING_TO_MINE = 'moving_to_mine'
 CARRYING = 'carrying'
+POS = 'pos'  # New state for moving to mouse position
+WATCH = 'watch'  # New state for watching
 
+TOLERANCE = 20
 class Pawn(pygame.sprite.Sprite):
     ANIMATION_SPEED = 750
-    SPEED = 10
+    SPEED = 3
     mine_pawn = None
     mine_cooldown_timer = 0
 
     def __init__(self, *groups):
         super().__init__(*groups)
-        self.target_tree = None
-        self.target_resources = []
-        self.holding_resources = []
         self.state = IDLE
-        self.sprites = self.load_sprites()
+        self.type = "pawn"
+
         self.current_sprite = 0
         self.animation_timer = 0
+        self.search_radius = 50
+        self.health = 100
+
+        self.target_resources = []
+        self.holding_resources = []
+        self.dropped_resources = []
+
+        self.sprites = self.load_sprites()
         self.image = self.sprites[self.state][self.current_sprite]
         self.rect = self.image.get_rect(center=(1280 // 2, 720 // 2))
-        self.health = 100
+
         self.facing_right = True
+        self.selected = False
+        self.has_reached = False
+
         self.drop_position = None
-        self.dropped_resources = []
-        self.search_radius = 50  # Initial search radius
         self.mine_start_time = None
         self.target_gold_mine = None
+        self.target_tree = None 
+        self.target_position = None
 
     def load_sprites(self):
         def load_images(path, count):
@@ -45,6 +58,8 @@ class Pawn(pygame.sprite.Sprite):
             MOVING_TO_DROP: load_images('Animations/Pawn/Carrying/Pawn_Blue_Carrying', 6),
             MOVING_TO_MINE: load_images('Animations/Pawn/Run/Pawn_Blue_Run', 5),
             CARRYING: load_images('Animations/Pawn/Carrying/Pawn_Blue_Carrying', 6),
+            POS: load_images('Animations/Pawn/Run/Pawn_Blue_Run', 5),  # Use the same animations as RUN
+            WATCH: load_images('Animations/Pawn/Idle/Pawn_Blue_Idle', 5),  # Use the same animations as IDLE
         }
 
     def flip_sprite(self):
@@ -104,17 +119,73 @@ class Pawn(pygame.sprite.Sprite):
                 elif dy < 0:
                     self.rect.top = pawn.rect.bottom
 
-    def update(self, dt, trees, targeted_trees, resources, gold_mines):
-        print(self.state)
+    
+    def find_nearest_pawn(self, pawns):
+        nearest_pawn = min(
+            pawns,
+            key=lambda pawn: ((pawn.rect.centerx - self.rect.centerx) ** 2 + (pawn.rect.centery - self.rect.centery) ** 2) ** 0.5,
+            default=None
+        )
+        return nearest_pawn
+
+    def update(self, dt, trees, targeted_trees, resources, gold_mines, pawns):
         current_time = time.time()
-        if self.state == MOVING_TO_DROP:
-            self.move_towards_drop_position(dt)
-        elif self.state == MOVING_TO_MINE:
-            self.handle_mining(current_time)
+        if self.selected and self.target_position:
+            if self.move_towards(self.target_position):
+                self.state = WATCH  # Switch to WATCH state once the pawn reaches the mouse position
+                self.target_position = None
+                self.has_reached = True
+                for tree in trees:
+                    if abs(self.rect.centerx - tree.rect.centerx) <= 5 and abs(self.rect.centery - tree.rect.centery) <= 5:
+                        self.target_tree = tree
+                        self.state = RUN
+                        break
+            else:
+                if len(self.holding_resources) > 0:
+                    self.state = CARRYING
+                else:
+                    self.state = POS
         else:
-            self.handle_idle_state(dt, trees, targeted_trees, resources, gold_mines, current_time)
+            if self.state == WATCH:
+                for tree in trees:
+                    if abs(self.rect.centerx - tree.rect.centerx) <= 5 and abs(self.rect.centery - tree.rect.centery) <= 5:
+                        self.target_tree = tree
+                        self.state = RUN
+                        break
+            if self.state == MOVING_TO_DROP:
+                self.move_towards_drop_position(dt)
+            elif self.state == MOVING_TO_MINE:
+                self.handle_mining(current_time)
+            else:
+                self.handle_idle_state(dt, trees, targeted_trees, resources, gold_mines, current_time)
         self.animate(dt)
 
+        # Assign the nearest pawn to the gold mine
+        if Pawn.mine_pawn is None and current_time - Pawn.mine_cooldown_timer >= 30 and gold_mines:
+            nearest_pawn = self.find_nearest_pawn(pawns)
+            if nearest_pawn:
+                Pawn.mine_pawn = nearest_pawn
+                nearest_pawn.target_gold_mine = gold_mines.sprites()[0]  # Use sprites() to get the list of gold mine objects
+                nearest_pawn.state = RUN
+        elif self == Pawn.mine_pawn and self.mine_start_time is not None and current_time - self.mine_start_time >= 30:
+            Pawn.mine_pawn = None
+            Pawn.mine_cooldown_timer = current_time
+            self.state = IDLE
+
+
+    def move_towards(self, target, tolerance=TOLERANCE):
+        dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
+        dist = math.hypot(dx, dy)
+        if dist > tolerance:
+            dx, dy = dx / dist, dy / dist
+            self.rect.centerx += dx * self.SPEED
+            self.rect.centery += dy * self.SPEED
+            if (dx > 0 and not self.facing_right) or (dx < 0 and self.facing_right):
+                self.facing_right = dx > 0
+                self.image = pygame.transform.flip(self.image, True, False)
+            self.update_held_resources_position()
+            return False
+        return True
     def handle_mining(self, current_time):
         print(self.mine_start_time is not None and current_time - self.mine_start_time >= 2)
         if self.mine_start_time is not None and current_time - self.mine_start_time >= 2:
@@ -124,40 +195,41 @@ class Pawn(pygame.sprite.Sprite):
             self.target_gold_mine = None
 
     def handle_idle_state(self, dt, trees, targeted_trees, resources, gold_mines, current_time):
-        if self == Pawn.mine_pawn and self.target_gold_mine is not None:
-            self.move_towards_mine(dt, self.target_gold_mine)
-        else:
-            if self.state == CHOPPING and len(resources) <= 9:
-                self.chop_tree(resources)
-            if self.state == IDLE:
-                self.search_for_resources(resources)
-                if not self.target_resources and len(resources) <= 9:
-                    self.search_for_trees(trees, targeted_trees, resources)
-            if self.holding_resources:
-                if self.state != MOVING_TO_DROP:
-                    self.move_to_random_position()
-                self.update_held_resources_position()
-            elif self.target_resources:
-                self.move_towards_resource(dt)
-            elif self.target_tree:
-                if len(resources) <= 9:
-                    self.move_towards_tree(dt)
-                else:
-                    self.target_tree = None
-                    self.state = IDLE
+        if self.state != WATCH:
+            if self == Pawn.mine_pawn and self.target_gold_mine is not None:
+                self.move_towards_mine(dt, self.target_gold_mine)
             else:
-                self.target_tree = self.get_nearest_tree(trees, targeted_trees)
-                if self.target_tree and len(resources) <= 9:
-                    targeted_trees.add(self.target_tree)
+                if self.state == CHOPPING and len(resources) <= 9:
+                    self.chop_tree(resources)
+                if self.state == IDLE:
+                    self.search_for_resources(resources)
+                    if not self.target_resources and len(resources) <= 9:
+                        self.search_for_trees(trees, targeted_trees, resources)
+                if self.holding_resources:
+                    if self.state != MOVING_TO_DROP:
+                        self.move_to_random_position()
+                    self.update_held_resources_position()
+                elif self.target_resources:
+                    self.move_towards_resource(dt)
+                elif self.target_tree:
+                    if len(resources) <= 9:
+                        self.move_towards_tree(dt)
+                    else:
+                        self.target_tree = None
+                        self.state = IDLE
+                else:
+                    self.target_tree = self.get_nearest_tree(trees, targeted_trees)
+                    if self.target_tree and len(resources) <= 9:
+                        targeted_trees.add(self.target_tree)
 
-        if Pawn.mine_pawn is None and current_time - Pawn.mine_cooldown_timer >= 30 and gold_mines:
-            Pawn.mine_pawn = self
-            self.target_gold_mine = gold_mines.sprites()[0]  # Use sprites() to get the list of gold mine objects
-            self.state = RUN
-        elif self == Pawn.mine_pawn and self.mine_start_time is not None and current_time - self.mine_start_time >= 30:
-            Pawn.mine_pawn = None
-            Pawn.mine_cooldown_timer = current_time
-            self.state = IDLE
+            if Pawn.mine_pawn is None and current_time - Pawn.mine_cooldown_timer >= 30 and gold_mines:
+                Pawn.mine_pawn = self
+                self.target_gold_mine = gold_mines.sprites()[0]  # Use sprites() to get the list of gold mine objects
+                self.state = RUN
+            elif self == Pawn.mine_pawn and self.mine_start_time is not None and current_time - self.mine_start_time >= 30:
+                Pawn.mine_pawn = None
+                Pawn.mine_cooldown_timer = current_time
+                self.state = IDLE
 
     def search_for_trees(self, trees, targeted_trees, resources):
         if len(resources) > 9:
@@ -208,22 +280,23 @@ class Pawn(pygame.sprite.Sprite):
             self.move_towards_position(target_position, dt)
             if self.rect.center == target_position:
                 self.pick_up_resource(target_resource)
-                if len(self.holding_resources) >= 3 or not self.target_resources:
+                if len(self.holding_resources) >= 2 or not self.target_resources:
                     self.state = MOVING_TO_DROP
                     self.move_to_random_position()
 
     def move_towards_mine(self, dt, mine_sprite):
+        self.state = RUN 
         target_position = pygame.math.Vector2(mine_sprite.rect.center)
         self.move_towards_position(target_position, dt)
         if abs(self.rect.centerx - target_position.x) <= 10 and abs(self.rect.centery - target_position.y) <= 10:
             self.state = MOVING_TO_MINE
-            self.mine_start_time = time.time()  # Set the mine start time when reaching the mine
+            self.mine_start_time = time.time()
 
     def pick_up_resource(self, resource):
         resource.rect.midbottom = (self.rect.midtop[0], self.rect.midtop[1] - 150)  # Adjusted to place the resource lower
         self.holding_resources.append(resource)
         self.target_resources.pop(0)
-        if not self.target_resources or len(self.holding_resources) >= 3:
+        if not self.target_resources or len(self.holding_resources) >= 2:
             self.state = MOVING_TO_DROP
         if self.holding_resources:
             self.state = CARRYING
@@ -272,6 +345,17 @@ class Pawn(pygame.sprite.Sprite):
         self.state = IDLE
 
     def draw(self, screen):
-        screen.blit(self.image, self.rect.topleft)
         for resource in self.holding_resources:
             screen.blit(resource.image, resource.rect.topleft)
+    
+    def selection(self):
+        self.selected = True
+    def deselect(self):
+        self.selected = False
+        self.state = IDLE
+        
+    def move_to_click_position(self, position):
+        self.target_position = position
+        self.state = POS  
+        self.has_reached = False
+        
