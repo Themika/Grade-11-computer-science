@@ -249,7 +249,7 @@ while running:
         elif isinstance(sprite, Knight):
             sprite.update(dt, alive_enemies, alive_knights)
         elif isinstance(sprite, Pawn):
-            sprite.update(dt, trees, targeted_trees, logs, gold_mines,alive_pawns)
+            sprite.update(dt, trees, targeted_trees, logs, gold_mines, alive_pawns,sheeps)
         elif isinstance(sprite, TNT) or isinstance(sprite, Torch):
             sprite.update(alive_knights, alive_archers)
     # Update and draw projectiles

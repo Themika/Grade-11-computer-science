@@ -127,37 +127,63 @@ class Pawn(pygame.sprite.Sprite):
             default=None
         )
         return nearest_pawn
+    def find_nearest_sheep(self, sheep_sprites):
+        nearest_sheep = min(
+            sheep_sprites,
+            key=lambda sheep: ((sheep.rect.centerx - self.rect.centerx) ** 2 + (sheep.rect.centery - self.rect.centery) ** 2) ** 0.5,
+            default=None
+        )
+        return nearest_sheep
 
-    def update(self, dt, trees, targeted_trees, resources, gold_mines, pawns):
+    def is_within_radius(self, sheep, radius):
+        dx, dy = sheep.rect.centerx - self.rect.centerx, sheep.rect.centery - self.rect.centery
+        return abs(dx) <= radius and abs(dy) <= radius
+
+    def chase_sheep(self, sheep, dt):
+        self.state = RUN
+        target_position = pygame.math.Vector2(sheep.rect.center)
+        if self.move_towards(target_position):
+            self.attack_sheep(sheep)
+
+    def attack_sheep(self, sheep):
+        self.state = CHOPPING
+        sheep.take_damage(10)  # Assuming the sheep has a take_damage method
+
+
+    def update(self, dt, trees, targeted_trees, resources, gold_mines, pawns,sheep_sprites):
         current_time = time.time()
-        if self.selected and self.target_position:
-            if self.move_towards(self.target_position):
-                self.state = WATCH  # Switch to WATCH state once the pawn reaches the mouse position
-                self.target_position = None
-                self.has_reached = True
-                for tree in trees:
-                    if abs(self.rect.centerx - tree.rect.centerx) <= 5 and abs(self.rect.centery - tree.rect.centery) <= 5:
-                        self.target_tree = tree
-                        self.state = RUN
-                        break
-            else:
-                if len(self.holding_resources) > 0:
-                    self.state = CARRYING
-                else:
-                    self.state = POS
+        nearest_sheep = self.find_nearest_sheep(sheep_sprites)
+        if nearest_sheep and self.is_within_radius(nearest_sheep, 50):
+            self.chase_sheep(nearest_sheep, dt)
         else:
-            if self.state == WATCH:
-                for tree in trees:
-                    if abs(self.rect.centerx - tree.rect.centerx) <= 5 and abs(self.rect.centery - tree.rect.centery) <= 5:
-                        self.target_tree = tree
-                        self.state = RUN
-                        break
-            if self.state == MOVING_TO_DROP:
-                self.move_towards_drop_position(dt)
-            elif self.state == MOVING_TO_MINE:
-                self.handle_mining(current_time)
+            if self.selected and self.target_position:
+                if self.move_towards(self.target_position):
+                    self.state = WATCH  # Switch to WATCH state once the pawn reaches the mouse position
+                    self.target_position = None
+                    self.has_reached = True
+                    for tree in trees:
+                        if abs(self.rect.centerx - tree.rect.centerx) <= 5 and abs(self.rect.centery - tree.rect.centery) <= 5:
+                            self.target_tree = tree
+                            self.state = RUN
+                            break
+                else:
+                    if len(self.holding_resources) > 0:
+                        self.state = CARRYING
+                    else:
+                        self.state = POS
             else:
-                self.handle_idle_state(dt, trees, targeted_trees, resources, gold_mines, current_time)
+                if self.state == WATCH:
+                    for tree in trees:
+                        if abs(self.rect.centerx - tree.rect.centerx) <= 5 and abs(self.rect.centery - tree.rect.centery) <= 5:
+                            self.target_tree = tree
+                            self.state = RUN
+                            break
+                if self.state == MOVING_TO_DROP:
+                    self.move_towards_drop_position(dt)
+                elif self.state == MOVING_TO_MINE:
+                    self.handle_mining(current_time)
+                else:
+                    self.handle_idle_state(dt, trees, targeted_trees, resources, gold_mines, current_time)
         self.animate(dt)
 
         # Assign the nearest pawn to the gold mine
@@ -333,6 +359,7 @@ class Pawn(pygame.sprite.Sprite):
             direction = direction.normalize() * 100 * dt
             self.rect.move_ip(direction)
             self.update_facing_direction(direction.x)
+
 
     def update_held_resources_position(self):
         for i, resource in enumerate(self.holding_resources):

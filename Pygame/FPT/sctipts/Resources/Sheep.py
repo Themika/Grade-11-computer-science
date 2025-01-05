@@ -100,3 +100,8 @@ class Sheep(pygame.sprite.Sprite):
                     overlap_vector = overlap_vector.normalize() * 1  # Reduced overlap adjustment
                     self.rect.x += overlap_vector.x
                     self.rect.y += overlap_vector.y
+
+    def take_damage(self, amount):
+        # Implement the logic for taking damage
+        pass
+    
