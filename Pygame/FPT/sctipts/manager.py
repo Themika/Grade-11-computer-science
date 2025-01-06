@@ -143,11 +143,23 @@ for i in range(10):
     pawn = Pawn()
     all_sprites.add(pawn)
 
-for _ in range(5):
-    sheep = Sheep(random.randint(0, 2000), random.randint(0, 2000),sheeps,meats)
-    sheeps.add(sheep)
-    all_sprites.add(sheep)
+num_sheep = 20
+sheep_per_group = 5
+group_leader_count = 0
+group_leader = None
 
+for i in range(num_sheep):
+    x, y = random.randint(0, 3000), random.randint(0, 3000)
+    if i % sheep_per_group == 0:
+        group_leader = Sheep(x, y, sheeps, meats, reasources)
+        group_leader_count += 1
+        sheeps.add(group_leader)
+        all_sprites.add(group_leader)
+    else:
+        sheep = Sheep(x, y, sheeps, meats, reasources, group_leader)
+        sheeps.add(sheep)
+        all_sprites.add(sheep)
+print(group_leader_count)
 for _ in range(10):
     archer = Archer()
     all_sprites.add(archer)
@@ -263,6 +275,7 @@ while running:
     for projectile in projectiles:
         projectile.draw(display_surface, camera.camera.topleft)
     # Draw trees once
+        # Draw trees once
     for tree in trees:
         tree.update()
         tree.draw(display_surface, camera.camera.topleft)
@@ -271,11 +284,11 @@ while running:
             if log:
                 logs.add(log)
                 all_sprites.add(log)
-
+    
     for log in logs:
         log.draw(display_surface, camera.camera.topleft)
         log.update()
-
+    
     for gold_mine in gold_mines:
         gold_mine.update()
         gold_mine.draw(display_surface, camera.camera.topleft)
@@ -288,19 +301,19 @@ while running:
             if gold:
                 golds.add(gold)
                 all_sprites.add(gold)
-
-
+    
     for gold in gold_mines:
+        gold.draw(display_surface, camera.camera.topleft)
         gold.update()
-
+    
     for sheep in sheeps:
         sheep.update()
         if sheep.health <= 0:
-            meat = sheep.spawn_meat()
-            if meat:
-                meats.add(meat)
-                all_sprites.add(meat)
+            sheep.spawn_meat() 
+            sheep.kill()  
+    
     for meat in meats:
+        meat.draw(display_surface, camera.camera.topleft)
         meat.update()
     
     for house in houses:
