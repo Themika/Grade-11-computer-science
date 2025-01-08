@@ -38,26 +38,26 @@ font = pygame.font.SysFont('Futura', 25)
 TILE_SIZE = 65  # Assuming each tile is 40x40 pixels
 ROWS = MAP_HEIGHT // TILE_SIZE
 MAX_COLS = MAP_WIDTH // TILE_SIZE
-TILE_TYPES = 45
+TILE_TYPES = 50
 
 save_img = pygame.image.load("Tiny_Swords_Assets/Resources/Resources/SAVE.png").convert_alpha()
 load_img = pygame.image.load("Tiny_Swords_Assets/Resources/Resources/LOAD.png").convert_alpha()
 
 img_list = []
-tile_categories = ['Ground\Green','Bridges','Decorations','Ground\Yellow']
+tile_categories = ['Ground\Green','Bridges','Decorations','Ground\Yellow','Ground\Water']
 
 for category in tile_categories:
     category_path = os.path.join('Animations', 'Levels', category.replace('\\', os.sep))
     for x in range(TILE_TYPES):
         img_path = os.path.join(category_path, f'Tilemap_Flat_{x}.png')
-        print(f"Checking path: {img_path}")  # Debugging line
+        print(f"Checking path: {img_path}")
         if os.path.exists(img_path):
             img = pygame.image.load(img_path).convert_alpha()
             img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE))
             img_list.append(img)
         else:
-            print(f"File does not exist: {img_path}")  # Debugging line
-print(f"Total images loaded: {len(img_list)}")  # Debugging line
+            print(f"File does not exist: {img_path}")
+print(f"Total images loaded: {len(img_list)}")
 
 # Initialize world_data with three layers
 world_data = []
@@ -103,13 +103,13 @@ def draw_world():
         for x, tile in enumerate(row):
             if tile[0] >= 0:
                 screen.blit(img_list[tile[0]], (x * TILE_SIZE + scroll_x, y * TILE_SIZE + scroll_y))
-                print(f"Drew tile {tile[0]} at ({x}, {y})")  # Debugging line
             if tile[1] >= 0:
                 screen.blit(img_list[tile[1]], (x * TILE_SIZE + scroll_x, y * TILE_SIZE + scroll_y))
-                print(f"Drew tile {tile[1]} at ({x}, {y})")  # Debugging line
             if tile[2] >= 0:
                 screen.blit(img_list[tile[2]], (x * TILE_SIZE + scroll_x, y * TILE_SIZE + scroll_y))
-                print(f"Drew tile {tile[2]} at ({x}, {y})")  # Debugging line
+
+first_point = None
+second_point = None
 
 run = True
 while run:
@@ -138,13 +138,25 @@ while run:
         if pos[0] < SCREEN_WIDTH and pos[1] < SCREEN_HEIGHT:
             if pygame.mouse.get_pressed()[0] == 1:
                 keys = pygame.key.get_pressed()
-                if keys[pygame.K_SPACE] and keys[pygame.K_TAB]:
-                    world_data[y][x][2] = current_tile
-                elif keys[pygame.K_SPACE]:
-                    world_data[y][x][1] = current_tile
+                if keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]:
+                    if first_point is None:
+                        first_point = (x, y)
+                    else:
+                        second_point = (x, y)
+                        x1, y1 = first_point
+                        x2, y2 = second_point
+                        for i in range(min(y1, y2), max(y1, y2) + 1):
+                            for j in range(min(x1, x2), max(x1, x2) + 1):
+                                world_data[i][j][0] = current_tile
+                        first_point = None
+                        second_point = None
                 else:
-                    world_data[y][x][0] = current_tile
-                print(f"Placed tile {current_tile} at ({x}, {y})")  # Debugging line
+                    if keys[pygame.K_SPACE] and keys[pygame.K_TAB]:
+                        world_data[y][x][2] = current_tile
+                    elif keys[pygame.K_SPACE]:
+                        world_data[y][x][1] = current_tile
+                    else:
+                        world_data[y][x][0] = current_tile
             if pygame.mouse.get_pressed()[2] == 1:
                 keys = pygame.key.get_pressed()
                 if keys[pygame.K_SPACE] and keys[pygame.K_TAB]:
@@ -153,7 +165,6 @@ while run:
                     world_data[y][x][1] = -1
                 else:
                     world_data[y][x][0] = -1
-                print(f"Removed tile at ({x}, {y})")  # Debugging line
 
     draw_world()
     pygame.draw.rect(screen, GREEN, (SCREEN_WIDTH, 0, SIDE_MARGIN, SCREEN_HEIGHT + LOWER_MARGIN))
@@ -195,10 +206,6 @@ while run:
                 level += 1
             if event.key == pygame.K_s and level > 0:
                 level -= 1
-            if event.key == pygame.K_j:
-                for row in range(ROWS):
-                    for col in range(MAX_COLS):
-                        world_data[row][col][2] = current_tile
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:

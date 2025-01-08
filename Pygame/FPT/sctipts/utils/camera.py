@@ -23,8 +23,8 @@ class Camera:
                                   self.width, self.height)
 
     def move(self, dx, dy):
-        self.camera.x += dx
-        self.camera.y += dy
+        self.camera.x += dx * 2
+        self.camera.y += dy *2
 
     def zoom(self, zoom_factor, mouse_pos, sprites):
         self.zoom_factor *= zoom_factor
