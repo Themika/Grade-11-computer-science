@@ -64,7 +64,6 @@ def draw_level(surface, level_data, img_list, scroll_x, scroll_y, TILE_SIZE=65):
             if tile[2] >= 0 and tile[2] < len(img_list):
                 surface.blit(img_list[tile[2]], (x * TILE_SIZE + scroll_x, y * TILE_SIZE + scroll_y))
 
-
 # Draw grid
 def draw_grid(surface, camera):
     start_x = max(0, camera.camera.x // 100 * 100)
@@ -92,21 +91,21 @@ def draw_grid_coordinates(surface, camera):
 
 # Spawn wave
 def spawn_wave(wave, all_sprites, projectiles, houses, towers):
-    for _ in range(1 + wave * 1):
-        enemy_tnt = TNT(projectiles)
-        enemy_tnt.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
-        all_sprites.add(enemy_tnt)
+    # for _ in range(1 + wave * 1):
+    #     enemy_tnt = TNT(projectiles)
+    #     enemy_tnt.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
+    #     all_sprites.add(enemy_tnt)
 
-        enemy_torch = Torch()
-        enemy_torch.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
-        all_sprites.add(enemy_torch)
+    #     enemy_torch = Torch()
+    #     enemy_torch.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
+    #     all_sprites.add(enemy_torch)
 
     for house in houses:
         house.update_construction_status(wave_ended=True)
-        archer = Archer()
+        archer = Archer(level_data)
         house.spawn_archer(archer)
         all_sprites.add(archer)
-        knight = Knight()
+        knight = Knight(level_data)
         house.spawn_knight(knight)
         all_sprites.add(knight)
 
@@ -173,7 +172,7 @@ house.construction_status = "finished"
 houses.append(house)
 
 # Spawn trees and gold mines
-for _ in range(50):
+for _ in range(20):
     x = random.randint(0, 2000)
     y = random.randint(0, 2000)
     tree = Tree(x, y, logs, reasources)
@@ -212,11 +211,11 @@ for i in range(num_sheep):
 print(group_leader_count)
 
 for _ in range(10):
-    archer = Archer()
+    archer = Archer(level_data)
     all_sprites.add(archer)
 
 for _ in range(10):
-    knight = Knight()
+    knight = Knight(level_data)
     all_sprites.add(knight)
 
 spawn_wave(wave, all_sprites, projectiles, houses, towers)
@@ -380,8 +379,8 @@ while running:
 
     for house, placement_time in placed_houses[:]:
         if time.time() - placement_time >= 60:
-            archer = Archer()
-            knight = Knight()
+            archer = Archer(level_data)
+            knight = Knight(level_data)
             house.spawn_archer(archer)
             house.spawn_knight(knight)
             all_sprites.add(archer)

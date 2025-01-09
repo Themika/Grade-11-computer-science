@@ -24,7 +24,7 @@ class Archer(pygame.sprite.Sprite):
     DETECTION_RADIUS = 250
     TOLERANCE = 5
 
-    def __init__(self, *groups):
+    def __init__(self, tile_map, *groups):
         super().__init__(*groups)
         self.state = State.PATROL
         self.type = "archer"
@@ -50,16 +50,17 @@ class Archer(pygame.sprite.Sprite):
         self.target_position = None
         self.health = 100  # Add health attribute
         self.on_tower = False  # Add flag to indicate if the archer is on a tower
+        self.tilemap = tile_map
 
     def load_sprites(self):
         idle_sprites = [
             pygame.image.load(f'Animations/Warrior/Blue/Archer/Idle/Archer_Blue_Idle_{i}.png') for i in range(1, 7)
         ]
         run_sprites = [
-            pygame.image.load(f'Animations/Warrior/Blue/Archer/Run/Archer_Blue_Run_{i}.png') for i in range(1, 7)
+            pygame.image.load(f'Animations/Warrior/Blue/Archer/Run/Archer_Blue_Run_{i}.png').convert_alpha() for i in range(1, 7)
         ]
         attack_sprites = [
-            pygame.image.load(f'Animations/Warrior/Blue/Archer/Attack_1/Archer_Blue_Attack_{i}.png') for i in range(1, 9)
+            pygame.image.load(f'Animations/Warrior/Blue/Archer/Attack_1/Archer_Blue_Attack_{i}.png').convert_alpha() for i in range(1, 9)
         ]
         return {
             'idle': idle_sprites,

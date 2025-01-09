@@ -2,10 +2,6 @@ import pygame
 import math
 import random
 
-
-#TODO
-# Play test 
-# Add ARcher
 class State:
     IDLE = 'idle'
     PATROL = 'patrol'
@@ -15,18 +11,21 @@ class State:
     ATTACK_3 = "attack_3"
     ATTACK_4 = "attack_4"
     ATTACK_5 = "attack_5"
-    SEARCH = 'search'  # New search state
+    SEARCH = 'search'
     WATCH = "watch"
     POS = "pos"
     DEAD = 'dead'
 
 class Knight(pygame.sprite.Sprite):
-    SEARCH_RADIUS = 200  # Search radius for the search state
-    def __init__(self, *groups):
+    SEARCH_RADIUS = 200  
+    WATER_TILES = ['Tilemap_Flat_46']
+    AVOID_TILE = 40
+
+    def __init__(self, tile_map, *groups):
         super().__init__(*groups)
         self.state = State.PATROL 
         self.type = "knight"
-        self.patrol_points = self.generate_random_patrol_points(5, 600, 2000)  # Generate 5 random patrol points within a 2000x2000 area
+        self.patrol_points = self.generate_random_patrol_points(5, 600, 2000)
         self.current_patrol_point = 0
         self.target_idle_time = 600000
         self.idle_duration_at_target = 6 
@@ -104,7 +103,7 @@ class Knight(pygame.sprite.Sprite):
                 pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_5.png'),
                 pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_6.png')
             ],
-            'search': [  # New search animation
+            'search': [
                 pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_1.png'),
                 pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_2.png'),
                 pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_3.png'),
@@ -129,6 +128,7 @@ class Knight(pygame.sprite.Sprite):
         self.facing_right = True
         self.selected = False
         self.has_reached = False
+        self.tilemap = tile_map
 
         self.image = self.sprites['idle'][self.current_sprite]
         self.rect = self.image.get_rect()
@@ -142,6 +142,7 @@ class Knight(pygame.sprite.Sprite):
     def generate_random_patrol_points(self, num_points, max_x, max_y):
         """Generate a list of random patrol points within the given range."""
         return [(random.randint(0, max_x), random.randint(0, max_y)) for _ in range(num_points)]
+
     def move_to_click_position(self, pos):
         """Set the mouse position when clicked, only if the knight is selected and not already idle."""
         if self.selected and self.state != State.WATCH and self.state != State.POS:
@@ -149,17 +150,25 @@ class Knight(pygame.sprite.Sprite):
             self.state = State.POS
             self.has_reached = False
 
+    def is_water_tile(self, x, y):
+        """
+        Check if the given position corresponds to a water tile or a tile to avoid.
+        """
+        tile_x = int(x // 65)
+        tile_y = int(y // 65)
+        tile = self.tilemap[tile_y][tile_x]
+        return tile in self.WATER_TILES or tile[0] == self.AVOID_TILE
 
-    def movement(self,other_knights):
+    def movement(self, other_knights):
         """Determine what the knight should do based on its state."""
         if self.mouse_pos:
-            self.state = State.POS  # Ensure the state is RUN when there's a target
-            if self.move_towards_pos(self.mouse_pos):  # Continue moving toward the mouse position
-                self.mouse_pos = None  # Clear the mouse position when the target is reached
-                self.watch()  # Call the watch method instead of setting the state to IDLE
-                return  # Exit the function to prevent further action
+            self.state = State.POS
+            if self.move_towards_pos(self.mouse_pos):
+                self.mouse_pos = None
+                self.watch()
+                return
         else:
-            if self.state != State.WATCH:    # Normal behavior when not selected
+            if self.state != State.WATCH:
                 if self.state == State.RUN:
                     self.chase_target()
                 elif self.state == State.PATROL:
@@ -172,28 +181,34 @@ class Knight(pygame.sprite.Sprite):
                         self.state_timer = pygame.time.get_ticks()
             self.avoid_overlap(other_knights)
 
-
-
-
-
     def search(self):
         """Make the knight search for enemies in a small radius."""
         if not hasattr(self, 'search_targets'):
             self.search_targets = []
             self.search_index = 0
-            self.search_start_time = pygame.time.get_ticks()  # Track the start time of the search
+            self.search_start_time = pygame.time.get_ticks()
             self.state = State.SEARCH
-    
+
         if not self.search_targets:
             self.search_targets = []
-            for _ in range(5):  # Generate 5 random search targets
-                search_angle = random.uniform(0, 360)  # Random angle for wandering direction
-                dx = self.SEARCH_RADIUS * math.cos(math.radians(search_angle))
-                dy = self.SEARCH_RADIUS * math.sin(math.radians(search_angle))
-                self.search_targets.append((self.rect.centerx + dx, self.rect.centery + dy))
+            for _ in range(5):  # Generate up to 5 valid search targets
+                while True:
+                    search_angle = random.uniform(0, 360)
+                    dx = self.SEARCH_RADIUS * math.cos(math.radians(search_angle))
+                    dy = self.SEARCH_RADIUS * math.sin(math.radians(search_angle))
+                    candidate_x = self.rect.bottom + dx
+                    candidate_y = self.rect.bottom + dy
+                    
+                    # Check if the candidate point is within map constraints and not a water tile
+                    if (0 <= candidate_x < len(self.tilemap[0]) * 65 and 
+                        0 <= candidate_y < len(self.tilemap) * 65 and 
+                        not self.is_water_tile(candidate_x, candidate_y)):
+                        self.search_targets.append((candidate_x, candidate_y))
+                        break
+
             self.search_index = 0
-    
-        if pygame.time.get_ticks() - self.search_start_time >= 20000:  # Check if 20 seconds have passed
+
+        if pygame.time.get_ticks() - self.search_start_time >= 20000:
             self.state = State.PATROL
             self.search_targets = []
             self.state_timer = pygame.time.get_ticks()
@@ -202,18 +217,16 @@ class Knight(pygame.sprite.Sprite):
             if abs(self.rect.centerx - self.search_targets[self.search_index][0]) < 5 and abs(self.rect.centery - self.search_targets[self.search_index][1]) < 5:
                 self.search_index += 1
         else:
-            # After searching all 5 spots, switch back to patrol
             self.state = State.PATROL
             self.search_targets = []
             self.state_timer = pygame.time.get_ticks()
-        
 
-    def update(self, dt, enemies,other_knights):
+
+    def update(self, dt, enemies, other_knights):
         """Update knight's behavior and animations."""
         self.detect_enemy(enemies)
         self.movement(other_knights)
         self.animate(dt)
-        # Check if the target enemy is dead and transition to SEARCH state
         if self.target and not any(enemy.rect.center == self.target and enemy.health > 0 for enemy in enemies):
             self.target = None
             self.state = State.SEARCH
@@ -253,61 +266,93 @@ class Knight(pygame.sprite.Sprite):
         self.state = State.RUN  
         self.state_timer = 0  
 
-
     def patrol(self):
         """Patrol between predefined points."""
         if self.target:  
             return
 
+        # Ensure the current patrol point is valid
+        while not self.is_valid_patrol_point(self.patrol_points[self.current_patrol_point]):
+            self.current_patrol_point = (self.current_patrol_point + 1) % len(self.patrol_points)
+
         target_point = self.patrol_points[self.current_patrol_point]
         self.move_towards(target_point)
 
-        if self.rect.center == target_point or self.rect.colliderect(pygame.Rect(target_point, (10,10))):
-            self.state = State.IDLE  
-            self.idle_time = random.randint(2000, 5000)  
-            self.state_timer = pygame.time.get_ticks()  #
+        # Check if the knight has reached the target point
+        if self.rect.colliderect(pygame.Rect(target_point[0] - 5, target_point[1] - 5, 10, 10)):
+            self.state = State.IDLE
+            self.idle_time = random.randint(2000, 5000)
+            self.state_timer = pygame.time.get_ticks()
             self.current_patrol_point = (self.current_patrol_point + 1) % len(self.patrol_points)
+
+    def is_valid_patrol_point(self, point):
+        """Check if a patrol point is valid (within map bounds and not a water tile)."""
+        x, y = point
+        map_width = len(self.tilemap[0]) * 65
+        map_height = len(self.tilemap) * 65
+
+        # Check if the point is within the map bounds
+        if not (0 <= x < map_width and 0 <= y < map_height):
+            return False
+
+        # Check if the point is not on a water tile
+        return not self.is_water_tile(x, y)
 
     def chase_target(self):
         """Move toward the set target with tolerance."""
         if self.target:
-            reached_target = self.move_towards(self.target, tolerance=10)  # Adjust tolerance as needed
+            reached_target = self.move_towards(self.target, tolerance=10)
             if reached_target:
                 self.target = None 
                 self.state = State.IDLE 
                 self.idle_time = 600000 
                 self.state_timer = pygame.time.get_ticks()  
-                
 
     def move_towards(self, target, tolerance=10):
-        """Move the knight towards the target position with a tolerance."""
+        """
+        Move the knight towards the target position while rerouting around water tiles and tiles to avoid.
+        """
         dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
         dist = math.hypot(dx, dy)
-        if dist > tolerance:  # Only move if the distance is greater than tolerance
-            dx, dy = dx / dist, dy / dist  # Normalize the movement vector
-            self.rect.centerx += dx * self.speed  
-            self.rect.centery += dy * self.speed
 
-            # Handle facing direction
-            self.facing_right = dx > 0
+        if dist > tolerance:
+            dx, dy = dx / dist, dy / dist
+            new_x = self.rect.centerx + dx * self.speed
+            new_y = self.rect.centery + dy * self.speed
+
+            if self.is_water_tile(new_x, new_y):
+                # Reroute logic: try to move around the water tile
+                if not self.is_water_tile(self.rect.centerx + dx * self.speed, self.rect.centery):
+                    self.rect.centerx += dx * self.speed
+                elif not self.is_water_tile(self.rect.centerx, self.rect.centery + dy * self.speed):
+                    self.rect.centery += dy * self.speed
+                else:
+                    # If both directions are blocked, reduce movement and try diagonal
+                    self.rect.centerx += dx * self.speed * 0.5
+                    self.rect.centery += dy * self.speed * 0.5
+            else:
+                # Move normally if no water tile is in the path
+                self.rect.centerx = new_x
+                self.rect.centery = new_y
+
+            self.facing_right = dx > 0  # Adjust the facing direction
             return False
         return True
 
+
     def move_towards_pos(self, target, tolerance=10, random_offset=50):
         """Move the knight towards the target position with a tolerance and random offset."""
-        # Add random offset to the target position
         target = (target[0] + random.randint(-random_offset, random_offset), 
                 target[1] + random.randint(-random_offset, random_offset))
         
         dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
         dist = math.hypot(dx, dy)
         self.speed = 3
-        if dist > tolerance:  # Only move if the distance is greater than tolerance
-            dx, dy = dx / dist, dy / dist  # Normalize the movement vector
+        if dist > tolerance:
+            dx, dy = dx / dist, dy / dist
             self.rect.centerx += dx * self.speed  
             self.rect.centery += dy * self.speed
 
-            # Handle facing direction
             self.facing_right = dx > 0
             return False
         self.speed = 2

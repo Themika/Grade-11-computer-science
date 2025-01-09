@@ -10,6 +10,7 @@ class GoldMine(pygame.sprite.Sprite):
         self.x = x
         self.y = y
         self.idle_image = pygame.image.load("Tiny_Swords_Assets/Resources/Gold Mine/GoldMine_Inactive.png").convert_alpha()
+        self.working_image = pygame.image.load("Tiny_Swords_Assets/Resources/Gold Mine/GoldMine_Active.png").convert_alpha()
         self.destroyed_image = pygame.image.load("Tiny_Swords_Assets/Resources/Gold Mine/GoldMine_Destroyed.png").convert_alpha()
         self.image = self.idle_image
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
@@ -22,6 +23,8 @@ class GoldMine(pygame.sprite.Sprite):
     def update(self):
         if self.health <= 0 and not self.is_destroyed:
             self.spawn_gold()
+    def active(self):
+        self.image = self.working_image
 
     def draw(self, surface, camera_offset):
         adjusted_rect = self.rect.move(camera_offset)

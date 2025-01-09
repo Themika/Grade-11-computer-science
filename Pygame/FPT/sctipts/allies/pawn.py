@@ -208,6 +208,7 @@ class Pawn(pygame.sprite.Sprite):
     def handle_mining(self, current_time):
         if self.mine_start_time is not None and current_time - self.mine_start_time >= 2:
             if hasattr(self.target_gold_mine, 'spawn_gold'):
+                self.target_gold_mine.active()
                 self.target_gold_mine.spawn_gold()
             self.state = IDLE
             self.target_gold_mine = None
