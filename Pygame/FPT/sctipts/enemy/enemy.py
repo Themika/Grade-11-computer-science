@@ -1,5 +1,6 @@
 import random
 import pygame
+from utils.d_star import AStar  # Assuming AStar is in a file named astar.py
 
 class Enemy(pygame.sprite.Sprite):
     IDLE = 'idle'
@@ -8,8 +9,10 @@ class Enemy(pygame.sprite.Sprite):
     ATTACK_RANGE = 5
     DAMAGE = 5
     ATTACK_COOLDOWN = 1000
+    DIRECTION_CHANGE_THRESHOLD = 0.1  # Threshold to prevent rapid flipping
+    TILE_SIZE = 65
 
-    def __init__(self, *groups):
+    def __init__(self, tilemap, *groups):
         super().__init__(*groups)
         self.image = pygame.Surface((50, 50))
         self.image.fill('red')
@@ -23,6 +26,9 @@ class Enemy(pygame.sprite.Sprite):
         self.last_attack_time = pygame.time.get_ticks()
         self.state = self.RUN
         self.facing_right = True
+        self.tilemap = tilemap
+        self.path = []
+        self.astar = AStar(self._tile_coords(self.rect.center), self._tile_coords(self.patrol_points[0]), tilemap)
 
     def update(self, knights, archers):
         if self.attacking_target and self.attacking_target.health > 0:
@@ -44,21 +50,31 @@ class Enemy(pygame.sprite.Sprite):
             self.current_patrol_point = (self.current_patrol_point + 1) % len(self.patrol_points)
 
     def move_towards(self, target):
-        dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
-        distance = (dx**2 + dy**2) ** 0.5
-        if distance != 0:
-            dx, dy = dx / distance, dy / distance
-            self.rect.centerx += dx * self.speed
-            self.rect.centery += dy * self.speed
-            self.update_facing_direction(dx)
+        start = self._tile_coords(self.rect.center)
+        goal = self._tile_coords(target)
+        if not self.path or self.path[-1] != goal:
+            self.astar = AStar(start, goal, self.tilemap)
+            self.path = self.astar.find_path()
+
+        if self.path:
+            next_step = self.path.pop(0)
+            target_pos = (next_step[0] * self.TILE_SIZE + self.TILE_SIZE / 2, next_step[1] * self.TILE_SIZE + self.TILE_SIZE / 2)
+            dx, dy = target_pos[0] - self.rect.centerx, target_pos[1] - self.rect.centery
+            distance = (dx**2 + dy**2) ** 0.5
+            if distance != 0:
+                dx, dy = dx / distance, dy / distance
+                self.rect.centerx += dx * self.speed
+                self.rect.centery += dy * self.speed
+                self.update_facing_direction(dx)
 
     def update_facing_direction(self, dx):
-        if dx > 0 and not self.facing_right:
-            self.facing_right = True
-            self.flip_image()
-        elif dx < 0 and self.facing_right:
-            self.facing_right = False
-            self.flip_image()
+        if abs(dx) > self.DIRECTION_CHANGE_THRESHOLD:
+            if dx > 0 and not self.facing_right:
+                self.facing_right = True
+                self.flip_image()
+            elif dx < 0 and self.facing_right:
+                self.facing_right = False
+                self.flip_image()
 
     def flip_image(self):
         self.image = pygame.transform.flip(self.image, True, False)
@@ -87,3 +103,6 @@ class Enemy(pygame.sprite.Sprite):
 
     def distance_to(self, target):
         return ((self.rect.centerx - target[0]) ** 2 + (self.rect.centery - target[1]) ** 2) ** 0.5
+
+    def _tile_coords(self, pos):
+        return (pos[0] // self.TILE_SIZE, pos[1] // self.TILE_SIZE)

@@ -1,6 +1,5 @@
-1.)make it so the arhcer and knight move around the water tiles, 
+1.)make it so the arhcer and pawns and enemies move around the water tiles, 
 2.)make it so the allied units spanw form hosues and be abele to adjust teh maounts of knights,pawns and archers that spawn. 
 3.)add the reaosurce management system to the game
-4.) Create the relatoionship system
 5.) Make the goblins spanw in form teh edges of the map
 6.) finish game loop

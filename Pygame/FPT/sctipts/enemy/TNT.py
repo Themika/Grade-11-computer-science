@@ -13,8 +13,8 @@ class TNT(Enemy):
     DAMAGE = 1  # Damage dealt by the TNT
     ATTACK_RANGE = 350  # Attack range in pixels
 
-    def __init__(self, projectiles_group, *groups):
-        super().__init__(*groups)
+    def __init__(self, projectiles_group, tilemap, *groups):
+        super().__init__(tilemap, *groups)
         self.image = pygame.Surface((50, 50))
         self.image.fill('orange')
         self.rect = self.image.get_rect()

@@ -1,6 +1,7 @@
 import pygame
 import math
 import random
+import heapq
 
 class State:
     IDLE = 'idle'
@@ -25,11 +26,9 @@ class Knight(pygame.sprite.Sprite):
         super().__init__(*groups)
         self.state = State.PATROL 
         self.type = "knight"
-        self.patrol_points = self.generate_random_patrol_points(5, 600, 2000)
-        self.current_patrol_point = 0
-        self.target_idle_time = 600000
-        self.idle_duration_at_target = 6 
-        self.on_tower = True
+        self.facing_right = True
+        self.tilemap = tile_map
+        self.current_sprite = 0
         self.sprites = {
             'idle': [
                 pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle.png'),
@@ -120,15 +119,21 @@ class Knight(pygame.sprite.Sprite):
                 pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_6.png')
             ]
         }
+        self.image = self.sprites['idle'][self.current_sprite]
+        self.rect = self.image.get_rect()
+        self.rect.center = (1280 // 2, 720 // 2) 
+        self.patrol_points = self.generate_random_patrol_points(5, 600, 2000)
+        self.current_patrol_point = 0
+        self.target_idle_time = 600000
+        self.idle_duration_at_target = 6 
+        self.on_tower = True
         self.target = None
         self.mouse_pos = None
-        self.current_sprite = 0
         self.animation_timer = 0
         self.animation_speed = 750  
-        self.facing_right = True
         self.selected = False
         self.has_reached = False
-        self.tilemap = tile_map
+
 
         self.image = self.sprites['idle'][self.current_sprite]
         self.rect = self.image.get_rect()
@@ -140,8 +145,13 @@ class Knight(pygame.sprite.Sprite):
         self.health = 200  
 
     def generate_random_patrol_points(self, num_points, max_x, max_y):
-        """Generate a list of random patrol points within the given range."""
-        return [(random.randint(0, max_x), random.randint(0, max_y)) for _ in range(num_points)]
+        """Generate a list of random patrol points within the given range, avoiding water tiles."""
+        patrol_points = []
+        while len(patrol_points) < num_points:
+            point = (random.randint(0, max_x), random.randint(0, max_y))
+            if not self.is_water_tile(point[0], point[1]):
+                patrol_points.append(point)
+        return patrol_points
 
     def move_to_click_position(self, pos):
         """Set the mouse position when clicked, only if the knight is selected and not already idle."""
@@ -152,12 +162,26 @@ class Knight(pygame.sprite.Sprite):
 
     def is_water_tile(self, x, y):
         """
-        Check if the given position corresponds to a water tile or a tile to avoid.
+        Check if the given position or two tiles ahead corresponds to a water tile or a tile to avoid.
         """
-        tile_x = int(x // 65)
-        tile_y = int(y // 65)
-        tile = self.tilemap[tile_y][tile_x]
-        return tile in self.WATER_TILES or tile[0] == self.AVOID_TILE
+        def check_tile(x, y):
+            tile_x = int(x // 65)
+            tile_y = int(y // 65)
+            tile = self.tilemap[tile_y][tile_x]
+            return tile in self.WATER_TILES or tile[0] == self.AVOID_TILE
+        self.speed = 2
+        # Check the current tile
+        if check_tile(x, y):
+            return True
+
+        # Check two tiles ahead in the direction of movement
+        dx = self.speed if self.facing_right else -self.speed
+        dy = self.speed if self.rect.centery < y else self.speed
+
+        if check_tile(x + 2 * dx, y) or check_tile(x, y + 2 * dy) or check_tile(x + dx, y + dy):
+            return True
+
+        return False
 
     def movement(self, other_knights):
         """Determine what the knight should do based on its state."""
@@ -191,13 +215,13 @@ class Knight(pygame.sprite.Sprite):
 
         if not self.search_targets:
             self.search_targets = []
-            for _ in range(5):  # Generate up to 5 valid search targets
+            for _ in range(1):  # Generate up to 5 valid search targets
                 while True:
                     search_angle = random.uniform(0, 360)
                     dx = self.SEARCH_RADIUS * math.cos(math.radians(search_angle))
                     dy = self.SEARCH_RADIUS * math.sin(math.radians(search_angle))
-                    candidate_x = self.rect.bottom + dx
-                    candidate_y = self.rect.bottom + dy
+                    candidate_x = self.rect.centerx + dx
+                    candidate_y = self.rect.centery + dy
                     
                     # Check if the candidate point is within map constraints and not a water tile
                     if (0 <= candidate_x < len(self.tilemap[0]) * 65 and 
@@ -207,14 +231,12 @@ class Knight(pygame.sprite.Sprite):
                         break
 
             self.search_index = 0
-
         if pygame.time.get_ticks() - self.search_start_time >= 20000:
             self.state = State.PATROL
             self.search_targets = []
             self.state_timer = pygame.time.get_ticks()
         elif self.search_index < len(self.search_targets):
-            self.move_towards(self.search_targets[self.search_index], tolerance=5)
-            if abs(self.rect.centerx - self.search_targets[self.search_index][0]) < 5 and abs(self.rect.centery - self.search_targets[self.search_index][1]) < 5:
+            if self.move_towards(self.search_targets[self.search_index], tolerance=5):
                 self.search_index += 1
         else:
             self.state = State.PATROL
@@ -314,30 +336,36 @@ class Knight(pygame.sprite.Sprite):
         """
         dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
         dist = math.hypot(dx, dy)
-
+    
         if dist > tolerance:
             dx, dy = dx / dist, dy / dist
             new_x = self.rect.centerx + dx * self.speed
             new_y = self.rect.centery + dy * self.speed
-
+            
             if self.is_water_tile(new_x, new_y):
-                # Reroute logic: try to move around the water tile
-                if not self.is_water_tile(self.rect.centerx + dx * self.speed, self.rect.centery):
-                    self.rect.centerx += dx * self.speed
-                elif not self.is_water_tile(self.rect.centerx, self.rect.centery + dy * self.speed):
-                    self.rect.centery += dy * self.speed
-                else:
-                    # If both directions are blocked, reduce movement and try diagonal
-                    self.rect.centerx += dx * self.speed * 0.5
-                    self.rect.centery += dy * self.speed * 0.5
+                # Reroute logic using a simple detour method
+                detour_x, detour_y = self.find_detour((self.rect.centerx, self.rect.centery), (new_x, new_y))
+                self.rect.centerx, self.rect.centery = detour_x, detour_y
             else:
                 # Move normally if no water tile is in the path
                 self.rect.centerx = new_x
                 self.rect.centery = new_y
-
+    
             self.facing_right = dx > 0  # Adjust the facing direction
             return False
         return True
+
+    def find_detour(self, start, target):
+        """
+        Find a simple detour around water tiles by checking adjacent tiles.
+        """
+        directions = [(-self.speed, 0), (self.speed, 0), (0, -self.speed), (0, self.speed)]
+        for dx, dy in directions:
+            detour_x = start[0] + dx
+            detour_y = start[1] + dy
+            if not self.is_water_tile(detour_x, detour_y):
+                return detour_x, detour_y
+        return start 
 
 
     def move_towards_pos(self, target, tolerance=10, random_offset=50):
@@ -349,9 +377,8 @@ class Knight(pygame.sprite.Sprite):
         dist = math.hypot(dx, dy)
         self.speed = 3
         if dist > tolerance:
-            dx, dy = dx / dist, dy / dist
-            self.rect.centerx += dx * self.speed  
-            self.rect.centery += dy * self.speed
+            self.rect.centerx += int(dx * self.speed)  
+            self.rect.centery += int(dy * self.speed)
 
             self.facing_right = dx > 0
             return False

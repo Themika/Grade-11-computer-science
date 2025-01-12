@@ -21,6 +21,7 @@ from Resources.Sheep import Sheep
 pygame.init()
 WINDOW_HEIGHT, WINDOW_WIDTH = 1280, 720
 display_surface = pygame.display.set_mode((WINDOW_HEIGHT, WINDOW_WIDTH))
+display_surface.fill((70, 171, 176))  
 pygame.display.set_caption("Protector of the Realm")
 
 # Load the cursor image
@@ -91,14 +92,14 @@ def draw_grid_coordinates(surface, camera):
 
 # Spawn wave
 def spawn_wave(wave, all_sprites, projectiles, houses, towers):
-    # for _ in range(1 + wave * 1):
-    #     enemy_tnt = TNT(projectiles)
-    #     enemy_tnt.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
-    #     all_sprites.add(enemy_tnt)
+    for _ in range(1 + wave * 2):
+        enemy_tnt = TNT(projectiles, level_data)
+        enemy_tnt.rect.topleft = (random.randint(250, 600), random.randint(250, 500))
+        all_sprites.add(enemy_tnt)
 
-    #     enemy_torch = Torch()
-    #     enemy_torch.rect.topleft = (random.randint(0, 500), random.randint(0, 500))
-    #     all_sprites.add(enemy_torch)
+        enemy_torch = Torch(level_data) 
+        enemy_torch.rect.topleft = (random.randint(200, 500), random.randint(200, 500))
+        all_sprites.add(enemy_torch)
 
     for house in houses:
         house.update_construction_status(wave_ended=True)
@@ -196,21 +197,29 @@ sheep_per_group = 5
 group_leader_count = 0
 group_leader = None
 
+def is_water_tile(x, y, level_data, TILE_SIZE=65):
+    tile_x, tile_y = x // TILE_SIZE, y // TILE_SIZE
+    if 0 <= tile_y < len(level_data) and 0 <= tile_x < len(level_data[0]):
+        return level_data[tile_y][tile_x][0] == 3  # Assuming 3 represents water tiles
+    return False
+
 for i in range(num_sheep):
-    x, y = random.randint(0, 3000), random.randint(0, 3000)
+    while True:
+        x, y = random.randint(1500, 3000), random.randint(0, 3000)
+        if not is_water_tile(x, y, level_data):
+            break
     if i % sheep_per_group == 0:
-        group_leader = Sheep(x, y, sheeps, meats, reasources)
+        group_leader = Sheep(x, y, sheeps, meats, reasources, level_data)
         group_leader_count += 1
         sheeps.add(group_leader)
         all_sprites.add(group_leader)
     else:
-        sheep = Sheep(x, y, sheeps, meats, reasources, group_leader)
+        sheep = Sheep(x, y, sheeps, meats, reasources, level_data, group_leader=group_leader)
         sheeps.add(sheep)
         all_sprites.add(sheep)
 
-print(group_leader_count)
 
-for _ in range(10):
+for _ in range(5):
     archer = Archer(level_data)
     all_sprites.add(archer)
 
@@ -281,7 +290,6 @@ while running:
                 building_to_place = None
 
     camera.update(player)
-    display_surface.fill('darkgray')
     draw_grid(display_surface, camera)
     draw_grid_coordinates(display_surface, camera)
     draw_level(display_surface, level_data, img_list, camera.camera.x, camera.camera.y)
