@@ -88,11 +88,12 @@ class Archer(pygame.sprite.Sprite):
         self.maintain_distance()
         self.animate(dt)
         self.projectiles.update(dt, enemies)
-
     def draw(self, surface, camera_offset):
         surface.blit(self.image, self.rect.move(camera_offset))
         for projectile in self.projectiles:
             projectile.draw(surface, camera_offset)
+    
+    
 
     def movement(self):
         if self.on_tower:
@@ -322,8 +323,7 @@ class Archer(pygame.sprite.Sprite):
 
     def deselect(self):
         self.selected = False
-        if self.state == State.WATCH:
-            self.state = State.PATROL
+        self.state = State.SEARCH
 
     def move_to_click_position(self, position):
         if self.state not in [State.WATCH, State.POS]:

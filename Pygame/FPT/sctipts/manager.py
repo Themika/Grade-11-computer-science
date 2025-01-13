@@ -92,14 +92,14 @@ def draw_grid_coordinates(surface, camera):
 
 # Spawn wave
 def spawn_wave(wave, all_sprites, projectiles, houses, towers):
-    for _ in range(1 + wave * 2):
-        enemy_tnt = TNT(projectiles, level_data)
-        enemy_tnt.rect.topleft = (random.randint(250, 600), random.randint(250, 500))
-        all_sprites.add(enemy_tnt)
+    # for _ in range(1 + wave * 2):
+    #     enemy_tnt = TNT(projectiles, level_data)
+    #     enemy_tnt.rect.topleft = (random.randint(250, 600), random.randint(250, 500))
+    #     all_sprites.add(enemy_tnt)
 
-        enemy_torch = Torch(level_data) 
-        enemy_torch.rect.topleft = (random.randint(200, 500), random.randint(200, 500))
-        all_sprites.add(enemy_torch)
+    #     enemy_torch = Torch(level_data) 
+    #     enemy_torch.rect.topleft = (random.randint(200, 500), random.randint(200, 500))
+    #     all_sprites.add(enemy_torch)
 
     for house in houses:
         house.update_construction_status(wave_ended=True)
@@ -171,11 +171,19 @@ for category in tile_categories:
 house = House(x=1500, y=500, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png', construction_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png')
 house.construction_status = "finished"
 houses.append(house)
+def is_water_tile(x, y, level_data, TILE_SIZE=65):
+    tile_x, tile_y = x // TILE_SIZE, y // TILE_SIZE
+    if 0 <= tile_y < len(level_data) and 0 <= tile_x < len(level_data[0]):
+        return level_data[tile_y][tile_x][0] == 3  # Assuming 3 represents water tiles
+    return False
 
 # Spawn trees and gold mines
 for _ in range(20):
-    x = random.randint(0, 2000)
-    y = random.randint(0, 2000)
+    while True:
+        x = random.randint(0, 2000)
+        y = random.randint(0, 2000)
+        if not is_water_tile(x, y, level_data):
+            break
     tree = Tree(x, y, logs, reasources)
     trees.add(tree)
     all_sprites.add(tree)
@@ -197,12 +205,6 @@ sheep_per_group = 5
 group_leader_count = 0
 group_leader = None
 
-def is_water_tile(x, y, level_data, TILE_SIZE=65):
-    tile_x, tile_y = x // TILE_SIZE, y // TILE_SIZE
-    if 0 <= tile_y < len(level_data) and 0 <= tile_x < len(level_data[0]):
-        return level_data[tile_y][tile_x][0] == 3  # Assuming 3 represents water tiles
-    return False
-
 for i in range(num_sheep):
     while True:
         x, y = random.randint(1500, 3000), random.randint(0, 3000)
@@ -219,13 +221,13 @@ for i in range(num_sheep):
         all_sprites.add(sheep)
 
 
-for _ in range(5):
-    archer = Archer(level_data)
-    all_sprites.add(archer)
+# for _ in range(5):
+#     archer = Archer(level_data)
+#     all_sprites.add(archer)
 
-for _ in range(10):
-    knight = Knight(level_data)
-    all_sprites.add(knight)
+# for _ in range(10):
+#     knight = Knight(level_data)
+#     all_sprites.add(knight)
 
 spawn_wave(wave, all_sprites, projectiles, houses, towers)
 
