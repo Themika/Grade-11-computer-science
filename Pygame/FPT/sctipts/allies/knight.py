@@ -1,7 +1,7 @@
 import pygame
 import math
 import random
-import heapq
+from utils.d_star import AStar
 
 class State:
     IDLE = 'idle'
@@ -187,7 +187,7 @@ class Knight(pygame.sprite.Sprite):
         """Determine what the knight should do based on its state."""
         if self.mouse_pos:
             self.state = State.POS
-            if self.move_towards_pos(self.mouse_pos):
+            if self.move_towards(self.mouse_pos):
                 self.mouse_pos = None
                 self.watch()
                 return
@@ -206,16 +206,15 @@ class Knight(pygame.sprite.Sprite):
             self.avoid_overlap(other_knights)
 
     def search(self):
-        """Make the knight search for enemies in a small radius."""
+        """Make the archer search for enemies in a small radius using detouring system."""
         if not hasattr(self, 'search_targets'):
             self.search_targets = []
             self.search_index = 0
             self.search_start_time = pygame.time.get_ticks()
             self.state = State.SEARCH
-
         if not self.search_targets:
             self.search_targets = []
-            for _ in range(1):  # Generate up to 5 valid search targets
+            for _ in range(5):  # Generate up to 5 valid search targets
                 while True:
                     search_angle = random.uniform(0, 360)
                     dx = self.SEARCH_RADIUS * math.cos(math.radians(search_angle))
@@ -229,20 +228,19 @@ class Knight(pygame.sprite.Sprite):
                         not self.is_water_tile(candidate_x, candidate_y)):
                         self.search_targets.append((candidate_x, candidate_y))
                         break
-
             self.search_index = 0
-        if pygame.time.get_ticks() - self.search_start_time >= 20000:
+        if pygame.time.get_ticks() - self.search_start_time >= self.SEARCH_DURATION:
             self.state = State.PATROL
             self.search_targets = []
             self.state_timer = pygame.time.get_ticks()
         elif self.search_index < len(self.search_targets):
-            if self.move_towards(self.search_targets[self.search_index], tolerance=5):
+            self.move_towards(self.search_targets[self.search_index], tolerance=5)
+            if abs(self.rect.centerx - self.search_targets[self.search_index][0]) < 5 and abs(self.rect.centery - self.search_targets[self.search_index][1]) < 5:
                 self.search_index += 1
         else:
             self.state = State.PATROL
             self.search_targets = []
             self.state_timer = pygame.time.get_ticks()
-
 
     def update(self, dt, enemies, other_knights):
         """Update knight's behavior and animations."""
@@ -289,7 +287,7 @@ class Knight(pygame.sprite.Sprite):
         self.state_timer = 0  
 
     def patrol(self):
-        """Patrol between predefined points."""
+        """Patrol between predefined points using pathfinding logic."""
         if self.target:  
             return
 
@@ -298,9 +296,9 @@ class Knight(pygame.sprite.Sprite):
             self.current_patrol_point = (self.current_patrol_point + 1) % len(self.patrol_points)
 
         target_point = self.patrol_points[self.current_patrol_point]
-        self.move_towards(target_point)
+        self.move_towards_pathfinding(target_point)
 
-        # Check if the knight has reached the target point
+        # Check if the archer has reached the target point
         if self.rect.colliderect(pygame.Rect(target_point[0] - 5, target_point[1] - 5, 10, 10)):
             self.state = State.IDLE
             self.idle_time = random.randint(2000, 5000)
@@ -330,9 +328,9 @@ class Knight(pygame.sprite.Sprite):
                 self.idle_time = 600000 
                 self.state_timer = pygame.time.get_ticks()  
 
-    def move_towards(self, target, tolerance=10):
+    def move_towards(self, target, tolerance=5):
         """
-        Move the knight towards the target position while rerouting around water tiles and tiles to avoid.
+        Move the archer towards the target position while rerouting around water tiles and tiles to avoid.
         """
         dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
         dist = math.hypot(dx, dy)
@@ -341,10 +339,13 @@ class Knight(pygame.sprite.Sprite):
             dx, dy = dx / dist, dy / dist
             new_x = self.rect.centerx + dx * self.speed
             new_y = self.rect.centery + dy * self.speed
-            
+    
             if self.is_water_tile(new_x, new_y):
-                # Reroute logic using a simple detour method
+                # Reroute logic using a more sophisticated detour method
                 detour_x, detour_y = self.find_detour((self.rect.centerx, self.rect.centery), (new_x, new_y))
+                if (detour_x, detour_y) == (self.rect.centerx, self.rect.centery):
+                    # If no valid detour found, stop moving
+                    return True
                 self.rect.centerx, self.rect.centery = detour_x, detour_y
             else:
                 # Move normally if no water tile is in the path
@@ -355,35 +356,54 @@ class Knight(pygame.sprite.Sprite):
             return False
         return True
 
+    def move_towards_pathfinding(self, target, tolerance=5):
+        """
+        Move the archer towards the target position using pathfinding logic.
+        """
+        start = (self.rect.centerx, self.rect.centery)
+        path = self.find_path(start, target)
+        if path:
+            next_point = path[0]
+            self.move_towards(next_point, tolerance)
+
     def find_detour(self, start, target):
         """
-        Find a simple detour around water tiles by checking adjacent tiles.
+        Find a more sophisticated detour around water tiles by checking adjacent and diagonal tiles.
         """
-        directions = [(-self.speed, 0), (self.speed, 0), (0, -self.speed), (0, self.speed)]
+        directions = [
+            (-self.speed, 0), (self.speed, 0), (0, -self.speed), (0, self.speed),  # Cardinal directions
+            (-self.speed, -self.speed), (self.speed, -self.speed), (-self.speed, self.speed), (self.speed, self.speed)  # Diagonal directions
+        ]
         for dx, dy in directions:
             detour_x = start[0] + dx
             detour_y = start[1] + dy
             if not self.is_water_tile(detour_x, detour_y):
                 return detour_x, detour_y
-        return start 
+        return start
+    
+    def is_water_tile(self, x, y):
+        """
+        Check if the given position corresponds to a water tile or a tile to avoid.
+        """
+        tile_x = int(x // 65)
+        tile_y = int(y // 65)
+        if tile_y < 0 or tile_y >= len(self.tilemap) or tile_x < 0 or tile_x >= len(self.tilemap[0]):
+            # Out of bounds check
+            return True
+        tile = self.tilemap[tile_y][tile_x]
+        return tile in self.WATER_TILES or tile[0] == self.AVOID_TILE
+    
+    def find_path(self, start, target, all_archers=None):
+        start_tile = (int(start[0] // 65), int(start[1] // 65))
+        target_tile = (int(target[0] // 65), int(target[1] // 65))
+        dstar = AStar(start_tile, target_tile, self.tilemap)
+        path = dstar.find_path()
+        if path and len(path) > 1:
+            next_tile = path[1]
+        else:
+            next_tile = path[0] if path else start_tile
+        return [(next_tile[0] * 65 + 32.5, next_tile[1] * 65 + 32.5)]
 
-
-    def move_towards_pos(self, target, tolerance=10, random_offset=50):
-        """Move the knight towards the target position with a tolerance and random offset."""
-        target = (target[0] + random.randint(-random_offset, random_offset), 
-                target[1] + random.randint(-random_offset, random_offset))
-        
-        dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
-        dist = math.hypot(dx, dy)
-        self.speed = 3
-        if dist > tolerance:
-            self.rect.centerx += int(dx * self.speed)  
-            self.rect.centery += int(dy * self.speed)
-
-            self.facing_right = dx > 0
-            return False
-        self.speed = 2
-        return True
 
     def avoid_overlap(self, other_knights, min_distance=25):
         """Avoid overlapping with other knights."""

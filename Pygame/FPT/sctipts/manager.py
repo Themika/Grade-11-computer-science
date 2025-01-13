@@ -178,10 +178,10 @@ def is_water_tile(x, y, level_data, TILE_SIZE=65):
     return False
 
 # Spawn trees and gold mines
-for _ in range(20):
+for _ in range(50):
     while True:
-        x = random.randint(0, 2000)
-        y = random.randint(0, 2000)
+        x = random.randint(500, 2000)
+        y = random.randint(700, 2000)
         if not is_water_tile(x, y, level_data):
             break
     tree = Tree(x, y, logs, reasources)
@@ -189,8 +189,11 @@ for _ in range(20):
     all_sprites.add(tree)
 
 for _ in range(1):
-    x = random.randint(0, 2000)
-    y = random.randint(0, 2000)
+    while True:
+        x = random.randint(0, 2000)
+        y = random.randint(0, 2000)
+        if not is_water_tile(x, y, level_data):
+            break
     gold_mine = GoldMine(x, y, golds, reasources)
     gold_mines.add(gold_mine)
     all_sprites.add(gold_mine)
@@ -311,7 +314,6 @@ while running:
             sprite.update(dt, trees, targeted_trees, reasources, gold_mines, alive_pawns, sheeps)
         elif isinstance(sprite, TNT) or isinstance(sprite, Torch):
             sprite.update(alive_knights, alive_archers)
-
     projectiles.update(dt, alive_knights, alive_archers)
     for projectile in projectiles:
         projectile.draw(display_surface, camera.camera.topleft)
