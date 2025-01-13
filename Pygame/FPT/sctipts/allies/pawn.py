@@ -76,30 +76,6 @@ class Pawn(pygame.sprite.Sprite):
             if not self.facing_right:
                 self.flip_sprite()
 
-    def movement(self, pawns):
-        if self.state == RUN:
-            if self.target_tree:
-                self.move_towards_target(self.target_tree, pawns)
-            elif self.target_gold_mine:
-                self.move_towards_target(self.target_gold_mine, pawns)
-
-    def move_towards_target(self, target, pawns):
-        dx, dy = target.rect.centerx - self.rect.centerx, target.rect.centery - self.rect.centery
-        distance = (dx**2 + dy**2) ** 0.5
-        if distance > self.SPEED:
-            dx, dy = dx / distance, dy / distance
-            self.rect.x += dx * self.SPEED
-            self.rect.y += dy * self.SPEED
-            self.update_facing_direction(dx)
-        else:
-            self.rect.center = target.rect.center
-            self.state = CHOPPING if target == self.target_tree else MOVING_TO_MINE
-            if target == self.target_gold_mine:
-                self.mine_start_time = time.time()
-                self.target_gold_mine.image = self.target_gold_mine.destroyed_image
-                self.image.set_alpha(0)
-        self.avoid_collisions(pawns, dx, dy)
-
     def update_facing_direction(self, dx):
         if dx < 0 and self.facing_right:
             self.facing_right = False

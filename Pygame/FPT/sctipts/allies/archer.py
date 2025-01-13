@@ -105,7 +105,7 @@ class Archer(pygame.sprite.Sprite):
                 self.attack()
             return  
         if self.selected and self.target_position:
-            self.move_towards(self.target_position)
+            self.move_towards_pathfinding(self.target_position)
             self.state = State.POS
             if self.rect.center == self.target_position or self.rect.colliderect(pygame.Rect(self.target_position, (25, 25))):
                 if self.state != State.WATCH:
@@ -216,6 +216,11 @@ class Archer(pygame.sprite.Sprite):
     
         if dist > tolerance:
             dx, dy = dx / dist, dy / dist
+            self.rect.centerx += dx * self.SPEED
+            self.rect.centery += dy * self.SPEED
+            if (dx > 0 and not self.facing_right) or (dx < 0 and self.facing_right):
+                self.facing_right = dx > 0
+                self.image = pygame.transform.flip(self.image, True, False)
             new_x = self.rect.centerx + dx * self.SPEED
             new_y = self.rect.centery + dy * self.SPEED
     
@@ -234,7 +239,6 @@ class Archer(pygame.sprite.Sprite):
             self.facing_right = dx > 0  # Adjust the facing direction
             return False
         return True
-
     def move_towards_pathfinding(self, target, tolerance=5):
         """
         Move the archer towards the target position using pathfinding logic.

@@ -330,7 +330,7 @@ class Knight(pygame.sprite.Sprite):
 
     def move_towards(self, target, tolerance=5):
         """
-        Move the archer towards the target position while rerouting around water tiles and tiles to avoid.
+        Move the knight towards the target position while rerouting around water tiles and tiles to avoid.
         """
         dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
         dist = math.hypot(dx, dy)
@@ -358,7 +358,7 @@ class Knight(pygame.sprite.Sprite):
 
     def move_towards_pathfinding(self, target, tolerance=5):
         """
-        Move the archer towards the target position using pathfinding logic.
+        Move the knight towards the target position using pathfinding logic.
         """
         start = (self.rect.centerx, self.rect.centery)
         path = self.find_path(start, target)
@@ -393,7 +393,7 @@ class Knight(pygame.sprite.Sprite):
         tile = self.tilemap[tile_y][tile_x]
         return tile in self.WATER_TILES or tile[0] == self.AVOID_TILE
     
-    def find_path(self, start, target, all_archers=None):
+    def find_path(self, start, target):
         start_tile = (int(start[0] // 65), int(start[1] // 65))
         target_tile = (int(target[0] // 65), int(target[1] // 65))
         dstar = AStar(start_tile, target_tile, self.tilemap)
