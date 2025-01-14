@@ -21,6 +21,7 @@ class Knight(pygame.sprite.Sprite):
     SEARCH_RADIUS = 200  
     WATER_TILES = ['Tilemap_Flat_46']
     AVOID_TILE = 40
+    PATHFINDING_COOLDOWN = 1000
 
     def __init__(self, tile_map, *groups):
         super().__init__(*groups)
@@ -47,8 +48,9 @@ class Knight(pygame.sprite.Sprite):
         self.state_timer = 0 
         self.idle_time = 0 
         self.speed = 2
-        self.health = 5  
+        self.health = 200  
         self.SEARCH_DURATION = 2000
+        self.last_pathfinding_time = 0
 
     def load_sprites(self):
         """Load all sprites for the knight."""
@@ -164,7 +166,7 @@ class Knight(pygame.sprite.Sprite):
         if self.state == State.DEAD:
             self.animate(dt)
             if self.current_sprite == len(self.sprites[State.DEAD]) - 1:
-                self.kill()  # Remove the knight from all sprite groups
+                self.kill()  
         else:
             self.detect_enemy(enemies)
             self.movement(other_knights)
@@ -241,9 +243,9 @@ class Knight(pygame.sprite.Sprite):
         dist = math.hypot(dx, dy)
         if dist > tolerance:
             dx, dy = dx / dist, dy / dist
-            new_x, new_y = self.rect.centerx + dx * self.speed, self.rect.centery + dy * self.speed 
+            new_x, new_y = self.rect.centerx + dx * self.speed, self.rect.centery + dy * self.speed
             if self.is_water_tile(new_x, new_y):
-                detour_x, detour_y = self.find_detour((self.rect.centerx, self.rect.centery), (new_x, new_y))
+                detour_x, detour_y = self.find_detour((self.rect.centerx, self.rect.centery))
                 if (detour_x, detour_y) == (self.rect.centerx, self.rect.centery):
                     return True
                 self.rect.centerx, self.rect.centery = detour_x, detour_y
@@ -252,16 +254,20 @@ class Knight(pygame.sprite.Sprite):
             self.facing_right = dx > 0
             return False
         return True
-
+    
     def move_towards_pathfinding(self, target, tolerance=5):
-        """Move the knight towards the target position using pathfinding."""
-        start = (self.rect.centerx, self.rect.centery)
-        path = self.find_path(start, target)
-        if path:
-            return self.move_towards(path[0], tolerance)
+        """Move the knight towards the target position using pathfinding, but avoid frequent pathfinding calculations."""
+        current_time = pygame.time.get_ticks()
+        if not hasattr(self, 'path') or not self.path or self.path[-1] != target or current_time - self.last_pathfinding_time > self.PATHFINDING_COOLDOWN:
+            start = (self.rect.centerx, self.rect.centery)
+            self.path = self.find_path(start, target)
+            self.last_pathfinding_time = current_time  # Update the last pathfinding time
+        
+        if self.path:
+            return self.move_towards(self.path[0], tolerance)
         return True
 
-    def find_detour(self, start, target):
+    def find_detour(self, start):
         """Find a more sophisticated detour around water tiles by checking adjacent and diagonal tiles."""
         directions = [(-self.speed, 0), (self.speed, 0), (0, -self.speed), (0, self.speed), (-self.speed, -self.speed), (self.speed, -self.speed), (-self.speed, self.speed), (self.speed, self.speed)]
         for dx, dy in directions:
@@ -269,7 +275,7 @@ class Knight(pygame.sprite.Sprite):
             if not self.is_water_tile(detour_x, detour_y):
                 return detour_x, detour_y
         return start
-
+    
     def is_water_tile(self, x, y):
         """Check if the given position corresponds to a water tile or a tile to avoid."""
         tile_x, tile_y = int(x // 65), int(y // 65)
@@ -277,7 +283,7 @@ class Knight(pygame.sprite.Sprite):
             return True
         tile = self.tilemap[tile_y][tile_x]
         return tile in self.WATER_TILES or tile[0] == self.AVOID_TILE
-
+    
     def find_path(self, start, target):
         start_tile, target_tile = (int(start[0] // 65), int(start[1] // 65)), (int(target[0] // 65), int(target[1] // 65))
         dstar = AStar(start_tile, target_tile, self.tilemap)
@@ -287,7 +293,6 @@ class Knight(pygame.sprite.Sprite):
         else:
             next_tile = path[0] if path else start_tile
         return [(next_tile[0] * 65 + 32.5, next_tile[1] * 65 + 32.5)]
-
     def avoid_overlap(self, other_knights, min_distance=25):
         """Avoid overlapping with other knights."""
         if self.state in [State.ATTACK_1, State.ATTACK_2, State.ATTACK_3, State.ATTACK_4, State.ATTACK_5]:

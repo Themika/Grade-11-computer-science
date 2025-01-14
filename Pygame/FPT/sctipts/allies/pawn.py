@@ -12,6 +12,7 @@ MOVING_TO_MINE = 'moving_to_mine'
 CARRYING = 'carrying'
 POS = 'pos'
 WATCH = 'watch'
+DEATH = 'death'
 
 TOLERANCE = 20
 
@@ -67,6 +68,7 @@ class Pawn(pygame.sprite.Sprite):
             CARRYING: load_images('Animations/Pawn/Carrying/Pawn_Blue_Carrying', 6),
             POS: load_images('Animations/Pawn/Run/Pawn_Blue_Run', 5),
             WATCH: load_images('Animations/Pawn/Idle/Pawn_Blue_Idle', 5),
+            DEATH: load_images('Animations/Warrior/Blue/Knight/Death/Dead', 14)
         }
 
     def flip_sprite(self):
@@ -129,6 +131,12 @@ class Pawn(pygame.sprite.Sprite):
     def update(self, dt, trees, targeted_trees, resources, gold_mines, pawns, sheep_sprites):
         current_time = time.time()
         nearest_sheep = self.find_nearest(sheep_sprites)
+        if self.health <= 0:
+            self.state = DEATH
+            self.animate(dt)
+            if self.current_sprite == len(self.sprites[DEATH]) - 1:
+                self.kill()
+            return
         if nearest_sheep and self.is_within_radius(nearest_sheep, 50):
             self.chase_sheep(nearest_sheep)
         else:
@@ -174,32 +182,31 @@ class Pawn(pygame.sprite.Sprite):
             self.state = IDLE
 
     def move_towards_pathfinding(self, target, tolerance=5):
-        """
-        Move the pawn towards the target position using pathfinding logic.
-        """
         start = (self.rect.centerx, self.rect.centery)
-        if not self.path_cache or self.path_cache[-1] != target:
+        target_tile = (int(target[0] // 65), int(target[1] // 65))
+        
+        # Check if the target has changed significantly
+        if not self.path_cache or self.path_cache[-1] != target_tile:
             self.path_cache = self.find_path(start, target)
+        
         if self.path_cache:
             next_point = self.path_cache[0]
             if self.move_towards_with_separation(next_point, tolerance):
                 self.path_cache.pop(0)
 
+
     def move_towards_with_separation(self, target, tolerance=5):
-        """
-        Move the pawn towards the target position while maintaining separation from other pawns.
-        """
         dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
         dist = math.hypot(dx, dy)
 
         if dist > tolerance:
             dx, dy = dx / dist, dy / dist
             separation_vector = self.calculate_separation_vector()
-            new_x = self.rect.centerx + (dx + separation_vector[0] * 2) * self.SPEED
-            new_y = self.rect.centery + (dy + separation_vector[1] * 2) * self.SPEED
+            new_x = self.rect.centerx + (dx + separation_vector[0]) * self.SPEED
+            new_y = self.rect.centery + (dy + separation_vector[1]) * self.SPEED
 
             if self.is_water_tile(new_x, new_y):
-                detour_x, detour_y = self.find_detour((self.rect.centerx, self.rect.centery), (new_x, new_y))
+                detour_x, detour_y = self.find_detour((self.rect.centerx, self.rect.centery))
                 if (detour_x, detour_y) == (self.rect.centerx, self.rect.centery):
                     return True
                 self.rect.centerx, self.rect.centery = detour_x, detour_y
@@ -214,25 +221,19 @@ class Pawn(pygame.sprite.Sprite):
         return True
 
     def calculate_separation_vector(self):
-        """
-        Calculate a separation vector to avoid overlapping with other pawns.
-        """
-        separation_distance = 30  # Distance to maintain between pawns
+        separation_distance = 30
         separation_vector = pygame.math.Vector2(0, 0)
-        for pawn in self.groups()[0]:  # Assuming all pawns are in the same group
+        for pawn in self.groups()[0]:
             if pawn != self:
                 distance = pygame.math.Vector2(self.rect.center) - pygame.math.Vector2(pawn.rect.center)
                 if 0 < distance.length() < separation_distance:
                     separation_vector += distance.normalize() / distance.length()
         return separation_vector
 
-    def find_detour(self, start, target):
-        """
-        Find a more sophisticated detour around water tiles by checking adjacent and diagonal tiles.
-        """
+    def find_detour(self, start):
         directions = [
-            (-self.SPEED, 0), (self.SPEED, 0), (0, -self.SPEED), (0, self.SPEED),  # Cardinal directions
-            (-self.SPEED, -self.SPEED), (self.SPEED, -self.SPEED), (-self.SPEED, self.SPEED), (self.SPEED, self.SPEED)  # Diagonal directions
+            (-self.SPEED, 0), (self.SPEED, 0), (0, -self.SPEED), (0, self.SPEED),
+            (-self.SPEED, -self.SPEED), (self.SPEED, -self.SPEED), (-self.SPEED, self.SPEED), (self.SPEED, self.SPEED)
         ]
         for dx, dy in directions:
             detour_x = start[0] + dx
@@ -242,13 +243,9 @@ class Pawn(pygame.sprite.Sprite):
         return start
     
     def is_water_tile(self, x, y):
-        """
-        Check if the given position corresponds to a water tile or a tile to avoid.
-        """
         tile_x = int(x // 65)
         tile_y = int(y // 65)
         if tile_y < 0 or tile_y >= len(self.tilemap) or tile_x < 0 or tile_x >= len(self.tilemap[0]):
-            # Out of bounds check
             return True
         tile = self.tilemap[tile_y][tile_x]
         return tile in self.WATER_TILES or tile[0] == self.AVOID_TILE
@@ -365,7 +362,7 @@ class Pawn(pygame.sprite.Sprite):
     def move_towards_mine(self, dt, mine_sprite):
         self.state = RUN 
         target_position = pygame.math.Vector2(mine_sprite.rect.center)
-        self.move_towards_position(target_position, dt)
+        self.move_towards_pathfinding(target_position)
         if abs(self.rect.centerx - target_position.x) <= 10 and abs(self.rect.centery - target_position.y) <= 10:
             self.state = MOVING_TO_MINE
             self.mine_start_time = time.time()

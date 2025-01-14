@@ -104,5 +104,8 @@ class Enemy(pygame.sprite.Sprite):
     def distance_to(self, target):
         return ((self.rect.centerx - target[0]) ** 2 + (self.rect.centery - target[1]) ** 2) ** 0.5
 
+    def distance_between(self, pos1, pos2):
+        return ((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2) ** 0.5
+
     def _tile_coords(self, pos):
         return (pos[0] // self.TILE_SIZE, pos[1] // self.TILE_SIZE)

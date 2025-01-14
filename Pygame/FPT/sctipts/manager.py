@@ -241,6 +241,8 @@ while running:
     keys = pygame.key.get_pressed()
     alive_allies = [allies for allies in all_sprites if isinstance(allies, Knight) or isinstance(allies, Archer) and allies.health > 0 or isinstance(allies, Pawn) and allies.health > 0]
     alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Torch) or isinstance(enemy, TNT) and enemy.health > 0]
+
+    alive_torch = [torch for torch in all_sprites if isinstance(torch, Torch) and torch.health > 0]
     alive_pawns = [pawn for pawn in all_sprites if isinstance(pawn, Pawn) and pawn.health > 0]
     alive_knights = [ally for ally in all_sprites if isinstance(ally, Knight)]
     alive_archers = [ally for ally in all_sprites if isinstance(ally, Archer)]
@@ -311,10 +313,9 @@ while running:
         elif isinstance(sprite, Knight):
             sprite.update(dt, alive_enemies, alive_knights)
         elif isinstance(sprite, Pawn):
-            # sprite.draw(display_surface)
             sprite.update(dt, trees, targeted_trees, reasources, gold_mines, alive_pawns, sheeps)
         elif isinstance(sprite, TNT) or isinstance(sprite, Torch):
-            sprite.update(alive_knights, alive_archers)
+            sprite.update(alive_knights, alive_archers,alive_torch)
     projectiles.update(dt, alive_knights, alive_archers)
     for projectile in projectiles:
         projectile.draw(display_surface, camera.camera.topleft)
