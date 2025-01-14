@@ -92,10 +92,10 @@ def draw_grid_coordinates(surface, camera):
 
 # Spawn wave
 def spawn_wave(wave, all_sprites, projectiles, houses, towers):
-    for _ in range(1 + wave * 5):
-        enemy_tnt = TNT(projectiles, level_data)
-        enemy_tnt.rect.topleft = (random.randint(250, 600), random.randint(250, 500))
-        all_sprites.add(enemy_tnt)
+    for _ in range(1 + wave * 20):
+        # enemy_tnt = TNT(projectiles, level_data)
+        # enemy_tnt.rect.topleft = (random.randint(250, 600), random.randint(250, 500))
+        # all_sprites.add(enemy_tnt)
 
         enemy_torch = Torch(level_data) 
         enemy_torch.rect.topleft = (random.randint(200, 500), random.randint(200, 500))

@@ -64,6 +64,9 @@ class Archer(pygame.sprite.Sprite):
         attack_sprites = [
             pygame.image.load(f'Animations/Warrior/Blue/Archer/Attack_1/Archer_Blue_Attack_{i}.png').convert_alpha() for i in range(1, 9)
         ]
+        death_sprites = [
+            pygame.image.load(f'Animations/Warrior/Blue/Knight/Death/Dead_{i}.png').convert_alpha() for i in range(1, 14)
+        ]
         return {
             'idle': idle_sprites,
             'watch': idle_sprites,
@@ -83,11 +86,16 @@ class Archer(pygame.sprite.Sprite):
         return patrol_points
 
     def update(self, dt, enemies):
-        self.detect_enemy(enemies)
-        self.movement()
-        self.maintain_distance()
-        self.animate(dt)
-        self.projectiles.update(dt, enemies)
+        if self.state == State.DEAD:
+            self.animate(dt)
+            if self.current_sprite == len(self.sprites[State.DEAD]) - 1:
+                self.kill()  # Remove the knight from all sprite groups
+        else:
+            self.detect_enemy(enemies)
+            self.movement()
+            self.maintain_distance()
+            self.animate(dt)
+            self.projectiles.update(dt, enemies)
     def draw(self, surface, camera_offset):
         surface.blit(self.image, self.rect.move(camera_offset))
         for projectile in self.projectiles:

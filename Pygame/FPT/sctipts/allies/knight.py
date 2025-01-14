@@ -47,7 +47,7 @@ class Knight(pygame.sprite.Sprite):
         self.state_timer = 0 
         self.idle_time = 0 
         self.speed = 2
-        self.health = 200  
+        self.health = 5  
         self.SEARCH_DURATION = 2000
 
     def load_sprites(self):
@@ -66,7 +66,8 @@ class Knight(pygame.sprite.Sprite):
             'attack_4': load_animation('Animations/Warrior/Blue/Knight/Blue_Attack_4/Warrior_Blue_Attack_4_', 6),
             'attack_5': load_animation('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_', 6),
             'search': load_animation('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_', 6),
-            'pos': load_animation('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_', 6)
+            'pos': load_animation('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_', 6),
+            "dead":load_animation('Animations/Warrior/Blue/Knight/Death/Dead_',14)
         }
 
     def generate_random_patrol_points(self, num_points, max_x, max_y):
@@ -160,14 +161,19 @@ class Knight(pygame.sprite.Sprite):
 
     def update(self, dt, enemies, other_knights):
         """Update knight's behavior and animations."""
-        self.detect_enemy(enemies)
-        self.movement(other_knights)
-        self.animate(dt)
-        if self.target and not any(enemy.rect.center == self.target and enemy.health > 0 for enemy in enemies):
-            self.target = None
-            self.state = State.SEARCH
-            self.state_timer = pygame.time.get_ticks()
-            self.current_sprite = 0
+        if self.state == State.DEAD:
+            self.animate(dt)
+            if self.current_sprite == len(self.sprites[State.DEAD]) - 1:
+                self.kill()  # Remove the knight from all sprite groups
+        else:
+            self.detect_enemy(enemies)
+            self.movement(other_knights)
+            self.animate(dt)
+            if self.target and not any(enemy.rect.center == self.target and enemy.health > 0 for enemy in enemies):
+                self.target = None
+                self.state = State.SEARCH
+                self.state_timer = pygame.time.get_ticks()
+                self.current_sprite = 0
 
     def animate(self, dt):
         self.animation_timer += dt * 8500  
@@ -363,6 +369,8 @@ class Knight(pygame.sprite.Sprite):
     def take_damage(self, amount):
         """Reduce health by the given amount and destroy if health is 0 or less."""
         self.health -= amount
-        if self.health <= 0:
+        if self.health <= 0 and self.state != State.DEAD:
             self.state = State.DEAD
-            self.kill()
+            self.current_sprite = 0
+            self.animation_speed = 100  # Adjust the speed of the death animation if needed
+

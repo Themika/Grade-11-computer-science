@@ -45,6 +45,7 @@ class Torch(Enemy):
         super().update(knights, archers)
         self.update_animation()
 
+        
     def attack(self, target):
         current_time = pygame.time.get_ticks()
         if current_time - self.last_attack_time >= self.ATTACK_COOLDOWN:
