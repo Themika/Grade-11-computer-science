@@ -29,96 +29,7 @@ class Knight(pygame.sprite.Sprite):
         self.facing_right = True
         self.tilemap = tile_map
         self.current_sprite = 0
-        self.sprites = {
-            'idle': [
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_5.png')
-            ],
-            "watch" : [
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_5.png')
-            ],
-            'run': [
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_6.png')
-            ],
-            'patrol': [
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_6.png')
-            ],
-            "attack_1": [
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_1/Warrior_Blue_Attack_1_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_1/Warrior_Blue_Attack_1_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_1/Warrior_Blue_Attack_1_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_1/Warrior_Blue_Attack_1_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_1/Warrior_Blue_Attack_1_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_1/Warrior_Blue_Attack_1_6.png'),
-            ],
-            "attack_2": [
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_2/Warrior_Blue_attack_2_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_2/Warrior_Blue_Attack_2_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_2/Warrior_Blue_Attack_2_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_2/Warrior_Blue_Attack_2_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_2/Warrior_Blue_Attack_2_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_2/Warrior_Blue_Attack_2_6.png'),
-            ],
-            "attack_3":[
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_3/Warrior_Blue_Attack_3_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_3/Warrior_Blue_Attack_3_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_3/Warrior_Blue_Attack_3_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_3/Warrior_Blue_Attack_3_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_3/Warrior_Blue_Attack_3_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_3/Warrior_Blue_Attack_3_6.png')
-            ],
-            "attack_4":[
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_4/Warrior_Blue_Attack_4_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_4/Warrior_Blue_Attack_4_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_4/Warrior_Blue_Attack_4_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_4/Warrior_Blue_Attack_4_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_4/Warrior_Blue_Attack_4_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_4/Warrior_Blue_Attack_4_6.png')
-            ],
-            "attack_5":[
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_6.png')
-            ],
-            'search': [
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_6.png')
-            ],
-            "pos":[
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_1.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_2.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_3.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_4.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_5.png'),
-                pygame.image.load('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_6.png')
-            ]
-        }
+        self.sprites = self.load_sprites()
         self.image = self.sprites['idle'][self.current_sprite]
         self.rect = self.image.get_rect()
         self.rect.center = (1280 // 2, 720 // 2) 
@@ -133,16 +44,30 @@ class Knight(pygame.sprite.Sprite):
         self.animation_speed = 750  
         self.selected = False
         self.has_reached = False
-
-
-        self.image = self.sprites['idle'][self.current_sprite]
-        self.rect = self.image.get_rect()
-        self.rect.center = (1280 // 2, 720 // 2) 
-
         self.state_timer = 0 
         self.idle_time = 0 
         self.speed = 2
         self.health = 200  
+        self.SEARCH_DURATION = 2000
+
+    def load_sprites(self):
+        """Load all sprites for the knight."""
+        def load_animation(path, count):
+            return [pygame.image.load(f'{path}{i}.png') for i in range(1,count)]
+
+        return {
+            'idle': load_animation('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_', 6),
+            'watch': load_animation('Animations/Warrior/Blue/Knight/Blue_Idle/Warrior_Blue_Idle_', 6),
+            'run': load_animation('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_', 6),
+            'patrol': load_animation('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_', 6),
+            'attack_1': load_animation('Animations/Warrior/Blue/Knight/Blue_Attack_1/Warrior_Blue_Attack_1_', 6),
+            'attack_2': load_animation('Animations/Warrior/Blue/Knight/Blue_Attack_2/Warrior_Blue_Attack_2_', 6),
+            'attack_3': load_animation('Animations/Warrior/Blue/Knight/Blue_Attack_3/Warrior_Blue_Attack_3_', 6),
+            'attack_4': load_animation('Animations/Warrior/Blue/Knight/Blue_Attack_4/Warrior_Blue_Attack_4_', 6),
+            'attack_5': load_animation('Animations/Warrior/Blue/Knight/Blue_Attack_5/Warrior_Blue_Attack_5_', 6),
+            'search': load_animation('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_', 6),
+            'pos': load_animation('Animations/Warrior/Blue/Knight/Blue_Run/Warrior_Blue_Run_', 6)
+        }
 
     def generate_random_patrol_points(self, num_points, max_x, max_y):
         """Generate a list of random patrol points within the given range, avoiding water tiles."""
@@ -187,10 +112,11 @@ class Knight(pygame.sprite.Sprite):
         """Determine what the knight should do based on its state."""
         if self.mouse_pos:
             self.state = State.POS
-            if self.move_towards(self.mouse_pos):
+            target_pos = (self.mouse_pos[0] + random.randint(-50, 50), self.mouse_pos[1] + random.randint(-50,50))
+            if self.move_towards_pathfinding(target_pos):
                 self.mouse_pos = None
+                self.state = State.WATCH
                 self.watch()
-                return
         else:
             if self.state != State.WATCH:
                 if self.state == State.RUN:
@@ -199,33 +125,24 @@ class Knight(pygame.sprite.Sprite):
                     self.patrol()
                 elif self.state == State.SEARCH:
                     self.search()
-                elif self.state == State.IDLE:
-                    if pygame.time.get_ticks() - self.state_timer >= self.idle_time:
-                        self.state = State.PATROL
-                        self.state_timer = pygame.time.get_ticks()
+                elif self.state == State.IDLE and pygame.time.get_ticks() - self.state_timer >= self.idle_time:
+                    self.state = State.PATROL
+                    self.state_timer = pygame.time.get_ticks()
             self.avoid_overlap(other_knights)
 
     def search(self):
-        """Make the archer search for enemies in a small radius using detouring system."""
+        """Make the knight search for enemies in a small radius using detouring system."""
         if not hasattr(self, 'search_targets'):
             self.search_targets = []
             self.search_index = 0
             self.search_start_time = pygame.time.get_ticks()
             self.state = State.SEARCH
         if not self.search_targets:
-            self.search_targets = []
             for _ in range(5):  # Generate up to 5 valid search targets
                 while True:
-                    search_angle = random.uniform(0, 360)
-                    dx = self.SEARCH_RADIUS * math.cos(math.radians(search_angle))
-                    dy = self.SEARCH_RADIUS * math.sin(math.radians(search_angle))
-                    candidate_x = self.rect.centerx + dx
-                    candidate_y = self.rect.centery + dy
-                    
-                    # Check if the candidate point is within map constraints and not a water tile
-                    if (0 <= candidate_x < len(self.tilemap[0]) * 65 and 
-                        0 <= candidate_y < len(self.tilemap) * 65 and 
-                        not self.is_water_tile(candidate_x, candidate_y)):
+                    dx, dy = self.SEARCH_RADIUS * math.cos(math.radians(random.uniform(0, 360))), self.SEARCH_RADIUS * math.sin(math.radians(random.uniform(0, 360)))
+                    candidate_x, candidate_y = self.rect.centerx + dx, self.rect.centery + dy
+                    if (0 <= candidate_x < len(self.tilemap[0]) * 65 and 0 <= candidate_y < len(self.tilemap) * 65 and not self.is_water_tile(candidate_x, candidate_y)):
                         self.search_targets.append((candidate_x, candidate_y))
                         break
             self.search_index = 0
@@ -234,8 +151,7 @@ class Knight(pygame.sprite.Sprite):
             self.search_targets = []
             self.state_timer = pygame.time.get_ticks()
         elif self.search_index < len(self.search_targets):
-            self.move_towards(self.search_targets[self.search_index], tolerance=5)
-            if abs(self.rect.centerx - self.search_targets[self.search_index][0]) < 5 and abs(self.rect.centery - self.search_targets[self.search_index][1]) < 5:
+            if self.move_towards(self.search_targets[self.search_index], tolerance=5):
                 self.search_index += 1
         else:
             self.state = State.PATROL
@@ -290,16 +206,10 @@ class Knight(pygame.sprite.Sprite):
         """Patrol between predefined points using pathfinding logic."""
         if self.target:  
             return
-
-        # Ensure the current patrol point is valid
         while not self.is_valid_patrol_point(self.patrol_points[self.current_patrol_point]):
             self.current_patrol_point = (self.current_patrol_point + 1) % len(self.patrol_points)
-
         target_point = self.patrol_points[self.current_patrol_point]
-        self.move_towards_pathfinding(target_point)
-
-        # Check if the archer has reached the target point
-        if self.rect.colliderect(pygame.Rect(target_point[0] - 5, target_point[1] - 5, 10, 10)):
+        if self.move_towards_pathfinding(target_point):
             self.state = State.IDLE
             self.idle_time = random.randint(2000, 5000)
             self.state_timer = pygame.time.get_ticks()
@@ -308,94 +218,62 @@ class Knight(pygame.sprite.Sprite):
     def is_valid_patrol_point(self, point):
         """Check if a patrol point is valid (within map bounds and not a water tile)."""
         x, y = point
-        map_width = len(self.tilemap[0]) * 65
-        map_height = len(self.tilemap) * 65
-
-        # Check if the point is within the map bounds
-        if not (0 <= x < map_width and 0 <= y < map_height):
-            return False
-
-        # Check if the point is not on a water tile
-        return not self.is_water_tile(x, y)
+        map_width, map_height = len(self.tilemap[0]) * 65, len(self.tilemap) * 65
+        return 0 <= x < map_width and 0 <= y < map_height and not self.is_water_tile(x, y)
 
     def chase_target(self):
         """Move toward the set target with tolerance."""
-        if self.target:
-            reached_target = self.move_towards(self.target, tolerance=10)
-            if reached_target:
-                self.target = None 
-                self.state = State.IDLE 
-                self.idle_time = 600000 
-                self.state_timer = pygame.time.get_ticks()  
+        if self.target and self.move_towards(self.target, tolerance=10):
+            self.target = None 
+            self.state = State.IDLE 
+            self.idle_time = 600000 
+            self.state_timer = pygame.time.get_ticks()  
 
     def move_towards(self, target, tolerance=5):
-        """
-        Move the knight towards the target position while rerouting around water tiles and tiles to avoid.
-        """
+        """Move the knight towards the target position while rerouting around water tiles and tiles to avoid."""
         dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
         dist = math.hypot(dx, dy)
-    
         if dist > tolerance:
             dx, dy = dx / dist, dy / dist
-            new_x = self.rect.centerx + dx * self.speed
-            new_y = self.rect.centery + dy * self.speed
-    
+            new_x, new_y = self.rect.centerx + dx * self.speed, self.rect.centery + dy * self.speed 
             if self.is_water_tile(new_x, new_y):
-                # Reroute logic using a more sophisticated detour method
                 detour_x, detour_y = self.find_detour((self.rect.centerx, self.rect.centery), (new_x, new_y))
                 if (detour_x, detour_y) == (self.rect.centerx, self.rect.centery):
-                    # If no valid detour found, stop moving
                     return True
                 self.rect.centerx, self.rect.centery = detour_x, detour_y
             else:
-                # Move normally if no water tile is in the path
-                self.rect.centerx = new_x
-                self.rect.centery = new_y
-    
-            self.facing_right = dx > 0  # Adjust the facing direction
+                self.rect.centerx, self.rect.centery = new_x, new_y
+            self.facing_right = dx > 0
             return False
         return True
 
     def move_towards_pathfinding(self, target, tolerance=5):
-        """
-        Move the knight towards the target position using pathfinding logic.
-        """
+        """Move the knight towards the target position using pathfinding."""
         start = (self.rect.centerx, self.rect.centery)
         path = self.find_path(start, target)
         if path:
-            next_point = path[0]
-            self.move_towards(next_point, tolerance)
+            return self.move_towards(path[0], tolerance)
+        return True
 
     def find_detour(self, start, target):
-        """
-        Find a more sophisticated detour around water tiles by checking adjacent and diagonal tiles.
-        """
-        directions = [
-            (-self.speed, 0), (self.speed, 0), (0, -self.speed), (0, self.speed),  # Cardinal directions
-            (-self.speed, -self.speed), (self.speed, -self.speed), (-self.speed, self.speed), (self.speed, self.speed)  # Diagonal directions
-        ]
+        """Find a more sophisticated detour around water tiles by checking adjacent and diagonal tiles."""
+        directions = [(-self.speed, 0), (self.speed, 0), (0, -self.speed), (0, self.speed), (-self.speed, -self.speed), (self.speed, -self.speed), (-self.speed, self.speed), (self.speed, self.speed)]
         for dx, dy in directions:
-            detour_x = start[0] + dx
-            detour_y = start[1] + dy
+            detour_x, detour_y = start[0] + dx, start[1] + dy
             if not self.is_water_tile(detour_x, detour_y):
                 return detour_x, detour_y
         return start
-    
+
     def is_water_tile(self, x, y):
-        """
-        Check if the given position corresponds to a water tile or a tile to avoid.
-        """
-        tile_x = int(x // 65)
-        tile_y = int(y // 65)
+        """Check if the given position corresponds to a water tile or a tile to avoid."""
+        tile_x, tile_y = int(x // 65), int(y // 65)
         if tile_y < 0 or tile_y >= len(self.tilemap) or tile_x < 0 or tile_x >= len(self.tilemap[0]):
-            # Out of bounds check
             return True
         tile = self.tilemap[tile_y][tile_x]
         return tile in self.WATER_TILES or tile[0] == self.AVOID_TILE
-    
+
     def find_path(self, start, target):
-        start_tile = (int(start[0] // 65), int(start[1] // 65))
-        target_tile = (int(target[0] // 65), int(target[1] // 65))
+        start_tile, target_tile = (int(start[0] // 65), int(start[1] // 65)), (int(target[0] // 65), int(target[1] // 65))
         dstar = AStar(start_tile, target_tile, self.tilemap)
         path = dstar.find_path()
         if path and len(path) > 1:
@@ -403,7 +281,6 @@ class Knight(pygame.sprite.Sprite):
         else:
             next_tile = path[0] if path else start_tile
         return [(next_tile[0] * 65 + 32.5, next_tile[1] * 65 + 32.5)]
-
 
     def avoid_overlap(self, other_knights, min_distance=25):
         """Avoid overlapping with other knights."""
@@ -482,6 +359,7 @@ class Knight(pygame.sprite.Sprite):
         else:
             self.state = State.SEARCH
             self.state_timer = pygame.time.get_ticks()
+
     def take_damage(self, amount):
         """Reduce health by the given amount and destroy if health is 0 or less."""
         self.health -= amount

@@ -92,14 +92,14 @@ def draw_grid_coordinates(surface, camera):
 
 # Spawn wave
 def spawn_wave(wave, all_sprites, projectiles, houses, towers):
-    # for _ in range(1 + wave * 2):
-    #     enemy_tnt = TNT(projectiles, level_data)
-    #     enemy_tnt.rect.topleft = (random.randint(250, 600), random.randint(250, 500))
-    #     all_sprites.add(enemy_tnt)
+    for _ in range(1 + wave * 5):
+        enemy_tnt = TNT(projectiles, level_data)
+        enemy_tnt.rect.topleft = (random.randint(250, 600), random.randint(250, 500))
+        all_sprites.add(enemy_tnt)
 
-    #     enemy_torch = Torch(level_data) 
-    #     enemy_torch.rect.topleft = (random.randint(200, 500), random.randint(200, 500))
-    #     all_sprites.add(enemy_torch)
+        enemy_torch = Torch(level_data) 
+        enemy_torch.rect.topleft = (random.randint(200, 500), random.randint(200, 500))
+        all_sprites.add(enemy_torch)
 
     for house in houses:
         house.update_construction_status(wave_ended=True)
@@ -180,8 +180,8 @@ def is_water_tile(x, y, level_data, TILE_SIZE=65):
 # Spawn trees and gold mines
 for _ in range(50):
     while True:
-        x = random.randint(500, 2000)
-        y = random.randint(700, 2000)
+        x = random.randint(1500, 2000)
+        y = random.randint(0, 2000)
         if not is_water_tile(x, y, level_data):
             break
     tree = Tree(x, y, logs, reasources)
@@ -200,7 +200,7 @@ for _ in range(1):
 
 # Spawn pawns, archers, and knights
 for i in range(10):
-    pawn = Pawn()
+    pawn = Pawn(level_data)
     all_sprites.add(pawn)
 
 num_sheep = 20
@@ -224,13 +224,13 @@ for i in range(num_sheep):
         all_sprites.add(sheep)
 
 
-# for _ in range(5):
-#     archer = Archer(level_data)
-#     all_sprites.add(archer)
+for _ in range(5):
+    archer = Archer(level_data)
+    all_sprites.add(archer)
 
-# for _ in range(10):
-#     knight = Knight(level_data)
-#     all_sprites.add(knight)
+for _ in range(10):
+    knight = Knight(level_data)
+    all_sprites.add(knight)
 
 spawn_wave(wave, all_sprites, projectiles, houses, towers)
 
@@ -311,6 +311,7 @@ while running:
         elif isinstance(sprite, Knight):
             sprite.update(dt, alive_enemies, alive_knights)
         elif isinstance(sprite, Pawn):
+            # sprite.draw(display_surface)
             sprite.update(dt, trees, targeted_trees, reasources, gold_mines, alive_pawns, sheeps)
         elif isinstance(sprite, TNT) or isinstance(sprite, Torch):
             sprite.update(alive_knights, alive_archers)
