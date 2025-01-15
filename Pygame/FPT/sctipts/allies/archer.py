@@ -56,6 +56,7 @@ class Archer(pygame.sprite.Sprite):
         self.map_height = len(tile_map) * 65
         self.patrol_points = self.generate_random_patrol_points(self.PATROL_POINTS, *self.PATROL_AREA)
         self.path_cache = {}
+        self.damage = 20
 
     def load_sprites(self):
         idle_sprites = [
@@ -102,10 +103,12 @@ class Archer(pygame.sprite.Sprite):
             self.maintain_distance()
             self.animate(dt)
             self.projectiles.update(dt, enemies)
+
     def draw(self, surface, camera_offset):
         surface.blit(self.image, self.rect.move(camera_offset))
         for projectile in self.projectiles:
             projectile.draw(surface, camera_offset)
+
     def movement(self):
         if self.on_tower:
             self.DETECTION_RADIUS = 800
@@ -294,7 +297,7 @@ class Archer(pygame.sprite.Sprite):
 
     def shoot_projectile(self, target):
         if target:
-            projectile = Projectile(self.rect.center, target.rect.center, 50, 'Tiny_Swords_Assets/Factions/Knights/Troops/Archer/Arrow/Arrow_Stand_Alone.png')
+            projectile = Projectile(self.rect.center, target.rect.center, self.damage, 'Tiny_Swords_Assets/Factions/Knights/Troops/Archer/Arrow/Arrow_Stand_Alone.png')
             self.projectiles.add(projectile)
             dx = target.rect.centerx - self.rect.centerx
             self.facing_right = dx > 0

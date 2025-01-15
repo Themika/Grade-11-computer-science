@@ -27,7 +27,7 @@ class Enemy(pygame.sprite.Sprite):
         self.state = self.RUN
         self.facing_right = True
         self.tilemap = tilemap
-        self.path = []
+        self.path_cache = {}
         self.astar = AStar(self._tile_coords(self.rect.center), self._tile_coords(self.patrol_points[0]), tilemap)
 
     def update(self, knights, archers):
@@ -52,13 +52,16 @@ class Enemy(pygame.sprite.Sprite):
     def move_towards(self, target):
         start = self._tile_coords(self.rect.center)
         goal = self._tile_coords(target)
-        if not self.path or self.path[-1] != goal:
+        path_key = (start, goal)
+        if path_key not in self.path_cache:
             self.astar = AStar(start, goal, self.tilemap)
-            self.path = self.astar.find_path()
+            self.path_cache[path_key] = self.astar.find_path()
+
+        self.path = self.path_cache[path_key]
 
         if self.path:
             next_step = self.path.pop(0)
-            target_pos = (next_step[0] * self.TILE_SIZE + self.TILE_SIZE / 2, next_step[1] * self.TILE_SIZE + self.TILE_SIZE / 2)
+            target_pos = (next_step[0] * self.TILE_SIZE + self.TILE_SIZE / 2, next_step[1] * self.TILE_SIZE / 2)
             dx, dy = target_pos[0] - self.rect.centerx, target_pos[1] - self.rect.centery
             distance = (dx**2 + dy**2) ** 0.5
             if distance != 0:
@@ -102,10 +105,11 @@ class Enemy(pygame.sprite.Sprite):
         self.state = self.IDLE if self.attacking_target else self.RUN
 
     def distance_to(self, target):
-        return ((self.rect.centerx - target[0]) ** 2 + (self.rect.centery - target[1]) ** 2) ** 0.5
+        return self.distance_between(self.rect.center, target)
 
     def distance_between(self, pos1, pos2):
-        return ((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2) ** 0.5
+        dx, dy = pos1[0] - pos2[0], pos1[1] - pos2[1]
+        return (dx**2 + dy**2) ** 0.5
 
     def _tile_coords(self, pos):
         return (pos[0] // self.TILE_SIZE, pos[1] // self.TILE_SIZE)

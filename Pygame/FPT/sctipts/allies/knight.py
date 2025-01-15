@@ -51,6 +51,8 @@ class Knight(pygame.sprite.Sprite):
         self.health = 200  
         self.SEARCH_DURATION = 2000
         self.last_pathfinding_time = 0
+        self.path = []
+        self.damage = 25
 
     def load_sprites(self):
         """Load all sprites for the knight."""
@@ -258,7 +260,7 @@ class Knight(pygame.sprite.Sprite):
     def move_towards_pathfinding(self, target, tolerance=5):
         """Move the knight towards the target position using pathfinding, but avoid frequent pathfinding calculations."""
         current_time = pygame.time.get_ticks()
-        if not hasattr(self, 'path') or not self.path or self.path[-1] != target or current_time - self.last_pathfinding_time > self.PATHFINDING_COOLDOWN:
+        if not self.path or self.path[-1] != target or current_time - self.last_pathfinding_time > self.PATHFINDING_COOLDOWN:
             start = (self.rect.centerx, self.rect.centery)
             self.path = self.find_path(start, target)
             self.last_pathfinding_time = current_time  # Update the last pathfinding time
@@ -350,15 +352,15 @@ class Knight(pygame.sprite.Sprite):
         if self.state == primary_attack and self.current_sprite == len(self.sprites[primary_attack]) - 1:
             self.state = secondary_attack
             self.current_sprite = 0
-            enemy.take_damage(10)
+            enemy.take_damage(self.damage)
         elif self.state == secondary_attack and self.current_sprite == len(self.sprites[secondary_attack]) - 1:
             self.state = primary_attack
             self.current_sprite = 0
-            enemy.take_damage(10)
+            enemy.take_damage(self.damage)
         elif self.state not in (primary_attack, secondary_attack):
             self.state = primary_attack
             self.current_sprite = 0
-            enemy.take_damage(10)
+            enemy.take_damage(self.damage)
         
     def watch(self):
         """Stay idle at the mouse position until deselected."""

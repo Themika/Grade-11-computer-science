@@ -38,6 +38,7 @@ class Player(pygame.sprite.Sprite):
         self.image.fill('blue')
         self.rect = self.image.get_rect(center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
         self.speed = 5
+        
 
     def update(self, keys):
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
@@ -92,10 +93,10 @@ def draw_grid_coordinates(surface, camera):
 
 # Spawn wave
 def spawn_wave(wave, all_sprites, projectiles, houses, towers):
-    for _ in range(1 + wave * 20):
-        # enemy_tnt = TNT(projectiles, level_data)
-        # enemy_tnt.rect.topleft = (random.randint(250, 600), random.randint(250, 500))
-        # all_sprites.add(enemy_tnt)
+    for _ in range(1 + wave * 50):
+        enemy_tnt = TNT(projectiles, level_data)
+        enemy_tnt.rect.topleft = (random.randint(250, 600), random.randint(250, 500))
+        all_sprites.add(enemy_tnt)
 
         enemy_torch = Torch(level_data) 
         enemy_torch.rect.topleft = (random.randint(200, 500), random.randint(200, 500))
@@ -224,11 +225,11 @@ for i in range(num_sheep):
         all_sprites.add(sheep)
 
 
-for _ in range(5):
+for _ in range(25):
     archer = Archer(level_data)
     all_sprites.add(archer)
 
-for _ in range(10):
+for _ in range(20):
     knight = Knight(level_data)
     all_sprites.add(knight)
 
@@ -241,13 +242,11 @@ while running:
     keys = pygame.key.get_pressed()
     alive_allies = [allies for allies in all_sprites if isinstance(allies, Knight) or isinstance(allies, Archer) and allies.health > 0 or isinstance(allies, Pawn) and allies.health > 0]
     alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Torch) or isinstance(enemy, TNT) and enemy.health > 0]
-
     alive_torch = [torch for torch in all_sprites if isinstance(torch, Torch) and torch.health > 0]
     alive_pawns = [pawn for pawn in all_sprites if isinstance(pawn, Pawn) and pawn.health > 0]
     alive_knights = [ally for ally in all_sprites if isinstance(ally, Knight)]
     alive_archers = [ally for ally in all_sprites if isinstance(ally, Archer)]
-    not_fully_constructed_buildings = [building for building in houses + towers if not building.is_fully_constructed()]
-
+    # collected_reasources = pygame.sprite.spritecollide(player, reasources, True)
     for event in pygame.event.get():
         if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
             running = False
@@ -314,9 +313,11 @@ while running:
             sprite.update(dt, alive_enemies, alive_knights)
         elif isinstance(sprite, Pawn):
             sprite.update(dt, trees, targeted_trees, reasources, gold_mines, alive_pawns, sheeps)
-        elif isinstance(sprite, TNT) or isinstance(sprite, Torch):
+        elif isinstance(sprite, Torch):
             sprite.update(alive_knights, alive_archers,alive_torch)
-    projectiles.update(dt, alive_knights, alive_archers)
+        elif isinstance(sprite, TNT):
+            sprite.update(alive_knights, alive_archers)
+    projectiles.update(dt,alive_knights, alive_archers)
     for projectile in projectiles:
         projectile.draw(display_surface, camera.camera.topleft)
 
