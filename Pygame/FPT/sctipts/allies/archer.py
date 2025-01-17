@@ -99,7 +99,7 @@ class Archer(pygame.sprite.Sprite):
                 self.kill()
         else:
             self.detect_enemy(enemies)
-            self.movement()
+            self.movement(enemies)
             self.maintain_distance()
             self.animate(dt)
             self.projectiles.update(dt, enemies)
@@ -108,8 +108,11 @@ class Archer(pygame.sprite.Sprite):
         surface.blit(self.image, self.rect.move(camera_offset))
         for projectile in self.projectiles:
             projectile.draw(surface, camera_offset)
+        if self.state == State.SEARCH and hasattr(self, 'search_targets'):
+            for point in self.search_targets:
+                pygame.draw.circle(surface, (255, 0, 0), (int(point[0] + camera_offset[0]), int(point[1] + camera_offset[1])), 5)
 
-    def movement(self):
+    def movement(self,enemies):
         if self.on_tower:
             self.DETECTION_RADIUS = 800
             self.SHOOT_COOLDOWN = 700
@@ -134,7 +137,7 @@ class Archer(pygame.sprite.Sprite):
             elif self.state == State.ATTACK:
                 self.attack()
             elif self.state == State.SEARCH:
-                self.search()
+                self.search(enemies)
             elif self.state == State.WATCH:
                 self.watch()
 
@@ -171,12 +174,18 @@ class Archer(pygame.sprite.Sprite):
         if current_time - self.state_timer >= self.idle_time:
             self.state = State.PATROL
 
-    def search(self):
+    def search(self,enemies):
+        self.detect_enemy(enemies)  # Check for enemies before continuing the search
+        if self.state == State.ATTACK:
+            return  # Exit the search method if an enemy is detected
+
         if not hasattr(self, 'search_targets'):
             self.search_targets = []
             self.search_index = 0
             self.search_start_time = pygame.time.get_ticks()
             self.state = State.SEARCH
+            self.last_position = self.rect.center
+            self.stuck_timer = pygame.time.get_ticks()
         if not self.search_targets:
             self.search_targets = []
             for _ in range(5):
@@ -188,7 +197,8 @@ class Archer(pygame.sprite.Sprite):
                     candidate_y = self.rect.centery + dy
                     if (0 <= candidate_x < self.map_width and 
                         0 <= candidate_y < self.map_height and 
-                        not self.is_water_tile(candidate_x, candidate_y)):
+                        not self.is_water_tile(candidate_x, candidate_y) and
+                        not self.is_adjacent_to_water_tile(candidate_x, candidate_y)):
                         self.search_targets.append((candidate_x, candidate_y))
                         break
             self.search_index = 0
@@ -197,13 +207,38 @@ class Archer(pygame.sprite.Sprite):
             self.search_targets = []
             self.state_timer = pygame.time.get_ticks()
         elif self.search_index < len(self.search_targets):
-            self.move_towards(self.search_targets[self.search_index], tolerance=5)
-            if abs(self.rect.centerx - self.search_targets[self.search_index][0]) < 5 and abs(self.rect.centery - self.search_targets[self.search_index][1]) < 5:
+            if self.move_towards(self.search_targets[self.search_index], tolerance=5):
                 self.search_index += 1
+                self.path_cache.clear()  # Clear the path cache when reaching a search point
+            if pygame.time.get_ticks() - self.stuck_timer > 2000:  # Check if stuck for more than 2 seconds
+                if self.rect.center == self.last_position:
+                    self.state = State.IDLE
+                    self.state_timer = pygame.time.get_ticks()
+                    self.idle_time = random.randint(2000, 5000)
+                else:
+                    self.last_position = self.rect.center
+                    self.stuck_timer = pygame.time.get_ticks()
         else:
             self.state = State.PATROL
             self.search_targets = []
             self.state_timer = pygame.time.get_ticks()
+
+
+    def is_adjacent_to_water_tile(self, x, y):
+        tile_x = int(x // 65)
+        tile_y = int(y // 65)
+        adjacent_tiles = [
+            (tile_x - 1, tile_y), (tile_x + 1, tile_y),
+            (tile_x, tile_y - 1), (tile_x, tile_y + 1),
+            (tile_x - 1, tile_y - 1), (tile_x + 1, tile_y - 1),
+            (tile_x - 1, tile_y + 1), (tile_x + 1, tile_y + 1)
+        ]
+        for adj_x, adj_y in adjacent_tiles:
+            if 0 <= adj_x < len(self.tilemap[0]) and 0 <= adj_y < len(self.tilemap):
+                if self.tilemap[adj_y][adj_x] in self.WATER_TILES or self.tilemap[adj_y][adj_x][0] == self.AVOID_TILE:
+                    return True
+        return False
+
 
     def move_towards(self, target, tolerance=5):
         dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
@@ -213,7 +248,7 @@ class Archer(pygame.sprite.Sprite):
             new_x = self.rect.centerx + dx * self.SPEED
             new_y = self.rect.centery + dy * self.SPEED
             if self.state == State.SEARCH and self.is_water_tile(new_x, new_y):
-                detour_x, detour_y = self.find_detour((self.rect.centerx, self.rect.centery), (new_x, new_y))
+                detour_x, detour_y = self.find_detour((self.rect.centerx, self.rect.centery))
                 if (detour_x, detour_y) == (self.rect.centerx, self.rect.centery):
                     return True
                 self.rect.centerx, self.rect.centery = detour_x, detour_y
@@ -229,16 +264,13 @@ class Archer(pygame.sprite.Sprite):
     def move_towards_pathfinding(self, target, tolerance=5):
         start = (self.rect.centerx, self.rect.centery)
         cache_key = (start, target)
-        if cache_key not in self.path_cache:
-            path = self.find_path(start, target)
-            self.path_cache[cache_key] = path
-        else:
-            path = self.path_cache[cache_key]
+        path = self.find_path(start, target)
+        self.path_cache[cache_key] = path
         if path:
             next_point = path[0]
             self.move_towards(next_point, tolerance)
 
-    def find_detour(self, start, target):
+    def find_detour(self, start):
         directions = [
             (-self.SPEED, 0), (self.SPEED, 0), (0, -self.SPEED), (0, self.SPEED),
             (-self.SPEED, -self.SPEED), (self.SPEED, -self.SPEED), (-self.SPEED, self.SPEED), (self.SPEED, self.SPEED)
@@ -258,7 +290,7 @@ class Archer(pygame.sprite.Sprite):
         tile = self.tilemap[tile_y][tile_x]
         return tile in self.WATER_TILES or tile[0] == self.AVOID_TILE
 
-    def find_path(self, start, target, all_archers=None):
+    def find_path(self, start, target):
         start_tile = (int(start[0] // 65), int(start[1] // 65))
         target_tile = (int(target[0] // 65), int(target[1] // 65))
         dstar = AStar(start_tile, target_tile, self.tilemap)
@@ -282,6 +314,7 @@ class Archer(pygame.sprite.Sprite):
             if closest_enemy and closest_distance <= self.DETECTION_RADIUS:
                 self.target = closest_enemy
                 self.state = State.ATTACK
+
 
     def attack(self):
         current_time = pygame.time.get_ticks()

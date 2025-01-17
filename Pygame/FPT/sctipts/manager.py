@@ -10,9 +10,12 @@ from allies.pawn import Pawn
 from enemy.torch import Torch
 from enemy.TNT import TNT
 from utils.rps_manager import RPSManager
+
 from buildings.House import House
-from Resources.GoldMine import GoldMine
+from buildings.Castle import Castle
 from buildings.Tower import Tower
+
+from Resources.GoldMine import GoldMine
 from Resources.Tree import Tree
 from Resources.RawReasources.log import Log
 from Resources.Sheep import Sheep
@@ -93,7 +96,7 @@ def draw_grid_coordinates(surface, camera):
 
 # Spawn wave
 def spawn_wave(wave, all_sprites, projectiles, houses, towers):
-    for _ in range(1 + wave * 50):
+    for _ in range(1 + wave * 5):
         enemy_tnt = TNT(projectiles, level_data)
         enemy_tnt.rect.topleft = (random.randint(250, 600), random.randint(250, 500))
         all_sprites.add(enemy_tnt)
@@ -142,6 +145,7 @@ camera = Camera(WINDOW_HEIGHT, WINDOW_WIDTH)
 all_sprites = pygame.sprite.Group(player)
 projectiles = pygame.sprite.Group()
 houses = []
+castles = []
 towers = []
 wave = 1
 grace_period = 60
@@ -172,6 +176,9 @@ for category in tile_categories:
 house = House(x=1500, y=500, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png', construction_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png')
 house.construction_status = "finished"
 houses.append(house)
+
+Castle = Castle(x=2000, y=500, image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/Castle/Castle_Blue.png')
+castles.append(Castle)
 def is_water_tile(x, y, level_data, TILE_SIZE=65):
     tile_x, tile_y = x // TILE_SIZE, y // TILE_SIZE
     if 0 <= tile_y < len(level_data) and 0 <= tile_x < len(level_data[0]):
@@ -225,7 +232,7 @@ for i in range(num_sheep):
         all_sprites.add(sheep)
 
 
-for _ in range(25):
+for _ in range(20):
     archer = Archer(level_data)
     all_sprites.add(archer)
 
@@ -312,7 +319,7 @@ while running:
         elif isinstance(sprite, Knight):
             sprite.update(dt, alive_enemies, alive_knights)
         elif isinstance(sprite, Pawn):
-            sprite.update(dt, trees, targeted_trees, reasources, gold_mines, alive_pawns, sheeps)
+            sprite.update(dt, trees, targeted_trees, reasources, gold_mines, alive_pawns, sheeps,(2000,500))
         elif isinstance(sprite, Torch):
             sprite.update(alive_knights, alive_archers,alive_torch)
         elif isinstance(sprite, TNT):
@@ -363,6 +370,8 @@ while running:
 
     for house in houses:
         house.draw(display_surface, camera.camera.topleft)
+    for caste in castles:
+        Castle.draw(display_surface, camera.camera.topleft)
 
     for tower in towers:
         tower.draw_tower(display_surface, camera.camera.topleft)
