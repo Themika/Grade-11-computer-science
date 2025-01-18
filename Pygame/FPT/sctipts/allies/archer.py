@@ -59,18 +59,14 @@ class Archer(pygame.sprite.Sprite):
         self.damage = 20
 
     def load_sprites(self):
-        idle_sprites = [
-            pygame.image.load(f'Animations/Warrior/Blue/Archer/Idle/Archer_Blue_Idle_{i}.png') for i in range(1, 7)
-        ]
-        run_sprites = [
-            pygame.image.load(f'Animations/Warrior/Blue/Archer/Run/Archer_Blue_Run_{i}.png').convert_alpha() for i in range(1, 7)
-        ]
-        attack_sprites = [
-            pygame.image.load(f'Animations/Warrior/Blue/Archer/Attack_1/Archer_Blue_Attack_{i}.png').convert_alpha() for i in range(1, 9)
-        ]
-        death_sprites = [
-            pygame.image.load(f'Animations/Warrior/Blue/Knight/Death/Dead_{i}.png').convert_alpha() for i in range(1, 14)
-        ]
+        def load_images(path, count):
+            return [pygame.image.load(f'{path}_{i}.png').convert_alpha() for i in range(1, count + 1)]
+
+        idle_sprites = load_images('Animations/Warrior/Blue/Archer/Idle/Archer_Blue_Idle', 6)
+        run_sprites = load_images('Animations/Warrior/Blue/Archer/Run/Archer_Blue_Run', 6)
+        attack_sprites = load_images('Animations/Warrior/Blue/Archer/Attack_1/Archer_Blue_Attack', 8)
+        death_sprites = load_images('Animations/Warrior/Blue/Knight/Death/Dead', 13)
+
         return {
             'idle': idle_sprites,
             'watch': idle_sprites,
@@ -99,7 +95,7 @@ class Archer(pygame.sprite.Sprite):
                 self.kill()
         else:
             self.detect_enemy(enemies)
-            self.movement(enemies)
+            self.movement()
             self.maintain_distance()
             self.animate(dt)
             self.projectiles.update(dt, enemies)
@@ -112,7 +108,7 @@ class Archer(pygame.sprite.Sprite):
             for point in self.search_targets:
                 pygame.draw.circle(surface, (255, 0, 0), (int(point[0] + camera_offset[0]), int(point[1] + camera_offset[1])), 5)
 
-    def movement(self,enemies):
+    def movement(self):
         if self.on_tower:
             self.DETECTION_RADIUS = 800
             self.SHOOT_COOLDOWN = 700
@@ -137,7 +133,7 @@ class Archer(pygame.sprite.Sprite):
             elif self.state == State.ATTACK:
                 self.attack()
             elif self.state == State.SEARCH:
-                self.search(enemies)
+                self.search()
             elif self.state == State.WATCH:
                 self.watch()
 
@@ -174,11 +170,7 @@ class Archer(pygame.sprite.Sprite):
         if current_time - self.state_timer >= self.idle_time:
             self.state = State.PATROL
 
-    def search(self,enemies):
-        self.detect_enemy(enemies)  # Check for enemies before continuing the search
-        if self.state == State.ATTACK:
-            return  # Exit the search method if an enemy is detected
-
+    def search(self):
         if not hasattr(self, 'search_targets'):
             self.search_targets = []
             self.search_index = 0
@@ -190,7 +182,7 @@ class Archer(pygame.sprite.Sprite):
             self.search_targets = []
             for _ in range(5):
                 while True:
-                    search_angle = random.uniform(0, 360)
+                    search_angle = random.uniform(0, 360.0)
                     dx = self.SEARCH_RADIUS * math.cos(math.radians(search_angle))
                     dy = self.SEARCH_RADIUS * math.sin(math.radians(search_angle))
                     candidate_x = self.rect.centerx + dx
@@ -223,7 +215,6 @@ class Archer(pygame.sprite.Sprite):
             self.search_targets = []
             self.state_timer = pygame.time.get_ticks()
 
-
     def is_adjacent_to_water_tile(self, x, y):
         tile_x = int(x // 65)
         tile_y = int(y // 65)
@@ -238,7 +229,6 @@ class Archer(pygame.sprite.Sprite):
                 if self.tilemap[adj_y][adj_x] in self.WATER_TILES or self.tilemap[adj_y][adj_x][0] == self.AVOID_TILE:
                     return True
         return False
-
 
     def move_towards(self, target, tolerance=5):
         dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
@@ -315,7 +305,6 @@ class Archer(pygame.sprite.Sprite):
                 self.target = closest_enemy
                 self.state = State.ATTACK
 
-
     def attack(self):
         current_time = pygame.time.get_ticks()
         if current_time - self.last_shot_time >= self.SHOOT_COOLDOWN:
@@ -373,5 +362,7 @@ class Archer(pygame.sprite.Sprite):
                 angle = math.atan2(self.target.rect.centery - self.rect.centery, self.target.rect.centerx - self.rect.centerx)
                 target_x = self.target.rect.centerx - math.cos(angle) * self.DETECTION_RADIUS
                 target_y = self.target.rect.centery - math.sin(angle) * self.DETECTION_RADIUS
+                if self.is_water_tile(target_x, target_y):
+                    target_x, target_y = self.find_detour((self.rect.centerx, self.rect.centery))
                 if not self.move_towards((target_x, target_y)):
                     self.state = State.SEARCH

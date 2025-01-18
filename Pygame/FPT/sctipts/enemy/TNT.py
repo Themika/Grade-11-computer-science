@@ -43,10 +43,27 @@ class TNT(Enemy):
         return random.randint(0, 2000), random.randint(0, 2000)
 
     def update(self, knights, archers):
-        super().update(knights, archers)
         self.update_animation()
         if self.health <= 0:
             self.kill()  # Destroy the TNT enemy if health is below zero
+            return
+
+        nearest_target = self.find_nearest_target(knights, archers)
+        if nearest_target:
+            self.move_towards(nearest_target.rect.center)
+            self.attack_if_close([nearest_target], [])
+        else:
+            self.patrol()
+
+        self.update_state()
+
+    def find_nearest_target(self, knights, archers):
+        """Find the nearest target (knight or archer)."""
+        targets = knights + archers
+        if not targets:
+            return None
+        nearest_target = min(targets, key=lambda target: self.distance_to(target.rect.center))
+        return nearest_target
 
     def attack(self, target):
         current_time = pygame.time.get_ticks()

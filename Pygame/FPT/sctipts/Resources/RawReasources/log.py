@@ -2,11 +2,13 @@ from Resources.resource import Resource
 import pygame
 
 class Log(Resource):
-    def __init__(self, x, y, final_image, spawn_duration):
+    def __init__(self, x, y, final_image, spawn_duration, log_type):
+        self.type = log_type
         spawn_images = [
             pygame.image.load(f'Animations/Reasources/Tree/Logs/W_Spawn_{i}.png').convert_alpha()
             for i in range(1, 7)
         ]
+        
         super().__init__(x, y, final_image, spawn_images, spawn_duration)
 
     def add_spawn_image(self, image):

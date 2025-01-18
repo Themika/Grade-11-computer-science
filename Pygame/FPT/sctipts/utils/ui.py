@@ -15,6 +15,10 @@ class UI:
         self.grayscale_archer_face = None
         self.grayscale_pawn_face = None
 
+        # Initialize font
+        pygame.font.init()
+        self.font = pygame.font.SysFont('Arial', 24)
+
     def create_grayscale_image(self, image):
         grayscale_image = pygame.Surface(image.get_size(), pygame.SRCALPHA)
         grayscale_image.fill((0, 0, 0, 0))

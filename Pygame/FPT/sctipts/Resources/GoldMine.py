@@ -42,7 +42,7 @@ class GoldMine(pygame.sprite.Sprite):
             for _ in range(3):
                 offset_x = random.randint(-30, 20)
                 offset_y = random.randint(-20, 20)
-                gold = Gold(self.rect.centerx + offset_x, self.rect.centery + offset_y, "Animations/Reasources/Gold_Mine/Gold/G_Spawn_6.png", 500)
+                gold = Gold(self.rect.centerx + offset_x, self.rect.centery + offset_y, "Animations/Reasources/Gold_Mine/Gold/G_Spawn_6.png", 500,"gold")
                 self.gold_group.add(gold)
                 self.reasources_group.add(gold)
             self.gold_spawned = True  

@@ -62,7 +62,7 @@ class Tree(pygame.sprite.Sprite):
             for _ in range(3):
                 offset_x = random.randint(-30, 20)
                 offset_y = random.randint(-20, 20)
-                log = Log(self.rect.centerx + offset_x, self.rect.centery + offset_y, "Animations/Reasources/Tree/Logs/W_Spawn_7.png",500)
+                log = Log(self.rect.centerx + offset_x, self.rect.centery + offset_y, "Animations/Reasources/Tree/Logs/W_Spawn_7.png",500,"log")
                 self.log_group.add(log)
                 self.reasouces_group.add(log)
             self.logs_spawned = True  
