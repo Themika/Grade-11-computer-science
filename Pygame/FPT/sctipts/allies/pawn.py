@@ -23,7 +23,8 @@ class Pawn(pygame.sprite.Sprite):
     mine_cooldown_timer = 0
     WATER_TILES = ['Tilemap_Flat_46']
     AVOID_TILE = 40
-
+    log_count = 0
+    gold_count = 0
     def __init__(self, tile_map, *groups):
         super().__init__(*groups)
         self.state = IDLE
@@ -115,9 +116,9 @@ class Pawn(pygame.sprite.Sprite):
         dx, dy = sprite.rect.centerx - self.rect.centerx, sprite.rect.centery - self.rect.centery
         return abs(dx) <= radius and abs(dy) <= radius
 
-    def chase_sheep(self, sheep):
+    def chase_sheep(self, sheep,counts):
         if self.holding_resources:
-            self.drop_resources()
+            self.drop_resources(counts)
         self.state = RUN
         target_position = pygame.math.Vector2(sheep.rect.center)
         self.move_towards_pathfinding(target_position)
@@ -128,7 +129,7 @@ class Pawn(pygame.sprite.Sprite):
         self.state = CHOPPING
         sheep.take_damage(10)
 
-    def update(self, dt, trees, targeted_trees, resources, gold_mines, pawns, sheep_sprites,castle_position):
+    def update(self, dt, trees, targeted_trees, resources, gold_mines, pawns, sheep_sprites, castle_position, counts):
         current_time = time.time()
         nearest_sheep = self.find_nearest(sheep_sprites)
         if self.health <= 0:
@@ -137,8 +138,8 @@ class Pawn(pygame.sprite.Sprite):
             if self.current_sprite == len(self.sprites[DEATH]) - 1:
                 self.kill()
             return
-        if nearest_sheep and self.is_within_radius(nearest_sheep, 50):
-            self.chase_sheep(nearest_sheep)
+        if nearest_sheep and self.is_within_radius(nearest_sheep, 50) and not self.selected:
+            self.chase_sheep(nearest_sheep,counts)
         else:
             if self.selected and self.target_position:
                 if self.move_towards_pathfinding(self.target_position):
@@ -163,11 +164,11 @@ class Pawn(pygame.sprite.Sprite):
                             self.state = CHOPPING
                             break
                 if self.state == MOVING_TO_DROP:
-                    self.move_towards_drop_position(dt)
+                    self.move_towards_drop_position(dt, counts)
                 elif self.state == MOVING_TO_MINE:
                     self.handle_mining(current_time)
                 else:
-                    self.handle_idle_state(dt, trees, targeted_trees, resources, gold_mines, current_time,castle_position)
+                    self.handle_idle_state(dt, trees, targeted_trees, resources, gold_mines, current_time, castle_position)
         self.animate(dt)
 
         if Pawn.mine_pawn is None and current_time - Pawn.mine_cooldown_timer >= 30 and gold_mines:
@@ -181,6 +182,9 @@ class Pawn(pygame.sprite.Sprite):
             Pawn.mine_cooldown_timer = current_time
             self.state = IDLE
 
+        counts[0] = Pawn.log_count
+        counts[1] = Pawn.gold_count
+    
     def move_towards_pathfinding(self, target, tolerance=5):
         start = (self.rect.centerx, self.rect.centery)
         target_tile = (int(target[0] // 65), int(target[1] // 65))
@@ -272,7 +276,7 @@ class Pawn(pygame.sprite.Sprite):
     def handle_idle_state(self, dt, trees, targeted_trees, resources, gold_mines, current_time,castle_position):
         if self.state != WATCH:
             if self == Pawn.mine_pawn and self.target_gold_mine is not None:
-                self.move_towards_mine(dt, self.target_gold_mine)
+                self.move_towards_mine(self.target_gold_mine)
             else:
                 if self.state == CHOPPING and len(resources) <= 9:
                     self.chop_tree(resources)
@@ -360,7 +364,7 @@ class Pawn(pygame.sprite.Sprite):
                     self.move_to_castle(castle_position)
 
 
-    def move_towards_mine(self, dt, mine_sprite):
+    def move_towards_mine(self, mine_sprite):
         self.state = RUN 
         target_position = pygame.math.Vector2(mine_sprite.rect.center)
         self.move_towards_pathfinding(target_position)
@@ -395,14 +399,13 @@ class Pawn(pygame.sprite.Sprite):
         self.drop_position = castle_position
         self.state = MOVING_TO_DROP
 
-    def move_towards_drop_position(self, dt):
+    def move_towards_drop_position(self, dt, counts):
         if self.drop_position:
             target_position = pygame.math.Vector2(self.drop_position)
             self.move_towards_position(target_position, dt)
             if self.rect.center == target_position:
-                self.drop_resources()
+                self.drop_resources(counts)
         self.update_held_resources_position()
-
     def move_towards_position(self, target_position, dt):
         direction = target_position - pygame.math.Vector2(self.rect.center)
         if direction.length() != 0:
@@ -414,8 +417,16 @@ class Pawn(pygame.sprite.Sprite):
         for i, resource in enumerate(self.holding_resources):
             resource.rect.midbottom = (self.rect.midtop[0], self.rect.midtop[1] - i * 10)
 
-    def drop_resources(self):
+    def drop_resources(self,counts):
         for resource in self.holding_resources:
+            if resource.type == 'log':
+                Pawn.log_count += 1
+                counts[0] = Pawn.log_count
+            if resource.type == "gold":
+                Pawn.gold_count += 1
+                counts[1] = Pawn.gold_count
+            if resource.type == "meat":
+                print("MEAT")
             resource.kill()
         self.holding_resources.clear()
         self.state = IDLE

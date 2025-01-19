@@ -112,7 +112,7 @@ class Sheep(pygame.sprite.Sprite):
             for _ in range(3):
                 offset_x = random.randint(-30, 20)
                 offset_y = random.randint(-20, 20)
-                meat = Meat(self.rect.centerx + offset_x, self.rect.centery + offset_y, "Tiny_Swords_Assets/Resources/Resources/M_Idle_(NoShadow).png", 500)
+                meat = Meat(self.rect.centerx + offset_x, self.rect.centery + offset_y, "Tiny_Swords_Assets/Resources/Resources/M_Idle_(NoShadow).png", 500,"meat")
                 self.meat_group.add(meat)
                 self.reasources.add(meat)
             self.meat_spawned = True

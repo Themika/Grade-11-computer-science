@@ -2,7 +2,8 @@ from Resources.resource import Resource
 import pygame
 
 class Meat(Resource):
-    def __init__(self, x, y, final_image, spawn_duration):
+    def __init__(self, x, y, final_image, spawn_duration,meat_type):
+        self.type = meat_type
         spawn_images = [
             pygame.image.load(f'Animations/Reasources/Sheep/Meat/M_Spawn_{i}.png').convert_alpha()
             for i in range(1, 7)

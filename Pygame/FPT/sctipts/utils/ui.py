@@ -95,3 +95,31 @@ class UI:
                 else:
                     knight_face = self.pawn_face
             surface.blit(knight_face, (x, y))
+
+    def draw_log_count(self, surface, log_count):
+        log_icon = pygame.image.load('Tiny_Swords_Assets/Resources/Resources/W_Idle_(NoShadow)_ICON.png')
+        log_icon = pygame.transform.scale(log_icon, (45, 25))
+        log_text = self.font.render(f'{log_count}', True, (255, 255, 255))
+        
+        icon_rect = log_icon.get_rect()
+        text_rect = log_text.get_rect()
+        
+        icon_rect.topright = (surface.get_width() - text_rect.width - 30, 40)  # Adjust the position below the gold icon
+        text_rect.topleft = (icon_rect.right + 5, 40)
+        
+        surface.blit(log_icon, icon_rect)
+        surface.blit(log_text, text_rect)
+
+    def draw_gold_count(self, surface, gold_count):
+        gold_icon = pygame.image.load('Tiny_Swords_Assets/Resources/Resources/G_Idle_(NoShadow)_ICON.png')
+        gold_icon = pygame.transform.scale(gold_icon, (25, 25))
+        gold_text = self.font.render(f'{gold_count}', True, (255, 255, 255))
+        
+        icon_rect = gold_icon.get_rect()
+        text_rect = gold_text.get_rect()
+        
+        icon_rect.topright = (surface.get_width() - text_rect.width - 30, 10)
+        text_rect.topleft = (icon_rect.right + 5, 10)
+        
+        surface.blit(gold_icon, icon_rect)
+        surface.blit(gold_text, text_rect)
