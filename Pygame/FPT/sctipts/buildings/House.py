@@ -27,11 +27,18 @@ class House(pygame.sprite.Sprite):
         if self.construction_complete and len(self.knights) < self.knight_count:
             knight.rect.topleft = (self.x, self.y)
             self.knights.append(knight)
+            self.move_unit_outwards(knight)
 
     def spawn_archer(self, archer):
         if self.construction_complete and len(self.archers) < self.archer_count:
             archer.rect.topleft = (self.x, self.y)
             self.archers.append(archer)
+            self.move_unit_outwards(archer)
+
+    def move_unit_outwards(self, unit):
+        # Move the unit outwards from the house
+        unit.rect.x += 10  # Adjust the value as needed
+        unit.rect.y += 10  # Adjust the value as needed
 
     def draw(self, surface, camera_offset):
         adjusted_rect = self.rect.move(camera_offset)

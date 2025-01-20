@@ -8,6 +8,7 @@ class TNT(Enemy):
     RUN = 'run'
     IDLE = 'idle'
     SEARCH = 'search'
+    SWIM = 'swim'
     ANIMATION_INTERVAL = 100
     ATTACK_COOLDOWN = 1100  # Cooldown time for attacks
     DAMAGE = 1  # Damage dealt by the TNT
@@ -31,7 +32,8 @@ class TNT(Enemy):
             self.ATTACK_1: [pygame.image.load(f'Animations/Goblins/TNT/Blue/Attack_1/TNT_Blue_Attack_1_{i}.png') for i in range(1, 7)],
             self.RUN: [pygame.image.load(f'Animations/Goblins/TNT/Blue/Run/TNT_Blue_Run_{i}.png') for i in range(1, 6)],
             self.IDLE: [pygame.image.load(f'Animations/Goblins/TNT/Blue/Idle/TNT_Blue_Idle_{i}.png') for i in range(1, 6)],
-            self.SEARCH: [pygame.image.load(f'Animations/Goblins/TNT/Blue/Run/TNT_Blue_Run_{i}.png') for i in range(1, 6)]
+            self.SEARCH: [pygame.image.load(f'Animations/Goblins/TNT/Blue/Run/TNT_Blue_Run_{i}.png') for i in range(1, 6)],
+            self.SWIM: [pygame.image.load(f'Animations/Goblins/TNT/Blue/Swimming/TNT_Blue_Swim_{i}.png') for i in range(1, 2)]
         }
         self.current_frame = 0
         self.animation_time = 0
@@ -40,18 +42,24 @@ class TNT(Enemy):
         """Generate a random position within the 2000x2000 map."""
         return random.randint(0, 2000), random.randint(0, 2000)
 
-    def update(self, knights, archers):
+    def update(self, knights, archers, level_data):
         self.update_animation()
         if self.health <= 0:
             self.kill()  # Destroy the TNT enemy if health is below zero
             return
-
         nearest_target = self.find_nearest_target(knights, archers)
         if nearest_target:
             self.move_towards(nearest_target.rect.center)
             self.attack(nearest_target)
 
-        self.update_state()
+        self.update_state(level_data)
+
+    def is_on_water_tile(self, level_data, TILE_SIZE=65):
+        tile_x, tile_y = self.rect.centerx // TILE_SIZE, self.rect.centery // TILE_SIZE
+        if 0 <= tile_y < len(level_data) and 0 <= tile_x < len(level_data[0]):
+            if level_data[tile_y][tile_x][0] == 40:
+                return True
+        return False
 
     def find_nearest_target(self, knights, archers):
         """Find the nearest target (knight or archer)."""
@@ -84,10 +92,8 @@ class TNT(Enemy):
             dx = target.rect.centerx - self.rect.centerx
             dy = target.rect.centery - self.rect.centery
             distance = (dx ** 2 + dy ** 2) ** 0.5
-            if distance == 0:
-                direction = (0, 0)
-            else:
-                direction = (dx / distance, dy / distance)
+            if distance != 0:
+                dx, dy = dx / distance, dy / distance
             dynamite = Dynamite(self.rect.center, target.rect.center, 5, "Animations/Goblins/TNT/Dynamite_Anim/Dynamite_1.png")
             self.projectiles_group.add(dynamite)  # Add the projectile to the projectiles group
             # Determine the direction of the target and set facing_right accordingly
@@ -101,15 +107,23 @@ class TNT(Enemy):
             dx, dy = dx / distance, dy / distance  # Normalize the direction vector
             self.rect.centerx += dx * self.speed
             self.rect.centery += dy * self.speed
+            self.facing_right = dx > 0  # Update facing direction based on movement
         else:
             self.rect.centerx += dx
             self.rect.centery += dy
 
-    def update_state(self):
-        if self.attacking_target:
-            self.state = self.ATTACK_1
+    def update_state(self, level_data):
+        if self.state == self.ATTACK_1 and self.current_frame == len(self.animations[self.ATTACK_1]) - 1:
+            self.state = self.IDLE
+        elif self.attacking_target:
+            if self.state != self.SWIM:
+                self.state = self.ATTACK_1
+        elif self.is_on_water_tile(level_data):
+            self.speed = 1
+            self.state = self.SWIM
         else:
-            super().update_state()
+            self.speed = 2
+            self.state = self.RUN
 
     def update_animation(self):
         current_time = pygame.time.get_ticks()

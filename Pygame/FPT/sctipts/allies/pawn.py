@@ -182,8 +182,8 @@ class Pawn(pygame.sprite.Sprite):
             Pawn.mine_cooldown_timer = current_time
             self.state = IDLE
 
-        counts[0] = Pawn.log_count
-        counts[1] = Pawn.gold_count
+        counts['logs'] = Pawn.log_count
+        counts['gold'] = Pawn.gold_count
     
     def move_towards_pathfinding(self, target, tolerance=5):
         start = (self.rect.centerx, self.rect.centery)
@@ -421,10 +421,10 @@ class Pawn(pygame.sprite.Sprite):
         for resource in self.holding_resources:
             if resource.type == 'log':
                 Pawn.log_count += 1
-                counts[0] = Pawn.log_count
+                counts['log'] = Pawn.log_count
             if resource.type == "gold":
                 Pawn.gold_count += 1
-                counts[1] = Pawn.gold_count
+                counts['gold'] = Pawn.gold_count
             if resource.type == "meat":
                 print("MEAT")
             resource.kill()
