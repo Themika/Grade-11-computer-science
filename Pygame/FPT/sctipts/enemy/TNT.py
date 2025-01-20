@@ -11,7 +11,7 @@ class TNT(Enemy):
     ANIMATION_INTERVAL = 100
     ATTACK_COOLDOWN = 1100  # Cooldown time for attacks
     DAMAGE = 1  # Damage dealt by the TNT
-    ATTACK_RANGE = 350  # Attack range in pixels
+    ATTACK_RANGE = 300  # Attack range in pixels
 
     def __init__(self, projectiles_group, tilemap, *groups):
         super().__init__(tilemap, *groups)
@@ -21,8 +21,6 @@ class TNT(Enemy):
         self.rect.center = self._get_random_position()
         self.health = 500  # Set initial health to 500
         self.speed = 2  # Movement speed
-        self.patrol_points = [self._get_random_position() for _ in range(4)]  # Random patrol points within the 2000x2000 map
-        self.current_patrol_point = 0
         self.attacking_target = None
         self.last_attack_time = pygame.time.get_ticks()  # Initialize the last attack time
         self.state = self.RUN
@@ -51,9 +49,7 @@ class TNT(Enemy):
         nearest_target = self.find_nearest_target(knights, archers)
         if nearest_target:
             self.move_towards(nearest_target.rect.center)
-            self.attack_if_close([nearest_target], [])
-        else:
-            self.patrol()
+            self.attack(nearest_target)
 
         self.update_state()
 
@@ -74,6 +70,8 @@ class TNT(Enemy):
             self.state = self.ATTACK_1
             self.current_frame = 0  # Reset animation frame
             self.shoot_projectile(target)
+        elif distance > self.ATTACK_RANGE:
+            self.move_towards(target.rect.center)  # Move closer to the target if not within attack range
 
     def _get_distance_to_target(self, target):
         """Calculate the distance to the target."""
@@ -83,11 +81,29 @@ class TNT(Enemy):
 
     def shoot_projectile(self, target):
         if target:
+            dx = target.rect.centerx - self.rect.centerx
+            dy = target.rect.centery - self.rect.centery
+            distance = (dx ** 2 + dy ** 2) ** 0.5
+            if distance == 0:
+                direction = (0, 0)
+            else:
+                direction = (dx / distance, dy / distance)
             dynamite = Dynamite(self.rect.center, target.rect.center, 5, "Animations/Goblins/TNT/Dynamite_Anim/Dynamite_1.png")
             self.projectiles_group.add(dynamite)  # Add the projectile to the projectiles group
             # Determine the direction of the target and set facing_right accordingly
-            dx = target.rect.centerx - self.rect.centerx
             self.facing_right = dx > 0
+
+    def move_towards(self, target_position):
+        """Move the TNT enemy towards the target position."""
+        dx, dy = target_position[0] - self.rect.centerx, target_position[1] - self.rect.centery
+        distance = (dx ** 2 + dy ** 2) ** 0.5
+        if distance != 0:
+            dx, dy = dx / distance, dy / distance  # Normalize the direction vector
+            self.rect.centerx += dx * self.speed
+            self.rect.centery += dy * self.speed
+        else:
+            self.rect.centerx += dx
+            self.rect.centery += dy
 
     def update_state(self):
         if self.attacking_target:

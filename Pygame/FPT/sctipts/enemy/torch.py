@@ -45,15 +45,11 @@ class Torch(Enemy):
         self.font = pygame.font.SysFont('Arial', 20)
 
 
-    def draw_health(self, screen):
-        """Draw the health of the Torch enemy on the screen."""
-        health_text = self.font.render(f'Health: {self.health}', True, (255, 0, 0))
-        screen.blit(health_text, (self.rect.x, self.rect.y - 20))
     def _get_random_position(self):
         """Generate a random position within the 2000x2000 map."""
         return random.randint(0, 2000), random.randint(0, 2000)
 
-    def update(self, knights, archers, all_torches):
+    def update(self, knights, archers):
         super().update(knights, archers)
         if self.health <= 0:
             self.state = 'dead'
@@ -62,7 +58,7 @@ class Torch(Enemy):
         self.update_animation(current_time)
         nearest_target = self.find_nearest_target(knights + archers)
         if nearest_target:
-            self.surround_target(nearest_target, all_torches)
+            self.move_towards(nearest_target.rect.center)
             self.attack_if_close([nearest_target], [])
 
     def find_nearest_target(self, targets):
@@ -74,23 +70,6 @@ class Torch(Enemy):
                 min_distance = distance
                 nearest_target = target
         return nearest_target
-
-    def surround_target(self, target, all_torches):
-        angle = random.uniform(0, 2 * 3.14159)
-        distance = 100  # Distance to maintain from the target
-        target_x, target_y = target.rect.center
-        surround_x = target_x + distance * math.cos(angle)
-        surround_y = target_y + distance * math.sin(angle)
-
-        # Adjust position to avoid overlapping with other torches
-        for torch in all_torches:
-            if torch != self:
-                while self.distance_between((surround_x, surround_y), torch.rect.center) < 50:  # Minimum distance between torches
-                    angle = random.uniform(0, 2 * 3.14159)
-                    surround_x = target_x + distance * math.cos(angle)
-                    surround_y = target_y + distance * math.sin(angle)
-
-        self.move_towards((surround_x, surround_y))
 
     def move_towards(self, target):
         dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery

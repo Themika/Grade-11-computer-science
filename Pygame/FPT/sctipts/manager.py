@@ -98,14 +98,17 @@ def draw_grid_coordinates(surface, camera):
 
 # Spawn wave
 def spawn_wave(wave, all_sprites, projectiles, houses, towers):
-    for _ in range(1 + wave * 5):
-        enemy_tnt = TNT(projectiles, level_data)
-        enemy_tnt.rect.topleft = (random.randint(250, 600), random.randint(250, 500))
-        all_sprites.add(enemy_tnt)
+    corners = [(300, 100), (300, 1800), (1700, 300), (1700, 1800)]
+    enemies_per_group = 2 * wave  # Start with 2 enemies per group and increase by 2 every wave
+    for corner in corners:
+        for _ in range(enemies_per_group):
+            enemy_tnt = TNT(projectiles, level_data)
+            enemy_tnt.rect.topleft = (corner[0] + random.randint(-50, 50), corner[1] + random.randint(-50, 50))
+            all_sprites.add(enemy_tnt)
 
-        enemy_torch = Torch(level_data) 
-        enemy_torch.rect.topleft = (random.randint(200, 500), random.randint(200, 500))
-        all_sprites.add(enemy_torch)
+            enemy_torch = Torch(level_data)
+            enemy_torch.rect.topleft = (corner[0] + random.randint(-50, 50), corner[1] + random.randint(-50, 50))
+            all_sprites.add(enemy_torch)
 
     for house in houses:
         house.update_construction_status(wave_ended=True)
@@ -261,7 +264,6 @@ while running:
     alive_pawns = [pawn for pawn in all_sprites if isinstance(pawn, Pawn) and pawn.health > 0]
     alive_knights = [ally for ally in all_sprites if isinstance(ally, Knight)]
     alive_archers = [ally for ally in all_sprites if isinstance(ally, Archer)]
-    # collected_reasources = pygame.sprite.spritecollide(player, reasources, True)
     for event in pygame.event.get():
         if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
             running = False
@@ -291,26 +293,27 @@ while running:
                 if house.ui_visible:
                     house.handle_click(mouse_pos)
         if event.type == pygame.MOUSEWHEEL and grace_period_start_time is not None:
-            if place_house_next and counts[0] >= 50 and counts[1] >= 5:
-                placing_building = True
+            if place_house_next:
                 building_to_place = House(x=0, y=0, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png', construction_image_path="Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png")
-                counts[0] -= 50
-                counts[1] -= 5
-            elif not place_house_next and counts[0] >= 100 and counts[1] >= 20:
+                if counts[0] < 50 or counts[1] < 5:
+                    building_to_place.image.set_alpha(128)  # Greyed out
                 placing_building = True
+            else:
                 building_to_place = Tower(x=0, y=0, width=100, height=200, construction_image_path="Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Construction.png", finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Blue.png', total_waves=wave)
-                counts[0] -= 100
-                counts[1] -= 20
+                if counts[0] < 100 or counts[1] < 20:
+                    building_to_place.image.set_alpha(128)  # Greyed out
+                placing_building = True
             place_house_next = not place_house_next
         elif event.type == pygame.MOUSEBUTTONUP:
             if placing_building and event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
                 map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
-                building_to_place.rect.topleft = map_pos
-                if isinstance(building_to_place, House):
+                if isinstance(building_to_place, House) and counts[0] >= 50 and counts[1] >= 5:
+                    building_to_place.rect.topleft = map_pos
                     houses.append(building_to_place)
                     placed_houses.append((building_to_place, time.time()))
-                else:
+                elif isinstance(building_to_place, Tower) and counts[0] >= 100 and counts[1] >= 20:
+                    building_to_place.rect.topleft = map_pos
                     towers.append(building_to_place)
                 placing_building = False
                 building_to_place = None
@@ -334,7 +337,7 @@ while running:
         elif isinstance(sprite, Pawn):
             sprite.update(dt, trees, targeted_trees, reasources, gold_mines, alive_pawns, sheeps, (2000, 500), counts)
         elif isinstance(sprite, Torch):
-            sprite.update(alive_knights, alive_archers, alive_torch)
+            sprite.update(alive_knights, alive_archers)
         elif isinstance(sprite, TNT):
             sprite.update(alive_knights, alive_archers)
     projectiles.update(dt, alive_knights, alive_archers)

@@ -12,7 +12,7 @@ class Projectile(pygame.sprite.Sprite):
         # Calculate direction
         dx, dy = target_pos[0] - start_pos[0], target_pos[1] - start_pos[1]
         distance = math.hypot(dx, dy)
-        self.direction = (dx / distance, dy / distance)
+        self.direction = (0, 0) if distance == 0 else (dx / distance, dy / distance)
 
         # Calculate angle and rotate image
         angle = math.degrees(math.atan2(-dy, dx))
