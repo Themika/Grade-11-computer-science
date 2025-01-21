@@ -96,30 +96,31 @@ class UI:
                     knight_face = self.pawn_face
             surface.blit(knight_face, (x, y))
 
-    def draw_log_count(self, surface, log_count):
+    def update_icons(self, surface, log_count, gold_count):
+        # Draw log count
         log_icon = pygame.image.load('Tiny_Swords_Assets/Resources/Resources/W_Idle_(NoShadow)_ICON.png')
         log_icon = pygame.transform.scale(log_icon, (45, 25))
         log_text = self.font.render(f'{log_count}', True, (255, 255, 255))
         
-        icon_rect = log_icon.get_rect()
-        text_rect = log_text.get_rect()
+        log_icon_rect = log_icon.get_rect()
+        log_text_rect = log_text.get_rect()
         
-        icon_rect.topright = (surface.get_width() - text_rect.width - 30, 40)  # Adjust the position below the gold icon
-        text_rect.topleft = (icon_rect.right + 5, 40)
+        log_icon_rect.topright = (surface.get_width() - log_text_rect.width - 30, 40)
+        log_text_rect.topleft = (log_icon_rect.right + 5, 40)
         
-        surface.blit(log_icon, icon_rect)
-        surface.blit(log_text, text_rect)
+        surface.blit(log_icon, log_icon_rect)
+        surface.blit(log_text, log_text_rect)
 
-    def draw_gold_count(self, surface, gold_count):
+        # Draw gold count
         gold_icon = pygame.image.load('Tiny_Swords_Assets/Resources/Resources/G_Idle_(NoShadow)_ICON.png')
         gold_icon = pygame.transform.scale(gold_icon, (25, 25))
         gold_text = self.font.render(f'{gold_count}', True, (255, 255, 255))
         
-        icon_rect = gold_icon.get_rect()
-        text_rect = gold_text.get_rect()
+        gold_icon_rect = gold_icon.get_rect()
+        gold_text_rect = gold_text.get_rect()
         
-        icon_rect.topright = (surface.get_width() - text_rect.width - 30, 10)
-        text_rect.topleft = (icon_rect.right + 5, 10)
+        gold_icon_rect.topright = (surface.get_width() - gold_text_rect.width - 30, 10)
+        gold_text_rect.topleft = (gold_icon_rect.right + 5, 10)
         
-        surface.blit(gold_icon, icon_rect)
-        surface.blit(gold_text, text_rect)
+        surface.blit(gold_icon, gold_icon_rect)
+        surface.blit(gold_text, gold_text_rect)

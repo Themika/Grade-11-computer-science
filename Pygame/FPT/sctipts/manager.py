@@ -11,6 +11,8 @@ from allies.archer import Archer
 from allies.pawn import Pawn
 from enemy.torch import Torch
 from enemy.TNT import TNT
+from enemy.barrel import Barrel
+
 from utils.rps_manager import RPSManager
 
 from buildings.House import House
@@ -20,7 +22,6 @@ from buildings.Tower import Tower
 from Resources.GoldMine import GoldMine
 from Resources.Tree import Tree
 from Resources.RawReasources.log import Log
-from Resources.Sheep import Sheep
 
 # Initialize Pygame
 pygame.init()
@@ -99,14 +100,18 @@ def draw_grid_coordinates(surface, camera):
 
 # Spawn wave
 def spawn_wave(wave, all_sprites, projectiles, houses, towers):
-    corners = [(300, 100), (300, 1800), (1700, 300), (1700, 1800)]
-    enemies_per_group = 10 * wave  # Start with 2 enemies per group and increase by 2 every wave
+    corners = [(350, 350), (350, 1800), (1900, 350), (1900, 1800)]
+    enemies_per_group = 1 * wave  # Start with 2 enemies per group and increase by 2 every wave
     for corner in corners:
         for _ in range(enemies_per_group):
             enemy_tnt = TNT(projectiles,level_data)
             enemy_tnt.rect.topleft = (corner[0] + random.randint(-50, 50), corner[1] + random.randint(-50, 50))
             all_sprites.add(enemy_tnt)
 
+            barrel = Barrel()
+            barrel.rect.topleft = (corner[0] + random.randint(-50, 50), corner[1] + random.randint(-50, 50))
+            all_sprites.add(barrel)
+            
             enemy_torch = Torch(level_data)
             enemy_torch.rect.topleft = (corner[0] + random.randint(-50, 50), corner[1] + random.randint(-50, 50))
             all_sprites.add(enemy_torch)
@@ -140,7 +145,6 @@ def get_nearest_archer(tower, archers):
 
 # Initialize groups and variables
 gold_mines = pygame.sprite.Group()
-sheeps = pygame.sprite.Group()
 trees = pygame.sprite.Group()
 reasources = pygame.sprite.Group()
 logs = pygame.sprite.Group()
@@ -187,20 +191,25 @@ houses.append(house)
 
 Castle = Castle(x=2000, y=500, image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/Castle/Castle_Blue.png')
 castles.append(Castle)
-def is_water_tile(x, y, level_data, TILE_SIZE=65):
+def is_spawnable(x, y, level_data, TILE_SIZE=65):
     tile_x, tile_y = x // TILE_SIZE, y // TILE_SIZE
     if 0 <= tile_y < len(level_data) and 0 <= tile_x < len(level_data[0]):
-        if level_data[tile_y][tile_x][0] == 40:
+        # Check if the first index of the tile is 4
+        if level_data[tile_y][tile_x][0] == 4:
+            print(f"Water tile detected at ({tile_x}, {tile_y}): {level_data[tile_y][tile_x]}")
             return True
     return False
 
 # Spawn trees and gold mines
-for _ in range(100):
+for _ in range(250):
     while True:
         x = random.randint(0, 3000)
         y = random.randint(0, 3000)
-        if not is_water_tile(x, y, level_data):
+        if is_spawnable(x, y, level_data):
+            print(f"Spawning tree at ({x}, {y})")
             break
+        else:
+            print(f"Non-water tile detected at ({x}, {y}), looking for another spot")
     tree = Tree(x, y, logs, reasources)
     trees.add(tree)
     all_sprites.add(tree)
@@ -209,8 +218,11 @@ for _ in range(1):
     while True:
         x = random.randint(0, 2000)
         y = random.randint(0, 2000)
-        if not is_water_tile(x, y, level_data):
+        if not is_spawnable(x, y, level_data):
+            print(f"Spawning gold mine at ({x}, {y})")
             break
+        else:
+            print(f"Water tile detected at ({x}, {y}), looking for another spot")
     gold_mine = GoldMine(x, y, golds, reasources)
     gold_mines.add(gold_mine)
     all_sprites.add(gold_mine)
@@ -220,29 +232,8 @@ for i in range(10):
     pawn = Pawn(level_data)
     all_sprites.add(pawn)
 
-num_sheep = 20
-sheep_per_group = 5
-group_leader_count = 0
-group_leader = None
-
-for i in range(num_sheep):
-    while True:
-        x, y = random.randint(1500, 3000), random.randint(0, 3000)
-        if not is_water_tile(x, y, level_data):
-            break
-    if i % sheep_per_group == 0:
-        group_leader = Sheep(x, y, sheeps, meats, reasources, level_data)
-        group_leader_count += 1
-        sheeps.add(group_leader)
-        all_sprites.add(group_leader)
-    else:
-        sheep = Sheep(x, y, sheeps, meats, reasources, level_data, group_leader=group_leader)
-        sheeps.add(sheep)
-        all_sprites.add(sheep)
-
-
 for _ in range(25):
-    archer = Archer(level_data)
+    archer = Archer(tile_map=level_data)
     all_sprites.add(archer)
 
 for _ in range(25):
@@ -255,8 +246,13 @@ spawn_wave(wave, all_sprites, projectiles, houses, towers)
 running = True
 counts = {'log': 0, 'gold': 0}
 
-game_over = False
 
+def update_counts(counts, log_change=0, gold_change=0):
+    counts['log'] += log_change
+    counts['gold'] += gold_change
+
+
+game_over = False
 
 while running:
     if game_over:
@@ -275,6 +271,7 @@ while running:
     alive_allies = [allies for allies in all_sprites if isinstance(allies, Knight) or isinstance(allies, Archer) and allies.health > 0 or isinstance(allies, Pawn) and allies.health > 0]
     alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Torch) or isinstance(enemy, TNT) and enemy.health > 0]
     alive_torch = [torch for torch in all_sprites if isinstance(torch, Torch) and torch.health > 0]
+    alive_tnt = [tnt for tnt in all_sprites if isinstance(tnt, TNT) and tnt.health > 0]
     alive_pawns = [pawn for pawn in all_sprites if isinstance(pawn, Pawn) and pawn.health > 0]
     alive_knights = [ally for ally in all_sprites if isinstance(ally, Knight)]
     alive_archers = [ally for ally in all_sprites if isinstance(ally, Archer)]
@@ -301,20 +298,10 @@ while running:
                                 tower.place_unit(nearest_archer)
                                 nearest_archer.on_tower = True
                         break
-                for house in houses:
-                    if house.rect.collidepoint(map_pos):
-                        house.ui_visible = not house.ui_visible
-                        if house.ui_visible:
-                            house.show_spawn_ui(display_surface, pygame.font.SysFont(None, 24), camera.camera.topleft)
-                        else:
-                            house.ui_visible = False
-            for house in houses:
-                if house.ui_visible:
-                    house.handle_click(mouse_pos)
         if event.type == pygame.MOUSEWHEEL and grace_period_start_time is not None:
             if place_house_next:
                 building_to_place = House(x=0, y=0, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png', construction_image_path="Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png")
-                if counts['log'] < 10 or counts['gold'] < 5:
+                if counts['log'] < 10 or counts['gold'] <= 1:
                     building_to_place.image.set_alpha(128)  # Greyed out
             else:
                 building_to_place = Tower(x=0, y=0, width=100, height=200, construction_image_path="Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Construction.png", finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Blue.png', total_waves=wave)
@@ -326,19 +313,19 @@ while running:
             if placing_building and event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
                 map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
-                if isinstance(building_to_place, House) and counts[0] >= 10 and counts[1] >= 5:
-                    building_to_place.rect.topleft = map_pos
-                if isinstance(building_to_place, House) and counts['log'] >= 10 and counts['gold'] >= 5:
-                    building_to_place.rect.topleft = map_pos
-                    houses.append(building_to_place)
-                    counts['log'] -= 10
-                    counts['gold'] -= 5
-                    placed_houses.append((building_to_place, time.time()))
-                elif isinstance(building_to_place, Tower) and counts['log'] >= 20 and counts['gold'] >= 5:
-                    building_to_place.rect.topleft = map_pos
-                    towers.append(building_to_place)
-                    counts['log'] -= 20
-                    counts['gold'] -= 5
+                building_rect = pygame.Rect(map_pos[0], map_pos[1], building_to_place.rect.width, building_to_place.rect.height)
+                collision = any(building.rect.colliderect(building_rect) for building in houses + towers)
+                if not collision:
+                    if isinstance(building_to_place, House) and counts['log'] >= 10 and counts['gold'] >= 1:
+                        building_to_place.rect.topleft = map_pos
+                        houses.append(building_to_place)
+                        update_counts(counts, log_change=-10, gold_change=-1)
+                        placed_houses.append((building_to_place, time.time()))
+                    elif isinstance(building_to_place, Tower) and counts['log'] >= 20 and counts['gold'] >= 5:
+                        building_to_place.rect.topleft = map_pos
+                        towers.append(building_to_place)
+                        update_counts(counts, log_change=-20, gold_change=-5)
+                placing_building = False
 
     camera.update(player)
     draw_grid(display_surface, camera)
@@ -357,11 +344,13 @@ while running:
         elif isinstance(sprite, Knight):
             sprite.update(dt, alive_enemies, alive_knights)
         elif isinstance(sprite, Pawn):
-            sprite.update(dt, trees, targeted_trees, reasources, gold_mines, alive_pawns, sheeps, (2000, 500), counts)
+            sprite.update(dt, trees, targeted_trees, reasources, gold_mines, alive_pawns, (2000, 500), counts)
         elif isinstance(sprite, Torch):
-            sprite.update(alive_knights,alive_archers,level_data)
+            sprite.update(alive_knights,alive_archers,level_data,alive_enemies,alive_torch)
         elif isinstance(sprite, TNT):
-            sprite.update(alive_knights,alive_archers,level_data)
+            sprite.update(alive_knights,alive_archers,level_data,alive_enemies,alive_tnt)
+        elif isinstance(sprite, Barrel):
+            sprite.update(houses,towers,level_data,alive_enemies)
     projectiles.update(dt, alive_knights, alive_archers)
     for projectile in projectiles:
         projectile.draw(display_surface, camera.camera.topleft)
@@ -394,12 +383,6 @@ while running:
     for gold in gold_mines:
         gold.draw(display_surface, camera.camera.topleft)
         gold.update()
-
-    for sheep in sheeps:
-        sheep.update()
-        if sheep.health <= 0:
-            sheep.spawn_meat()
-            sheep.kill()
 
     for meat in meats:
         meat.draw(display_surface, camera.camera.topleft)
@@ -451,9 +434,7 @@ while running:
     for house in houses:
         if house.ui_visible:
             house.show_spawn_ui(display_surface, pygame.font.SysFont(None, 24), camera.camera.topleft)
-
-    ui.draw_log_count(display_surface, counts['log'])
-    ui.draw_gold_count(display_surface, counts['gold'])
+    ui.update_icons(display_surface, counts['log'], counts['gold'])
     pygame.display.update()
 
 pygame.quit()

@@ -1,5 +1,4 @@
 import pygame
-import random
 import time
 import math
 from utils.d_star import AStar
@@ -55,6 +54,7 @@ class Pawn(pygame.sprite.Sprite):
         self.target_tree = None 
         self.target_position = None
         self.path_cache = None
+        self.gold_deposited = 0
 
     def load_sprites(self):
         def load_images(path, count):
@@ -116,59 +116,43 @@ class Pawn(pygame.sprite.Sprite):
         dx, dy = sprite.rect.centerx - self.rect.centerx, sprite.rect.centery - self.rect.centery
         return abs(dx) <= radius and abs(dy) <= radius
 
-    def chase_sheep(self, sheep,counts):
-        if self.holding_resources:
-            self.drop_resources(counts)
-        self.state = RUN
-        target_position = pygame.math.Vector2(sheep.rect.center)
-        self.move_towards_pathfinding(target_position)
-        if abs(self.rect.centerx - target_position.x) <= 10 and abs(self.rect.centery - target_position.y) <= 10:
-            self.attack_sheep(sheep)
-
-    def attack_sheep(self, sheep):
-        self.state = CHOPPING
-        sheep.take_damage(10)
-
-    def update(self, dt, trees, targeted_trees, resources, gold_mines, pawns, sheep_sprites, castle_position, counts):
+    def update(self, dt, trees, targeted_trees, resources, gold_mines, pawns, castle_position, counts):
         current_time = time.time()
-        nearest_sheep = self.find_nearest(sheep_sprites)
         if self.health <= 0:
             self.state = DEATH
             self.animate(dt)
             if self.current_sprite == len(self.sprites[DEATH]) - 1:
                 self.kill()
             return
-        if nearest_sheep and self.is_within_radius(nearest_sheep, 50) and not self.selected:
-            self.chase_sheep(nearest_sheep,counts)
-        else:
-            if self.selected and self.target_position:
-                if self.move_towards_pathfinding(self.target_position):
-                    self.state = WATCH
-                    self.target_position = None
-                    self.has_reached = True
-                    for tree in trees:
-                        if abs(self.rect.centerx - tree.rect.centerx) <= 5 and abs(self.rect.centery - tree.rect.centery) <= 5:
-                            self.target_tree = tree
-                            self.state = RUN
-                            break
-                else:
-                    if len(self.holding_resources) > 0:
-                        self.state = CARRYING
-                    else:
-                        self.state = POS
+        
+        if self.selected and self.target_position:
+            if self.move_towards_pathfinding(self.target_position):
+                self.state = WATCH
+                self.target_position = None
+                self.has_reached = True
+                for tree in trees:
+                    if abs(self.rect.centerx - tree.rect.centerx) <= 5 and abs(self.rect.centery - tree.rect.centery) <= 5:
+                        self.target_tree = tree
+                        self.state = RUN
+                        break
             else:
-                if self.state == WATCH or self.state == IDLE:
-                    for tree in trees:
-                        if abs(self.rect.centerx - tree.rect.centerx) <= 5 and abs(self.rect.centery - tree.rect.centery) <= 5:
-                            self.target_tree = tree
-                            self.state = CHOPPING
-                            break
-                if self.state == MOVING_TO_DROP:
-                    self.move_towards_drop_position(dt, counts)
-                elif self.state == MOVING_TO_MINE:
-                    self.handle_mining(current_time)
+                if len(self.holding_resources) > 0:
+                    self.state = CARRYING
                 else:
-                    self.handle_idle_state(dt, trees, targeted_trees, resources, gold_mines, current_time, castle_position)
+                    self.state = POS
+        else:
+            if self.state == WATCH or self.state == IDLE:
+                for tree in trees:
+                    if abs(self.rect.centerx - tree.rect.centerx) <= 5 and abs(self.rect.centery - tree.rect.centery) <= 5:
+                        self.target_tree = tree
+                        self.state = CHOPPING
+                        break
+            if self.state == MOVING_TO_DROP:
+                self.move_towards_drop_position(dt, counts)
+            elif self.state == MOVING_TO_MINE:
+                self.handle_mining(current_time)
+            else:
+                self.handle_idle_state(dt, trees, targeted_trees, resources, gold_mines, current_time, castle_position,pawns)
         self.animate(dt)
 
         if Pawn.mine_pawn is None and current_time - Pawn.mine_cooldown_timer >= 30 and gold_mines:
@@ -178,12 +162,11 @@ class Pawn(pygame.sprite.Sprite):
                 nearest_pawn.target_gold_mine = gold_mines.sprites()[0]
                 nearest_pawn.state = RUN
         elif self == Pawn.mine_pawn and self.mine_start_time is not None and current_time - self.mine_start_time >= 30:
-            Pawn.mine_pawn = None
             Pawn.mine_cooldown_timer = current_time
             self.state = IDLE
 
-        counts['logs'] = Pawn.log_count
-        counts['gold'] = Pawn.gold_count
+        Pawn.log_count = counts['log'] 
+        Pawn.gold_count = counts['gold']
     
     def move_towards_pathfinding(self, target, tolerance=5):
         start = (self.rect.centerx, self.rect.centery)
@@ -266,22 +249,31 @@ class Pawn(pygame.sprite.Sprite):
         return [(next_tile[0] * 65 + 32.5, next_tile[1] * 65 + 32.5)]
 
     def handle_mining(self, current_time):
-        if self.mine_start_time is not None and current_time - self.mine_start_time >= 2:
+        if self.target_gold_mine:
+            mine_center = pygame.math.Vector2(self.target_gold_mine.rect.center)
+            pawn_center = pygame.math.Vector2(self.rect.center)
+            distance_to_mine = mine_center.distance_to(pawn_center)
+            if distance_to_mine <= 35:  # Adjust the distance threshold as needed
+                self.mine_start_time = current_time
+                self.state = MOVING_TO_MINE
+        if self.mine_start_time is not None and current_time - self.mine_start_time >= 5:
             if hasattr(self.target_gold_mine, 'spawn_gold'):
-                self.target_gold_mine.active()
                 self.target_gold_mine.spawn_gold()
+                self.target_gold_mine.deactive()
             self.state = IDLE
+            self.target_gold_mine.active()
+            self.target_gold_mine.gold_spawned = False  # Reset gold_spawned
             self.target_gold_mine = None
 
-    def handle_idle_state(self, dt, trees, targeted_trees, resources, gold_mines, current_time,castle_position):
+    def handle_idle_state(self, dt, trees, targeted_trees, resources, gold_mines, current_time,castle_position,pawns):
         if self.state != WATCH:
             if self == Pawn.mine_pawn and self.target_gold_mine is not None:
                 self.move_towards_mine(self.target_gold_mine)
             else:
                 if self.state == CHOPPING and len(resources) <= 9:
-                    self.chop_tree(resources)
+                    self.chop_tree(resources,pawns)
                 if self.state == IDLE:
-                    self.search_for_resources(resources)
+                    self.search_for_resources(resources,pawns)
                     if not self.target_resources and len(resources) <= 9:
                         self.search_for_trees(trees, targeted_trees, resources)
                 if self.holding_resources:
@@ -322,13 +314,13 @@ class Pawn(pygame.sprite.Sprite):
                 targeted_trees.add(tree)
                 break
 
-    def chop_tree(self, resources):
+    def chop_tree(self, resources,pawn):
         if self.target_tree:
             self.update_facing_direction(self.target_tree.rect.centerx - self.rect.centerx)
             self.target_tree.take_damage(2)
             if self.target_tree.health <= 0:
                 self.target_tree = None
-                new_resources = self.get_nearest_resources(resources)
+                new_resources = self.get_nearest_resources(resources,pawn)
                 self.target_resources.extend(new_resources)
                 self.state = RUN if self.target_resources else IDLE
 
@@ -340,8 +332,13 @@ class Pawn(pygame.sprite.Sprite):
         )
         return nearest_tree
 
-    def get_nearest_resources(self, resources):
-        return sorted(resources, key=lambda resource: ((resource.rect.centerx - self.rect.centerx) ** 2 + (resource.rect.centery - self.rect.centery) ** 2) ** 0.5)[:3]
+    def get_nearest_resources(self, resources, pawns):
+        available_resources = [
+            resource for resource in resources 
+            if not any(resource in pawn.holding_resources for pawn in pawns)
+        ]
+        return sorted(available_resources, key=lambda resource: ((resource.rect.centerx - self.rect.centerx) ** 2 + (resource.rect.centery - self.rect.centery) ** 2) ** 0.5)[:3]
+
 
     def move_towards_tree(self):
         if self.target_tree:
@@ -351,10 +348,13 @@ class Pawn(pygame.sprite.Sprite):
             if abs(self.rect.centerx - target_position.x) <= 45 and abs(self.rect.centery - target_position.y) <= 45:
                 self.state = CHOPPING
 
-    def move_towards_resource(self, dt,castle_position):
-        if self.target_resources and len(self.holding_resources) < 3:
-            self.state = RUN
+    def move_towards_resource(self, dt, castle_position):
+        while self.target_resources and len(self.holding_resources) < 3:
             target_resource = self.target_resources[0]
+            if any(hasattr(pawn, 'holding_resources') and target_resource in pawn.holding_resources for pawn in self.groups()[0]):
+                self.target_resources.pop(0)
+                continue
+            self.state = RUN
             target_position = pygame.math.Vector2(target_resource.rect.center)
             self.move_towards_position(target_position, dt)
             if self.rect.center == target_position:
@@ -362,13 +362,16 @@ class Pawn(pygame.sprite.Sprite):
                 if len(self.holding_resources) >= 2 or not self.target_resources:
                     self.state = MOVING_TO_DROP
                     self.move_to_castle(castle_position)
+            break
+
 
 
     def move_towards_mine(self, mine_sprite):
         self.state = RUN 
         target_position = pygame.math.Vector2(mine_sprite.rect.center)
-        self.move_towards_pathfinding(target_position)
-        if abs(self.rect.centerx - target_position.x) <= 10 and abs(self.rect.centery - target_position.y) <= 10:
+        self.move_towards_pathfinding(target_position, tolerance=5)
+        if abs(self.rect.centerx - target_position.x) <= 35 and abs(self.rect.centery - target_position.y) <= 35:
+            self.target_gold_mine.active()
             self.state = MOVING_TO_MINE
             self.mine_start_time = time.time()
 
@@ -381,19 +384,28 @@ class Pawn(pygame.sprite.Sprite):
         if self.holding_resources:
             self.state = CARRYING
 
-    def search_for_resources(self, resources):
+    def search_for_resources(self, resources, pawns):
         if len(self.holding_resources) < 3:
-            nearby_resources = [resource for resource in resources if self.rect.colliderect(resource.rect.inflate(self.search_radius, self.search_radius)) and resource not in self.dropped_resources]
+            nearby_resources = [
+                resource for resource in resources 
+                if self.rect.colliderect(resource.rect.inflate(self.search_radius, self.search_radius)) 
+                and resource not in self.dropped_resources 
+                and not any(resource in pawn.holding_resources for pawn in pawns)
+            ]
             if nearby_resources:
                 nearby_resources.sort(key=lambda resource: ((resource.rect.centerx - self.rect.centerx) ** 2 + (resource.rect.centery - self.rect.centery) ** 2) ** 0.5)
                 self.target_resources = nearby_resources[:3]
                 self.state = RUN
                 self.search_radius = 50
             else:
-                self.search_radius += 50
+                self.search_radius += 400
         elif len(resources) > 5:
-            self.target_resources = sorted(resources, key=lambda resource: ((resource.rect.centerx - self.rect.centerx) ** 2 + (resource.rect.centery - self.rect.centery) ** 2) ** 0.5)[:3]
+            self.target_resources = sorted(
+                [resource for resource in resources if not any(resource in pawn.holding_resources for pawn in pawns)],
+                key=lambda resource: ((resource.rect.centerx - self.rect.centerx) ** 2 + (resource.rect.centery - self.rect.centery) ** 2) ** 0.5
+            )[:3]
             self.state = RUN
+
 
     def move_to_castle(self, castle_position):
         self.drop_position = castle_position
@@ -423,10 +435,8 @@ class Pawn(pygame.sprite.Sprite):
                 Pawn.log_count += 1
                 counts['log'] = Pawn.log_count
             if resource.type == "gold":
-                Pawn.gold_count += 1
+                Pawn.gold_count += 5
                 counts['gold'] = Pawn.gold_count
-            if resource.type == "meat":
-                print("MEAT")
             resource.kill()
         self.holding_resources.clear()
         self.state = IDLE

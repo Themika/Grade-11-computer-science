@@ -25,6 +25,8 @@ class GoldMine(pygame.sprite.Sprite):
             self.spawn_gold()
     def active(self):
         self.image = self.working_image
+    def deactive(self):
+        self.image = self.idle_image
 
     def draw(self, surface, camera_offset):
         adjusted_rect = self.rect.move(camera_offset)
@@ -39,7 +41,7 @@ class GoldMine(pygame.sprite.Sprite):
     def spawn_gold(self):
         """Spawns 3 gold pieces at the mine's location within a 10 by 10 radius and marks the mine as destroyed."""
         if not self.gold_spawned:  
-            for _ in range(3):
+            for _ in range(4):
                 offset_x = random.randint(-30, 20)
                 offset_y = random.randint(-20, 20)
                 gold = Gold(self.rect.centerx + offset_x, self.rect.centery + offset_y, "Animations/Reasources/Gold_Mine/Gold/G_Spawn_6.png", 500,"gold")
