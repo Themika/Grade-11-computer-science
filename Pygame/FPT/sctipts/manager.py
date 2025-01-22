@@ -270,6 +270,10 @@ show_help = False
 show_level_selection = False
 show_manual = False  # Add this line
 
+# Load and play background music
+pygame.mixer.music.load('SFX/MUSIC/achaidh-cheide-kevin-macleod-main-version-18632-02-14.mp3')
+pygame.mixer.music.play(-1)  # -1 means the music will loop indefinitely
+
 while running:
     if not game_started:
         if show_help:

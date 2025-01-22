@@ -1,7 +1,8 @@
 import pygame
 import random
 from utils.projectile import Projectile
-
+from allies.knight import Knight
+from allies.archer import Archer
 class Barrel(pygame.sprite.Sprite):
     ATTACK = 'attack'
     RUN = 'run'
@@ -120,7 +121,11 @@ class Barrel(pygame.sprite.Sprite):
     def damage_nearby_targets(self, targets):
         for target in targets:
             if self.rect.colliderect(target.rect.inflate(self.ATTACK_RANGE, self.ATTACK_RANGE)):
-                target.take_damage(self.DAMAGE)
+                if isinstance(target, Knight) or isinstance(target, Archer):
+                    target.take_damage(target.health)  # Instantly kill the knight or archer
+                else:
+                    target.take_damage(self.DAMAGE)
+
 
     def update_animation(self, current_time):
         if self.state != 'dead' and current_time - self.animation_time > self.ANIMATION_INTERVAL:
