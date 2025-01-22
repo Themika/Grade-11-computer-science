@@ -175,7 +175,12 @@ level_data = load_level_data(level)
 img_list = []
 
 ui = UI()
-
+def heal_buildings(buildings):
+    for building in buildings:
+        building.health += 100
+def heal_allies(allies):
+    for ally in allies:
+        ally.health += 50
 # Load tile images
 tile_categories = ['Ground/Green', 'Bridges', 'Decorations', 'Ground/Yellow', 'Ground/Water']
 for category in tile_categories:
@@ -222,7 +227,7 @@ for _ in range(250):
 for _ in range(1):
     while True:
         x = random.randint(300, 1800)
-        y = random.randint(1000, 2000)
+        y = random.randint(1300, 2000)
         if not is_spawnable(x, y, level_data):
             print(f"Spawning gold mine at ({x}, {y})")
             break
@@ -303,7 +308,8 @@ while running:
 
     dt = clock.tick(60) / 1000
     keys = pygame.key.get_pressed()
-    alive_allies = [allies for allies in all_sprites if isinstance(allies, Knight) or isinstance(allies, Archer) and allies.health > 0]
+    alive_warriors = [allies for allies in all_sprites if isinstance(allies, Knight) or isinstance(allies, Archer) and allies.health > 0]
+    alive_allies = [allies for allies in all_sprites if isinstance(allies, Knight) or isinstance(allies, Archer) and allies.health > 0 or isinstance(allies, Pawn) and allies.health > 0]
     alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Torch) or isinstance(enemy, TNT) and enemy.health > 0 or isinstance(enemy, Barrel) and enemy.health > 0]
     alive_torch = [torch for torch in all_sprites if isinstance(torch, Torch) and torch.health > 0]
     alive_tnt = [tnt for tnt in all_sprites if isinstance(tnt, TNT) and tnt.health > 0]
@@ -386,7 +392,7 @@ while running:
         elif isinstance(sprite, TNT):
             sprite.update(alive_knights,alive_archers,level_data,alive_enemies,alive_tnt)
         elif isinstance(sprite, Barrel):
-            sprite.update(buildings,alive_allies,level_data)
+            sprite.update(buildings,alive_warriors,level_data,alive_enemies)
     projectiles.update(dt, alive_knights, alive_archers)
     for projectile in projectiles:
         projectile.draw(display_surface, camera.camera.topleft)
@@ -438,6 +444,8 @@ while running:
             grace_period_start_time = time.time()
         current_time = time.time()
         if current_time - grace_period_start_time >= grace_period:
+            heal_buildings(buildings)
+            heal_allies(alive_allies)
             wave += 1
             spawn_wave(wave, all_sprites, projectiles, houses, towers)
             grace_period_start_time = None

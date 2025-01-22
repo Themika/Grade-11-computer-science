@@ -28,3 +28,5 @@ class Castle(pygame.sprite.Sprite):
         self.health -= damage
         if self.health < 0:
             self.health = 0
+    def heal(self, amount):
+        self.health = min(self.max_health, self.health + amount)

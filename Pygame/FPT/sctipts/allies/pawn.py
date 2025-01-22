@@ -228,7 +228,8 @@ class Pawn(pygame.sprite.Sprite):
             if not self.is_water_tile(detour_x, detour_y):
                 return detour_x, detour_y
         return start
-    
+    def heal(self, amount):
+        self.health = min(self.max_health, self.health + amount)
     def is_water_tile(self, x, y):
         tile_x = int(x // 65)
         tile_y = int(y // 65)

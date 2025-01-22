@@ -164,7 +164,6 @@ class Knight(pygame.sprite.Sprite):
             self.state_timer = pygame.time.get_ticks()
 
     def update(self, dt, enemies, other_knights):
-        print(self.health)
         """Update knight's behavior and animations."""
         if self.state == State.DEAD:
             self.animate(dt)
@@ -188,19 +187,18 @@ class Knight(pygame.sprite.Sprite):
             self.image = self.sprites[self.state][self.current_sprite]
             if not self.facing_right:
                 self.image = pygame.transform.flip(self.image, True, False)
-
+    def heal(self, amount):
+        self.health = min(self.max_health, self.health + amount)
     def selection(self):
         """Handle selection of the knight."""
         self.selected = True
         self.state = State.IDLE
-        print("Knight selected")
 
     def deselect(self):
         """Handle deselection of the knight."""
         self.selected = False
         self.state = State.PATROL
         self.has_reached = False
-        print("Knight deselected")
 
     def move_to(self, target):
         self.target = target

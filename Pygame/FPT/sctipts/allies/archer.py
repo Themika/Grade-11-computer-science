@@ -88,6 +88,7 @@ class Archer(pygame.sprite.Sprite):
         self.maintain_distance()
         self.animate(dt)
         self.projectiles.update(dt, enemies)
+
     def draw(self, surface, camera_offset):
         surface.blit(self.image, self.rect.move(camera_offset))
         for projectile in self.projectiles:
@@ -225,7 +226,7 @@ class Archer(pygame.sprite.Sprite):
 
             if self.is_water_tile(new_x, new_y):
                 # Reroute logic using a more sophisticated detour method
-                detour_x, detour_y = self.find_detour((self.rect.centerx, self.rect.centery), (new_x, new_y))
+                detour_x, detour_y = self.find_detour((self.rect.centerx, self.rect.centery))
                 if (detour_x, detour_y) == (self.rect.centerx, self.rect.centery):
                     # If no valid detour found, stop moving
                     return True
@@ -238,6 +239,7 @@ class Archer(pygame.sprite.Sprite):
             self.facing_right = dx > 0  # Adjust the facing direction
             return False
         return True
+
     def move_towards_pathfinding(self, target, tolerance=5):
         """
         Move the archer towards the target position using pathfinding logic.
@@ -248,7 +250,7 @@ class Archer(pygame.sprite.Sprite):
             next_point = path[0]
             self.move_towards(next_point, tolerance)
 
-    def find_detour(self, start, target):
+    def find_detour(self, start):
         """
         Find a more sophisticated detour around water tiles by checking adjacent and diagonal tiles.
         """
@@ -275,7 +277,7 @@ class Archer(pygame.sprite.Sprite):
         tile = self.tilemap[tile_y][tile_x]
         return tile in self.WATER_TILES or tile[0] == self.AVOID_TILE
 
-    def find_path(self, start, target, all_archers=None):
+    def find_path(self, start, target):
         start_tile = (int(start[0] // 65), int(start[1] // 65))
         target_tile = (int(target[0] // 65), int(target[1] // 65))
         dstar = AStar(start_tile, target_tile, self.tilemap)
@@ -291,7 +293,7 @@ class Archer(pygame.sprite.Sprite):
             closest_enemy = None
             closest_distance = float('inf')
             for enemy in enemies:
-                if enemy.health > 0:
+                if enemy.health > 0:  # Ensure the enemy is alive
                     distance = math.hypot(enemy.rect.centerx - self.rect.centerx, enemy.rect.centery - self.rect.centery)
                     if distance < closest_distance:
                         closest_distance = distance
@@ -299,21 +301,26 @@ class Archer(pygame.sprite.Sprite):
             if closest_enemy and closest_distance <= self.DETECTION_RADIUS:
                 self.target = closest_enemy
                 self.state = State.ATTACK
-
+    def heal(self, amount):
+        self.health = min(self.max_health, self.health + amount)
     def attack(self):
         current_time = pygame.time.get_ticks()
-        if current_time - self.last_shot_time >= self.SHOOT_COOLDOWN:
-            self.shoot_projectile(self.target)
-            self.last_shot_time = current_time
         if self.target and self.target.health <= 0:
-            self.target.kill()
             self.target = None
             self.state = State.SEARCH
             self.state_timer = pygame.time.get_ticks()
             self.current_sprite = 0
+        elif not self.target:
+            self.state = State.SEARCH
+            self.state_timer = pygame.time.get_ticks()
+            self.current_sprite = 0
+        else:
+            if current_time - self.last_shot_time >= self.SHOOT_COOLDOWN:
+                self.shoot_projectile(self.target)
+                self.last_shot_time = current_time
 
     def shoot_projectile(self, target):
-        if target:
+        if target and target.health > 0:  # Ensure the target is alive
             projectile = Projectile(self.rect.center, target.rect.center, 50, 'Tiny_Swords_Assets/Factions/Knights/Troops/Archer/Arrow/Arrow_Stand_Alone.png')
             self.projectiles.add(projectile)
             # Determine the direction of the target and set facing_right accordingly
@@ -326,7 +333,8 @@ class Archer(pygame.sprite.Sprite):
 
     def deselect(self):
         self.selected = False
-        self.state = State.SEARCH
+        self.target = None
+        self.state = State.PATROL
 
     def move_to_click_position(self, position):
         if self.state not in [State.WATCH, State.POS]:
@@ -361,6 +369,5 @@ class Archer(pygame.sprite.Sprite):
 
                 if self.is_water_tile(target_x, target_y):
                     # Find a detour if the target position is a water tile
-                    target_x, target_y = self.find_detour((self.rect.centerx, self.rect.centery), (target_x, target_y))
-
+                    target_x, target_y = self.find_detour((self.rect.centerx, self.rect.centery))
                 self.move_towards((target_x, target_y))

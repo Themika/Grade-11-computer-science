@@ -16,7 +16,7 @@ class House(pygame.sprite.Sprite):
         self.knight_count = 0
         self.archer_count = 0
         self.max_health = 500
-        self.health = 500
+        self.health = 50
         self.ui_visible = False  
 
     def update_construction_status(self, wave_ended):
@@ -34,6 +34,8 @@ class House(pygame.sprite.Sprite):
     def spawn_archer(self, archer):
         if self.construction_complete and len(self.archers) < self.archer_count:
             archer.rect.topleft = (self.x, self.y)
+            print(f"Spawn postion: {self.x},{self.y} Archer spawn position: {archer.rect.topleft}")
+        
             self.archers.append(archer)
             self.move_unit_outwards(archer)
 
@@ -43,7 +45,11 @@ class House(pygame.sprite.Sprite):
         unit.rect.y += 10  # Adjust the value as needed
     def take_damage(self, damage):
         self.health -= damage
-
+    def update(self):
+        print(self.health)
+    def heal(self, amount):
+        print("healing")
+        self.health = min(self.max_health, self.health + amount)
     def draw(self, surface, camera_offset):
         adjusted_rect = self.rect.move(camera_offset)
         surface.blit(self.image, adjusted_rect)

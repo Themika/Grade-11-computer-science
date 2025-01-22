@@ -67,3 +67,5 @@ class Tower(pygame.sprite.Sprite):
 
     def is_fully_constructed(self):
         return self.construction_status == 'finished'
+    def heal(self, amount):
+        self.health = min(self.max_health, self.health + amount)
