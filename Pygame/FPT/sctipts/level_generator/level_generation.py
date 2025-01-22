@@ -5,14 +5,17 @@ from button import Button
 
 pygame.init()
 
+# Screen dimensions and margins
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 640
 LOWER_MARGIN = 100
 SIDE_MARGIN = 300
 
+# Map dimensions
 MAP_WIDTH = 3000
 MAP_HEIGHT = 3000
 
+# Scrolling variables
 scroll_speed = 5
 scroll_x = 0
 scroll_y = 0
@@ -20,29 +23,36 @@ current_tile = 0
 current_page = 0
 level = 0
 
+# Scrolling flags
 scroll_left = False
 scroll_right = False
 scroll_up = False
 scroll_down = False
 
+# Initialize the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH+SIDE_MARGIN, SCREEN_HEIGHT+LOWER_MARGIN))
 pygame.display.set_caption('Level Generation')
 
+# Colors
 GREEN = (144, 201, 120)
 WHITE = (255, 255, 255)
 RED = (200, 50, 50)
 BLACK = (0, 0, 0)
 
+# Font
 font = pygame.font.SysFont('Futura', 25)
 
+# Tile settings
 TILE_SIZE = 65  # Assuming each tile is 40x40 pixels
 ROWS = MAP_HEIGHT // TILE_SIZE
 MAX_COLS = MAP_WIDTH // TILE_SIZE
 TILE_TYPES = 50
 
+# Load button images
 save_img = pygame.image.load("Tiny_Swords_Assets/Resources/Resources/SAVE.png").convert_alpha()
 load_img = pygame.image.load("Tiny_Swords_Assets/Resources/Resources/LOAD.png").convert_alpha()
 
+# Load tile images
 img_list = []
 tile_categories = ['Ground\Green','Bridges','Decorations','Ground\Yellow','Ground\Water']
 
@@ -66,20 +76,22 @@ for row in range(ROWS):
     world_data.append(r)
 
 def draw_grid():
-    # vertical lines
+    # Draw vertical lines
     for c in range(MAX_COLS + 1):
         pygame.draw.line(screen, BLACK, (c * TILE_SIZE + scroll_x, 0), (c * TILE_SIZE + scroll_x, SCREEN_HEIGHT))
-    # horizontal lines
+    # Draw horizontal lines
     for c in range(ROWS + 1):
         pygame.draw.line(screen, BLACK, (0, c * TILE_SIZE + scroll_y), (SCREEN_WIDTH, c * TILE_SIZE + scroll_y))
 
 def draw_text(text, font, text_col, x, y):
     img = font.render(text, True, text_col) 
     screen.blit(img, (x, y))
+
 def draw_bg():
     screen.fill(WHITE)
     pygame.draw.rect(screen, (0, 0, 0), (SCREEN_WIDTH//2 + scroll_x, SCREEN_HEIGHT//2 + scroll_y, 50, 50))
 
+# Initialize buttons
 save_button = Button(SCREEN_WIDTH-400, SCREEN_HEIGHT+25, save_img, 0.5)
 load_button = Button(SCREEN_WIDTH -200, SCREEN_HEIGHT+25, load_img, 0.2)
 
@@ -116,18 +128,18 @@ while run:
     draw_bg()
     draw_grid()
 
-    # scroll the map horizontally
+    # Scroll the map horizontally
     if scroll_left:
         scroll_x += scroll_speed
     if scroll_right:
         scroll_x -= scroll_speed
-    # scroll the map vertically
+    # Scroll the map vertically
     if scroll_up:
         scroll_y += scroll_speed
     if scroll_down:
         scroll_y -= scroll_speed
 
-    # clamp the scrolling to the map boundaries
+    # Clamp the scrolling to the map boundaries
     scroll_x = max(min(scroll_x, 0), SCREEN_WIDTH - MAP_WIDTH)
     scroll_y = max(min(scroll_y, 0), SCREEN_HEIGHT - MAP_HEIGHT)
     
@@ -188,7 +200,7 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        # keyboard presses
+        # Keyboard presses
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 scroll_left = True

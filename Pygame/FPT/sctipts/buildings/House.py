@@ -5,6 +5,7 @@ class House(pygame.sprite.Sprite):
         super().__init__()
         self.x = x
         self.y = y
+        # Load images for different states of the house
         self.construction_image = pygame.image.load(construction_image_path)
         self.finished_image = pygame.image.load(finished_image_path)
         self.destroyed_image = pygame.image.load(destroyed_image_path)
@@ -21,6 +22,7 @@ class House(pygame.sprite.Sprite):
         self.ui_visible = False  
 
     def update_construction_status(self):
+        # Update the construction status based on health
         if self.health <= 0:
             self.kill()  # Remove the house from all sprite groups
         else:
@@ -29,16 +31,17 @@ class House(pygame.sprite.Sprite):
             self.is_fully_constructed()
 
     def spawn_knight(self, knight):
+        # Spawn a knight if construction is complete and there is room
         if self.construction_complete and len(self.knights) < self.knight_count:
             knight.rect.topleft = (self.x, self.y)
             self.knights.append(knight)
             self.move_unit_outwards(knight)
 
     def spawn_archer(self, archer):
+        # Spawn an archer if construction is complete and there is room
         if self.construction_complete and len(self.archers) < self.archer_count:
             archer.rect.topleft = (self.x, self.y)
-            print(f"Spawn postion: {self.x},{self.y} Archer spawn position: {archer.rect.topleft}")
-        
+            print(f"Spawn position: {self.x},{self.y} Archer spawn position: {archer.rect.topleft}")
             self.archers.append(archer)
             self.move_unit_outwards(archer)
 
@@ -48,24 +51,29 @@ class House(pygame.sprite.Sprite):
         unit.rect.y += 10  # Adjust the value as needed
 
     def take_damage(self, damage):
+        # Reduce the house's health by the damage amount
         self.health -= damage
 
     def heal(self, amount):
+        # Heal the house by the specified amount, up to the max health
         print("healing")
         self.health = min(self.max_health, self.health + amount)
 
     def update(self):
+        # Update the house's state based on its health
         if self.health <= 0:
             self.image = self.destroyed_image
         else:
             self.update_construction_status()
 
     def draw(self, surface, camera_offset):
+        # Draw the house and its health bar on the surface
         adjusted_rect = self.rect.move(camera_offset)
         surface.blit(self.image, adjusted_rect)
         self.draw_health_bar(surface, adjusted_rect.topleft)
 
     def draw_health_bar(self, surface, position):
+        # Draw the health bar above the house
         bar_width = 50
         bar_height = 5
         health_ratio = self.health / self.max_health
@@ -75,4 +83,5 @@ class House(pygame.sprite.Sprite):
         pygame.draw.rect(surface, (255, 255, 255), border_rect, 1)
 
     def is_fully_constructed(self):
+        # Check if the house is fully constructed
         return self.construction_status == 'finished'

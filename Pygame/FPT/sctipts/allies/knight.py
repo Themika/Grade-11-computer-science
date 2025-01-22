@@ -118,8 +118,8 @@ class Knight(pygame.sprite.Sprite):
         """Determine what the knight should do based on its state."""
         if self.mouse_pos:
             self.state = State.POS
-            target_pos = (self.mouse_pos[0] + random.randint(-50, 50), self.mouse_pos[1] + random.randint(-50,50))
-            if self.move_towards_pathfinding(target_pos ,tolerance=0):
+            target_pos = (self.mouse_pos[0] + random.randint(-50, 50), self.mouse_pos[1] + random.randint(-50, 50))
+            if self.move_towards_pathfinding(target_pos, tolerance=10):  # Adjusted tolerance to 10
                 self.mouse_pos = None
                 self.state = State.WATCH
                 self.watch()
@@ -386,4 +386,3 @@ class Knight(pygame.sprite.Sprite):
             self.state = State.DEAD
             self.current_sprite = 0
             self.animation_speed = 100  # Adjust the speed of the death animation if needed
-

@@ -3,6 +3,7 @@ import pygame
 from utils.d_star import AStar  # Assuming AStar is in a file named astar.py
 
 class Enemy(pygame.sprite.Sprite):
+    # Constants for enemy states and attributes
     IDLE = 'idle'
     RUN = 'run'
     SEARCH = 'search'
@@ -14,12 +15,14 @@ class Enemy(pygame.sprite.Sprite):
 
     def __init__(self, tilemap, *groups):
         super().__init__(*groups)
+        # Initialize enemy sprite
         self.image = pygame.Surface((50, 50))
         self.image.fill('red')
         self.rect = self.image.get_rect()
         self.rect.center = (random.randint(0, 2000), random.randint(0, 2000))
         self.health = 200
         self.speed = 2
+        # Generate random patrol points
         self.patrol_points = [(random.randint(0, 2000), random.randint(0, 2000)) for _ in range(4)]
         self.current_patrol_point = 0
         self.attacking_target = None
@@ -28,9 +31,11 @@ class Enemy(pygame.sprite.Sprite):
         self.facing_right = True
         self.tilemap = tilemap
         self.path_cache = {}
+        # Initialize A* pathfinding
         self.astar = AStar(self._tile_coords(self.rect.center), self._tile_coords(self.patrol_points[0]), tilemap)
 
     def update(self, knights, archers):
+        # Update enemy behavior based on state
         if self.attacking_target and self.attacking_target.health > 0:
             self.attack_if_close([self.attacking_target], [])
         else:
@@ -41,6 +46,7 @@ class Enemy(pygame.sprite.Sprite):
         self.update_state()
 
     def patrol(self):
+        # Patrol between points
         target = self.patrol_points[self.current_patrol_point]
         if self.distance_to(target) > 1:
             self.state = self.RUN
@@ -50,6 +56,7 @@ class Enemy(pygame.sprite.Sprite):
             self.current_patrol_point = (self.current_patrol_point + 1) % len(self.patrol_points)
 
     def move_towards(self, target):
+        # Move towards a target using A* pathfinding
         start = self._tile_coords(self.rect.center)
         goal = self._tile_coords(target)
         path_key = (start, goal)
@@ -71,6 +78,7 @@ class Enemy(pygame.sprite.Sprite):
                 self.update_facing_direction(dx)
 
     def update_facing_direction(self, dx):
+        # Update the direction the enemy is facing
         if abs(dx) > self.DIRECTION_CHANGE_THRESHOLD:
             if dx > 0 and not self.facing_right:
                 self.facing_right = True
@@ -80,9 +88,11 @@ class Enemy(pygame.sprite.Sprite):
                 self.flip_image()
 
     def flip_image(self):
+        # Flip the enemy image horizontally
         self.image = pygame.transform.flip(self.image, True, False)
 
     def attack_if_close(self, knights, archers):
+        # Attack if any target is within range
         for target in knights + archers:
             if self.rect.colliderect(target.rect.inflate(self.ATTACK_RANGE, self.ATTACK_RANGE)):
                 self.attacking_target = target
@@ -90,26 +100,32 @@ class Enemy(pygame.sprite.Sprite):
                 return
 
     def attack(self, target):
+        # Perform an attack on the target
         current_time = pygame.time.get_ticks()
         if current_time - self.last_attack_time >= self.ATTACK_COOLDOWN:
             target.take_damage(self.DAMAGE)
             self.last_attack_time = current_time
 
     def take_damage(self, amount):
+        # Reduce health and remove enemy if health is depleted
         self.health -= amount
         if self.health <= 0:
             self.remove(*self.groups())
             self.kill()
 
     def update_state(self):
+        # Update the state of the enemy
         self.state = self.IDLE if self.attacking_target else self.RUN
 
     def distance_to(self, target):
+        # Calculate distance to a target
         return self.distance_between(self.rect.center, target)
 
     def distance_between(self, pos1, pos2):
+        # Calculate distance between two positions
         dx, dy = pos1[0] - pos2[0], pos1[1] - pos2[1]
         return (dx**2 + dy**2) ** 0.5
 
     def _tile_coords(self, pos):
+        # Convert pixel coordinates to tile coordinates
         return (pos[0] // self.TILE_SIZE, pos[1] // self.TILE_SIZE)

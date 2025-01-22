@@ -24,7 +24,45 @@ from buildings.Tower import Tower
 from Resources.GoldMine import GoldMine
 from Resources.Tree import Tree
 from Resources.RawReasources.log import Log
+"""
+    Protector of the Realm
 
+    Description:
+    Protector of the Realm is a strategy game where you defend your kingdom from waves of goblin attacks.
+    As the last king, you must strategically place buildings, manage resources, and command your troops to protect your castle and realm.
+
+    Features:
+    - Multiple unit types: Knights, Archers, and Pawns
+    - Various enemy types: Torch Goblins, TNT Goblins, and Barrel Goblins
+    - Resource management: Collect logs and gold to build and upgrade structures
+    - Building types: Houses, Towers, and Castles
+    - Dynamic wave system: Increasing difficulty with each wave
+    - Grace period between waves for strategic planning and healing
+    - Interactive UI for managing units and buildings
+    - Customizable controls and settings
+
+    How to Play:
+    - Use WASD or arrow keys to move the camera
+    - Click to select and command units
+    - Right-click to move units or place buildings
+    - Collect resources to build and upgrade structures
+    - Strategically place units and buildings to defend against goblin waves
+    - Survive as many waves as possible to protect your realm
+
+    Controls:
+    - WASD/Arrow keys: Move camera
+    - Left-click: Select units/buildings
+    - Right-click: Move units/place buildings
+    - Mouse wheel: Switch between building types
+    - ESC: Pause/quit game
+
+    Credits:
+    - Game design and development: [Themika]
+    - Art assets: [Pixel Frog]
+    - Sound effects and music: [Kevin Macleod]
+    - Special thanks to [Mr Bawa]
+
+"""
 # Initialize Pygame
 pygame.init()
 WINDOW_HEIGHT, WINDOW_WIDTH = 1280, 720
@@ -81,17 +119,19 @@ def spawn_wave(wave, all_sprites, projectiles, houses, towers):
     enemies_per_group = 1 * wave  # Start with 2 enemies per group and increase by 2 every wave
     for corner in corners:
         for _ in range(enemies_per_group):
-            enemy_tnt = TNT(projectiles,level_data)
-            enemy_tnt.rect.topleft = (corner[0] + random.randint(-50, 50), corner[1] + random.randint(-50, 50))
-            all_sprites.add(enemy_tnt)
-            barrel = Barrel()
-            barrel.rect.topleft = (corner[0] + random.randint(-50, 50), corner[1] + random.randint(-50, 50))
-            all_sprites.add(barrel)
-                
             enemy_torch = Torch(level_data)
             enemy_torch.rect.topleft = (corner[0] + random.randint(-50, 50), corner[1] + random.randint(-50, 50))
             all_sprites.add(enemy_torch)
 
+            if wave == 5:
+                enemy_tnt = TNT(projectiles,level_data)
+                enemy_tnt.rect.topleft = (corner[0] + random.randint(-50, 50), corner[1] + random.randint(-50, 50))
+                all_sprites.add(enemy_tnt)
+            if wave == 10:
+                barrel = Barrel()
+                barrel.rect.topleft = (corner[0] + random.randint(-50, 50), corner[1] + random.randint(-50, 50))
+                all_sprites.add(barrel)
+                
     for house in houses:
         house.update_construction_status()
         archer = Archer(level_data)
@@ -206,7 +246,6 @@ def is_spawnable(x, y, level_data, TILE_SIZE=65):
     if 0 <= tile_y < len(level_data) and 0 <= tile_x < len(level_data[0]):
         # Check if the first index of the tile is 4
         if level_data[tile_y][tile_x][0] == 4:
-            print(f"Water tile detected at ({tile_x}, {tile_y}): {level_data[tile_y][tile_x]}")
             return True
     return False
 
@@ -216,10 +255,8 @@ for _ in range(250):
         x = random.randint(0, 3000)
         y = random.randint(0, 3000)
         if is_spawnable(x, y, level_data):
-            print(f"Spawning tree at ({x}, {y})")
             break
-        else:
-            print(f"Non-water tile detected at ({x}, {y}), looking for another spot")
+
     tree = Tree(x, y, logs, reasources)
     trees.add(tree)
     all_sprites.add(tree)
@@ -229,10 +266,7 @@ for _ in range(1):
         x = random.randint(300, 1800)
         y = random.randint(1300, 2000)
         if not is_spawnable(x, y, level_data):
-            print(f"Spawning gold mine at ({x}, {y})")
             break
-        else:
-            print(f"Water tile detected at ({x}, {y}), looking for another spot")
     gold_mine = GoldMine(x, y, golds, reasources)
     buildings.add(gold_mine)
     gold_mines.add(gold_mine)
@@ -268,22 +302,25 @@ game_started = False
 game_over = False
 show_help = False
 show_level_selection = False
-show_manual = False  # Add this line
-
+show_manual = False  
 # Load and play background music
 pygame.mixer.music.load('SFX/MUSIC/achaidh-cheide-kevin-macleod-main-version-18632-02-14.mp3')
-pygame.mixer.music.play(-1)  # -1 means the music will loop indefinitely
+pygame.mixer.music.play(-1)
 
+# Main game loop
 while running:
     if not game_started:
+        # Display the appropriate menu screen
         if show_help:
             menu.draw_help_page()
         elif show_level_selection:
             menu.draw_level_selection()
-        elif show_manual:  # Add this condition
+        elif show_manual: 
             menu.draw_manual_page()
         else:
             menu.draw_menu()
+        
+        # Handle menu events
         for event in pygame.event.get():
             action = menu.handle_events(event)
             if action == 'level_selection':
@@ -298,7 +335,7 @@ while running:
                 # Initialize level 2
             elif action == 'help':
                 show_help = True
-            elif action == 'manual':  # Add this condition
+            elif action == 'manual':  
                 show_manual = True
             elif action == 'quit' or (event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE)):
                 running = False
@@ -307,18 +344,23 @@ while running:
                     show_help = False
                 elif show_level_selection:
                     show_level_selection = False
-                elif show_manual:  # Add this condition
+                elif show_manual:  
                     show_manual = False
         continue
+    
     if game_over:
+        # Display game over screen
         menu.draw_game_over()
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
                 game_started = False
         continue
 
+    # Update game state
     dt = clock.tick(60) / 1000
     keys = pygame.key.get_pressed()
+    
+    # Get lists of alive entities
     alive_warriors = [allies for allies in all_sprites if isinstance(allies, Knight) or isinstance(allies, Archer) and allies.health > 0]
     alive_allies = [allies for allies in all_sprites if isinstance(allies, Knight) or isinstance(allies, Archer) and allies.health > 0 or isinstance(allies, Pawn) and allies.health > 0]
     alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Torch) or isinstance(enemy, TNT) and enemy.health > 0 or isinstance(enemy, Barrel) and enemy.health > 0]
@@ -328,10 +370,15 @@ while running:
     alive_knights = [ally for ally in all_sprites if isinstance(ally, Knight)]
     alive_archers = [ally for ally in all_sprites if isinstance(ally, Archer)]
 
+    # Check for game over conditions
     if len(alive_archers) == 0 and len(alive_knights) == 0:
         game_over = True
         continue
+    if Castle.health <= 0:
+        game_over = True
+        continue
 
+    # Handle game events
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -367,25 +414,31 @@ while running:
             if placing_building and event.button == 1:
                 mouse_pos = pygame.mouse.get_pos()
                 map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
-                building_rect = pygame.Rect(map_pos[0], map_pos[1], building_to_place.rect.width, building_to_place.rect.height)
-                collision = any(building.rect.colliderect(building_rect) for building in houses + towers)
-                if not collision:
-                    if isinstance(building_to_place, House) and counts['log'] >= 10 and counts['gold'] >= 1:
-                        building_to_place.rect.topleft = map_pos
-                        houses.append(building_to_place)
-                        update_counts(counts, log_change=-10, gold_change=-1)
-                        placed_houses.append((building_to_place, time.time()))
-                    elif isinstance(building_to_place, Tower) and counts['log'] >= 20 and counts['gold'] >= 5:
-                        building_to_place.rect.topleft = map_pos
-                        towers.append(building_to_place)
-                        update_counts(counts, log_change=-20, gold_change=-5)
-                placing_building = False
+                if isinstance(building_to_place, House) and counts['log'] >= 10 and counts['gold'] >= 1:
+                    building_to_place.rect.topleft = map_pos
+                    houses.append(building_to_place)
+                    update_counts(counts, log_change=-10, gold_change=-1)
+                    placed_houses.append((building_to_place, time.time()))
+                elif isinstance(building_to_place, Tower) and counts['log'] >= 20 and counts['gold'] >= 5:
+                    building_to_place.rect.topleft = map_pos
+                    towers.append(building_to_place)
+                    update_counts(counts, log_change=-20, gold_change=-5)
+            placing_building = False
+
+    # Update camera position
     camera.update(player)
+    
+    # Draw the level
     draw_level(display_surface, level_data, img_list, camera.camera.x, camera.camera.y)
+    
+    # Draw all sprites
     camera.custom_draw(display_surface, all_sprites)
+    
+    # Draw RPS manager UI
     rps_manager.draw_marker(display_surface)
     rps_manager.draw_ui(display_surface, camera.camera.topleft)
 
+    # Update and draw all sprites
     for sprite in all_sprites:
         if isinstance(sprite, Player):
             sprite.update(keys)
@@ -402,9 +455,13 @@ while running:
             sprite.update(alive_knights,alive_archers,level_data,alive_enemies,alive_tnt)
         elif isinstance(sprite, Barrel):
             sprite.update(buildings,alive_warriors,level_data,alive_enemies)
+    
+    # Update and draw projectiles
     projectiles.update(dt, alive_knights, alive_archers)
     for projectile in projectiles:
         projectile.draw(display_surface, camera.camera.topleft)
+    
+    # Update and draw trees
     for tree in trees:
         tree.update()
         tree.draw(display_surface, camera.camera.topleft)
@@ -414,10 +471,12 @@ while running:
                 logs.add(log)
                 all_sprites.add(log)
 
+    # Update and draw logs
     for log in logs:
         log.draw(display_surface, camera.camera.topleft)
         log.update()
 
+    # Update and draw gold mines
     for gold_mine in gold_mines:
         gold_mine.update()
         gold_mine.draw(display_surface, camera.camera.topleft)
@@ -431,25 +490,32 @@ while running:
                 golds.add(gold)
                 all_sprites.add(gold)
 
+    # Update and draw gold
     for gold in gold_mines:
         gold.draw(display_surface, camera.camera.topleft)
         gold.update()
 
+    # Update and draw meat
     for meat in meats:
         meat.draw(display_surface, camera.camera.topleft)
         meat.update()
 
+    # Update and draw houses
     for house in houses:
         house.update()
         house.draw(display_surface, camera.camera.topleft)
+    
+    # Update and draw castles
     for caste in castles:
         Castle.draw(display_surface, camera.camera.topleft)
 
+    # Update and draw towers
     for tower in towers:
         tower.update()
         tower.draw(display_surface, camera.camera.topleft)
         tower.draw_tower(display_surface, camera.camera.topleft)
 
+    # Handle wave spawning and grace period
     if not alive_enemies:
         if grace_period_start_time is None:
             grace_period_start_time = time.time()
@@ -462,6 +528,7 @@ while running:
             spawn_wave(wave, all_sprites, projectiles, houses, towers)
             grace_period_start_time = None
 
+    # Display wave and grace period information
     font = pygame.font.Font("UI/Menu/Text/Press_Start_2P,Tiny5/Tiny5/Tiny5-Regular.ttf", 36)
     wave_text = font.render(f'Wave: {wave}', True, (255, 255, 255))
     display_surface.blit(wave_text, (10, 10))
@@ -469,6 +536,7 @@ while running:
         grace_period_text = font.render(f'Grace Period: {max(0, int(grace_period - (time.time() - grace_period_start_time)))}s', True, (255, 255, 255))
         display_surface.blit(grace_period_text, (10, 50))
 
+    # Draw building placement preview
     if placing_building and building_to_place is not None:
         mouse_pos = pygame.mouse.get_pos()
         map_pos = (mouse_pos[0] - camera.camera.x, mouse_pos[1] - camera.camera.y)
@@ -478,6 +546,7 @@ while running:
         else:
             building_to_place.draw_tower(display_surface, camera.camera.topleft)
 
+    # Spawn archers and knights from placed houses
     for house, placement_time in placed_houses[:]:
         if time.time() - placement_time >= 60:
             archer = Archer(level_data)
@@ -488,7 +557,11 @@ while running:
             all_sprites.add(knight)
             placed_houses.remove((house, placement_time))
 
+    # Update UI icons
     ui.update_icons(display_surface, counts['log'], counts['gold'])
+    
+    # Update the display
     pygame.display.update()
 
+# Quit Pygame
 pygame.quit()

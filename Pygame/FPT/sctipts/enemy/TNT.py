@@ -4,6 +4,7 @@ from .enemy import Enemy
 from utils.projectile import Dynamite
 
 class TNT(Enemy):
+    # Define constants for different states and properties
     ATTACK_1 = 'attack_1'
     RUN = 'run'
     IDLE = 'idle'
@@ -23,7 +24,7 @@ class TNT(Enemy):
         self.image.fill('orange')
         self.rect = self.image.get_rect()
         self.rect.center = self._get_random_position()
-        self.health = 150  # Set initial health to 500
+        self.health = 150  # Set initial health to 150
         self.speed = 2  # Movement speed
         self.attacking_target = None
         self.last_attack_time = pygame.time.get_ticks()  # Initialize the last attack time
@@ -31,6 +32,7 @@ class TNT(Enemy):
         self.facing_right = True
         self.projectiles_group = projectiles_group  # Store the projectiles group
 
+        # Load animations for different states
         self.animations = {
             self.ATTACK_1: [pygame.image.load(f'Animations/Goblins/TNT/Blue/Attack_1/TNT_Blue_Attack_1_{i}.png') for i in range(1, 7)],
             self.RUN: [pygame.image.load(f'Animations/Goblins/TNT/Blue/Run/TNT_Blue_Run_{i}.png') for i in range(1, 6)],
@@ -45,7 +47,7 @@ class TNT(Enemy):
         """Generate a random position within the 2000x2000 map."""
         return random.randint(0, self.MAP_WIDTH), random.randint(0, self.MAP_HEIGHT)
 
-    def update(self, knights, archers, level_data, enemies,alive_tnt):
+    def update(self, knights, archers, level_data, enemies, alive_tnt):
         self.update_animation()
         self.set_min_distance(alive_tnt)
         if self.health <= 0:
@@ -61,6 +63,7 @@ class TNT(Enemy):
         self.update_state(level_data)
 
     def is_on_water_tile(self, level_data, TILE_SIZE=65):
+        """Check if the TNT enemy is on a water tile."""
         tile_x, tile_y = self.rect.centerx // TILE_SIZE, self.rect.centery // TILE_SIZE
         if 0 <= tile_y < len(level_data) and 0 <= tile_x < len(level_data[0]):
             if level_data[tile_y][tile_x][0] == 40:
@@ -76,6 +79,7 @@ class TNT(Enemy):
         return nearest_target
 
     def attack(self, target, enemies):
+        """Attack the target if within range and cooldown period has passed."""
         current_time = pygame.time.get_ticks()
         distance = self._get_distance_to_target(target)
         if distance <= self.ATTACK_RANGE and current_time - self.last_attack_time >= self.ATTACK_COOLDOWN:
@@ -94,6 +98,7 @@ class TNT(Enemy):
         return (dx ** 2 + dy ** 2) ** 0.5
 
     def shoot_projectile(self, target):
+        """Shoot a projectile towards the target."""
         if target:
             dx = target.rect.centerx - self.rect.centerx
             dy = target.rect.centery - self.rect.centery
@@ -131,6 +136,7 @@ class TNT(Enemy):
         self.rect.centery = max(0, min(self.rect.centery, self.MAP_HEIGHT))
 
     def update_state(self, level_data):
+        """Update the state of the TNT enemy based on conditions."""
         if self.state == self.ATTACK_1 and self.current_frame == len(self.animations[self.ATTACK_1]) - 1:
             self.state = self.IDLE
         elif self.attacking_target:
@@ -144,6 +150,7 @@ class TNT(Enemy):
             self.state = self.RUN
 
     def update_animation(self):
+        """Update the animation frame based on the current state."""
         current_time = pygame.time.get_ticks()
         if current_time - self.animation_time > self.ANIMATION_INTERVAL:
             self.current_frame = (self.current_frame + 1) % len(self.animations[self.state])
@@ -151,8 +158,8 @@ class TNT(Enemy):
             self.animation_time = current_time
             if not self.facing_right:
                 self.image = pygame.transform.flip(self.image, True, False)
+
     def set_min_distance(self, enemies):
-        """Set the minimum distance between TNT ene`mies after all have spawned."""
+        """Set the minimum distance between TNT enemies after all have spawned."""
         if all(enemy.state != self.ATTACK_1 for enemy in enemies):
             self.MIN_DISTANCE = 20
-

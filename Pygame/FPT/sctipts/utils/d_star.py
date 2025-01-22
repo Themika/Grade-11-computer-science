@@ -8,18 +8,20 @@ class AStar:
         self.start = start
         self.goal = goal
         self.tilemap = tilemap
-        self.g = {start: 0}
-        self.f = {start: self.heuristic(start, goal)}
-        self.open_list = [(self.f[start], start)]
-        self.open_set = {start}
-        self.came_from = {}
-        self.valid_tile_cache = {}
-        self.water_tile_cache = {}
+        self.g = {start: 0}  # Cost from start to the current node
+        self.f = {start: self.heuristic(start, goal)}  # Estimated cost from start to goal through the current node
+        self.open_list = [(self.f[start], start)]  # Priority queue of nodes to be evaluated
+        self.open_set = {start}  # Set of nodes to be evaluated
+        self.came_from = {}  # Map of navigated nodes
+        self.valid_tile_cache = {}  # Cache for valid tiles
+        self.water_tile_cache = {}  # Cache for water tiles
 
     def heuristic(self, a, b):
+        # Heuristic function for A* (Manhattan distance)
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
     def get_neighbors(self, s):
+        # Get all valid neighboring tiles
         x, y = s
         directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         neighbors = []
@@ -30,6 +32,7 @@ class AStar:
         return neighbors
 
     def is_valid_tile(self, tile):
+        # Check if a tile is valid (not out of bounds and not a water tile)
         if tile in self.valid_tile_cache:
             return self.valid_tile_cache[tile]
         x, y = tile
@@ -41,6 +44,7 @@ class AStar:
         return result
 
     def is_water_tile(self, x, y):
+        # Check if a tile is a water tile
         tile = (x, y)
         if tile in self.water_tile_cache:
             return self.water_tile_cache[tile]
@@ -53,6 +57,7 @@ class AStar:
         return result
 
     def find_path(self):
+        # Main A* algorithm to find the path
         while self.open_list:
             _, current = heapq.heappop(self.open_list)
             self.open_set.remove(current)
@@ -70,6 +75,7 @@ class AStar:
         return None
 
     def reconstruct_path(self, current):
+        # Reconstruct the path from start to goal
         path = [current]
         while current in self.came_from:
             current = self.came_from[current]
