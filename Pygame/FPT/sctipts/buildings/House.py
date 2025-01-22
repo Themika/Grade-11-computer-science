@@ -1,12 +1,13 @@
 import pygame
 
 class House(pygame.sprite.Sprite):
-    def __init__(self, x, y, construction_image_path, finished_image_path):
+    def __init__(self, x, y, construction_image_path, finished_image_path, destroyed_image_path):
         super().__init__()
         self.x = x
         self.y = y
         self.construction_image = pygame.image.load(construction_image_path)
         self.finished_image = pygame.image.load(finished_image_path)
+        self.destroyed_image = pygame.image.load(destroyed_image_path)
         self.image = self.construction_image
         self.rect = self.image.get_rect(topleft=(self.x, self.y))
         self.knights = []
@@ -16,11 +17,13 @@ class House(pygame.sprite.Sprite):
         self.knight_count = 0
         self.archer_count = 0
         self.max_health = 500
-        self.health = 50
+        self.health = 500
         self.ui_visible = False  
 
-    def update_construction_status(self, wave_ended):
-        if wave_ended:
+    def update_construction_status(self):
+        if self.health <= 0:
+            self.kill()  # Remove the house from all sprite groups
+        else:
             self.image = self.finished_image
             self.construction_complete = True
             self.is_fully_constructed()
@@ -43,13 +46,20 @@ class House(pygame.sprite.Sprite):
         # Move the unit outwards from the house
         unit.rect.x += 10  # Adjust the value as needed
         unit.rect.y += 10  # Adjust the value as needed
+
     def take_damage(self, damage):
         self.health -= damage
-    def update(self):
-        print(self.health)
+
     def heal(self, amount):
         print("healing")
         self.health = min(self.max_health, self.health + amount)
+
+    def update(self):
+        if self.health <= 0:
+            self.image = self.destroyed_image
+        else:
+            self.update_construction_status()
+
     def draw(self, surface, camera_offset):
         adjusted_rect = self.rect.move(camera_offset)
         surface.blit(self.image, adjusted_rect)
@@ -66,4 +76,3 @@ class House(pygame.sprite.Sprite):
 
     def is_fully_constructed(self):
         return self.construction_status == 'finished'
-

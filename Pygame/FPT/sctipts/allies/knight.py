@@ -22,6 +22,7 @@ class Knight(pygame.sprite.Sprite):
     WATER_TILES = ['Tilemap_Flat_46']
     AVOID_TILE = 40
     PATHFINDING_COOLDOWN = 1000
+    PATH_CACHE = {}
 
     def __init__(self, tile_map, *groups):
         super().__init__(*groups)
@@ -118,7 +119,7 @@ class Knight(pygame.sprite.Sprite):
         if self.mouse_pos:
             self.state = State.POS
             target_pos = (self.mouse_pos[0] + random.randint(-50, 50), self.mouse_pos[1] + random.randint(-50,50))
-            if self.move_towards_pathfinding(target_pos):
+            if self.move_towards_pathfinding(target_pos ,tolerance=0):
                 self.mouse_pos = None
                 self.state = State.WATCH
                 self.watch()
@@ -261,7 +262,12 @@ class Knight(pygame.sprite.Sprite):
         current_time = pygame.time.get_ticks()
         if not self.path or self.path[-1] != target or current_time - self.last_pathfinding_time > self.PATHFINDING_COOLDOWN:
             start = (self.rect.centerx, self.rect.centery)
-            self.path = self.find_path(start, target)
+            cache_key = (start, target)
+            if cache_key in self.PATH_CACHE:
+                self.path = self.PATH_CACHE[cache_key]
+            else:
+                self.path = self.find_path(start, target)
+                self.PATH_CACHE[cache_key] = self.path
             self.last_pathfinding_time = current_time  # Update the last pathfinding time
         
         if self.path:
@@ -294,6 +300,7 @@ class Knight(pygame.sprite.Sprite):
         else:
             next_tile = path[0] if path else start_tile
         return [(next_tile[0] * 65 + 32.5, next_tile[1] * 65 + 32.5)]
+    
     def avoid_overlap(self, other_knights, min_distance=25):
         """Avoid overlapping with other knights."""
         if self.state in [State.ATTACK_1, State.ATTACK_2, State.ATTACK_3, State.ATTACK_4, State.ATTACK_5]:

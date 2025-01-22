@@ -8,7 +8,7 @@ class Menu:
         self.window_height = window_height
         
         # Load pixel art font
-        self.font = pygame.font.Font('UI/Menu/Text/Press_Start_2P,Tiny5/Press_Start_2P/PressStart2P-Regular.ttf', 65)
+        self.font = pygame.font.Font('UI/Menu/Text/Press_Start_2P,Tiny5/Press_Start_2P/PressStart2P-Regular.ttf', 32)
         self.font_title = pygame.font.Font('UI/Menu/Text/Press_Start_2P,Tiny5/Press_Start_2P/PressStart2P-Regular.ttf', 64)
         self.small_font = pygame.font.Font('UI/Menu/Text/Press_Start_2P,Tiny5/Tiny5/Tiny5-Regular.ttf', 18)  # Smaller font for descriptions
         
@@ -29,19 +29,25 @@ class Menu:
         self.title_rect = self.title_text.get_rect(center=(window_width // 2, window_height // 4))
 
         # Play button
-        self.play_button_text = self.font_title.render('Play', True, (255, 255, 255))
-        self.play_button_shadow = self.font_title.render('Play', True, (0, 0, 0))
+        self.play_button_text = self.font.render('Play', True, (255, 255, 255))
+        self.play_button_shadow = self.font.render('Play', True, (0, 0, 0))
         self.play_button_rect = self.play_button_text.get_rect(center=(window_width // 2, window_height // 2))
         
         # Help button
         self.help_button_text = self.font.render('Help', True, (255, 255, 255))
         self.help_button_shadow = self.font.render('Help', True, (0, 0, 0))
-        self.help_button_rect = self.help_button_text.get_rect(center=(window_width // 2, window_height // 2 + 150))
+        self.help_button_rect = self.help_button_text.get_rect(center=(window_width // 2, window_height // 2 + 100))
         
+        # Manual button
+        self.manual_button_text = self.font.render('Manual', True, (255, 255, 255))
+        self.manual_button_shadow = self.font.render('Manual', True, (0, 0, 0))
+        self.manual_button_rect = self.manual_button_text.get_rect(center=(window_width // 2, window_height // 2 + 200))
+
         # Quit button
         self.quit_button_text = self.font.render('Quit', True, (255, 255, 255))
         self.quit_button_shadow = self.font.render('Quit', True, (0, 0, 0))
         self.quit_button_rect = self.quit_button_text.get_rect(center=(window_width // 2, window_height // 2 + 300))
+    
         
         # Game over text
         self.game_over_text = self.font.render('Game Over', True, (255, 0, 0))
@@ -77,11 +83,20 @@ class Menu:
             pygame.image.load('UI/Menu/MOUSE_WHEEL.png'),
             pygame.image.load('UI/Menu/Lore.png')  # New lore image
         ]
+        self.manual_images = [
+            pygame.image.load('Animations/Goblins/Torch/Blue/Idle/Torch_Blue_Idle_1.png'),
+            pygame.image.load('Animations/Goblins/TNT/Blue/Idle/TNT_Blue_Idle_1.png'),
+            pygame.image.load('Animations/Goblins/Bomb/RUN/Barrel_Blue_Run_5.png'),
+            pygame.image.load('Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Blue.png'),
+            pygame.image.load('Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png'),
+            pygame.image.load('Tiny_Swords_Assets/Factions/Knights/Buildings/Castle/Castle_Blue.png')
+        ]
 
         # Store original button positions
         self.original_play_button_rect = self.play_button_rect.copy()
         self.original_help_button_rect = self.help_button_rect.copy()
         self.original_quit_button_rect = self.quit_button_rect.copy()
+        self.original_manual_button_rect = self.manual_button_rect.copy()
 
         # Play button enabled flag
         self.play_button_enabled = True
@@ -102,6 +117,7 @@ class Menu:
         self.draw_button(self.play_button_rect, self.play_button_shadow, self.play_button_text)
         self.draw_button(self.help_button_rect, self.help_button_shadow, self.help_button_text)
         self.draw_button(self.quit_button_rect, self.quit_button_shadow, self.quit_button_text)
+        self.draw_button(self.manual_button_rect, self.manual_button_shadow, self.manual_button_text)
 
         pygame.display.update()
 
@@ -192,6 +208,57 @@ class Menu:
 
         pygame.display.update()
 
+    def draw_manual_page(self):
+        self.display_surface.blit(self.behind_background_image, (0, 0))
+        self.display_surface.blit(self.background_image, (0, 0))
+        self.display_surface.blit(self.overlay, (0, 0))  # Apply overlay
+
+        # First section: Images beside descriptions
+        manual_items_section1 = [
+            {"image": self.manual_images[0], "description": "Torch Goblins: Torch Goblins are melee-focused creatures of chaos,\ndriven by their love for destruction and mischief.\n Armed with flaming torches, they charge into battle with reckless abandon."},
+            {"image": self.manual_images[1], "description": "TNT Goblins: Tnt Goblins are the brainiacs of goblin society—though that's not saying much.\nKnown for their cunning and craftiness, they excel at creating and using explosive devices.\nThese goblins are skilled engineers in their own chaotic way."},
+            {"image": self.manual_images[2], "description": "Barrel Goblins: Barrel Goblins are a peculiar breed, known for their cowardly demeanor \n yet packing an unexpected punch. These goblins are often seen hiding inside large wooden barrels,\nwhich they use both as armor and as a weapon"},
+        ]
+
+        for i, item in enumerate(manual_items_section1):
+            image = pygame.transform.scale(item["image"], (100, 100))
+            image_rect = image.get_rect(topleft=(50, 100 + i * 120))
+            self.display_surface.blit(image, image_rect)
+
+            description_lines = item["description"].split("\n")
+            for j, line in enumerate(description_lines):
+                text_surface = self.small_font.render(line, True, (255, 255, 255))
+                self.display_surface.blit(text_surface, (200, 120 + i * 120 + j * 20))
+
+        # Second section: Two items side by side
+        manual_items_section2 = [
+            {"image": self.manual_images[3], "description": "Towers (Gold) 5 Wood(10): \nProvides defense \nadvantages to the archers"},
+            {"image": self.manual_images[4], "description": "Houses (Gold) 1 Wood(5): \nHouses provide more troops"},
+            {"image": self.manual_images[5], "description": "Castles: \nCastles are the heart of your kingdom. \nProtect them at all costs."},
+        ]
+
+        y_offset = 500  # Vertical position for the second section
+        x_spacing = 300  # Horizontal spacing between the two items
+
+        for i, item in enumerate(manual_items_section2):
+            x_offset = 100 + i * x_spacing  # Adjust horizontal position
+            image = pygame.transform.scale(item["image"], (100, 100))
+            image_rect = image.get_rect(midtop=(x_offset, y_offset))  # Center image horizontally within its column
+            self.display_surface.blit(image, image_rect)
+
+            description_lines = item["description"].split("\n")
+            for j, line in enumerate(description_lines):
+                text_surface = self.small_font.render(line, True, (255, 255, 255))
+                self.display_surface.blit(text_surface, (x_offset - 50, y_offset + 110 + j * 20))  # Position text below image
+
+        # Back button
+        self.back_button_rect.topleft = (10, 10)  # Move back button to top left
+        self.back_button_large_rect = self.back_button_rect.inflate(20, 20)  # Update larger rect
+        self.display_surface.blit(self.back_button_shadow, self.back_button_rect.move(2, 2))
+        self.display_surface.blit(self.back_button_text, self.back_button_rect)
+
+        pygame.display.update()
+
     def draw_level_selection(self):
         self.display_surface.blit(self.behind_background_image, (0, 0))
         self.display_surface.blit(self.background_image, (0, 0))
@@ -236,8 +303,12 @@ class Menu:
                 return 'level_selection'
             elif self.quit_button_rect.collidepoint(event.pos):
                 return 'quit'
+            elif self.manual_button_rect.collidepoint(event.pos):
+                self.move_buttons_off_screen()
+                self.current_menu = 'manual'
+                return 'manual'
             elif self.back_button_large_rect.collidepoint(event.pos):  # Check collision with larger rect
-                if self.current_menu == 'help':
+                if self.current_menu == 'help' or self.current_menu == 'manual':
                     self.move_buttons_back()
                     self.current_menu = 'main'
                     return 'back_to_main'
@@ -267,9 +338,11 @@ class Menu:
         self.play_button_rect.center = (self.window_width * 2, self.window_height * 2)
         self.help_button_rect.topleft = (self.window_width * 2, self.window_height * 2)
         self.quit_button_rect.topleft = (self.window_width * 2, self.window_height * 2)
+        self.manual_button_rect.topleft = (self.window_width * 2, self.window_height * 2)
 
     def move_buttons_back(self):
         self.play_button_enabled = True
         self.play_button_rect = self.original_play_button_rect.copy()
         self.help_button_rect = self.original_help_button_rect.copy()
         self.quit_button_rect = self.original_quit_button_rect.copy()
+        self.manual_button_rect = self.original_manual_button_rect.copy()

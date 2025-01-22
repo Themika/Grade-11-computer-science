@@ -75,31 +75,6 @@ def draw_level(surface, level_data, img_list, scroll_x, scroll_y, TILE_SIZE=65):
             if tile[2] >= 0 and tile[2] < len(img_list):
                 surface.blit(img_list[tile[2]], (x * TILE_SIZE + scroll_x, y * TILE_SIZE + scroll_y))
 
-# Draw grid
-def draw_grid(surface, camera):
-    start_x = max(0, camera.camera.x // 100 * 100)
-    start_y = max(0, camera.camera.y // 100 * 100)
-    end_x = min(2000, (camera.camera.x + WINDOW_WIDTH) // 100 * 100 + 100)
-    end_y = min(2000, (camera.camera.y + WINDOW_HEIGHT) // 100 * 100 + 100)
-    for x in range(start_x, end_x, 100):
-        for y in range(start_y, end_y, 100):
-            rect = pygame.Rect(x, y, 100, 100)
-            adjusted_rect = rect.move(camera.camera.topleft)
-            pygame.draw.rect(surface, (200, 200, 200), adjusted_rect, 1)
-
-# Draw grid coordinates
-def draw_grid_coordinates(surface, camera):
-    font = pygame.font.SysFont(None, 24)
-    start_x = max(0, camera.camera.x // 100 * 100)
-    start_y = max(0, camera.camera.y // 100 * 100)
-    end_x = min(2000, (camera.camera.x + WINDOW_WIDTH) // 100 * 100 + 100)
-    end_y = min(2000, (camera.camera.y + WINDOW_HEIGHT) // 100 * 100 + 100)
-    for x in range(start_x, end_x, 100):
-        for y in range(start_y, end_y, 100):
-            adjusted_x, adjusted_y = x + camera.camera.topleft[0], y + camera.camera.topleft[1]
-            text_surface = font.render(f'({x}, {y})', True, (255, 255, 255))
-            surface.blit(text_surface, (adjusted_x + 5, adjusted_y + 5))
-
 # Spawn wave
 def spawn_wave(wave, all_sprites, projectiles, houses, towers):
     corners = [(350, 350), (350, 1800), (1900, 350), (1900, 1800)]
@@ -118,7 +93,7 @@ def spawn_wave(wave, all_sprites, projectiles, houses, towers):
             all_sprites.add(enemy_torch)
 
     for house in houses:
-        house.update_construction_status(wave_ended=True)
+        house.update_construction_status()
         archer = Archer(level_data)
         house.spawn_archer(archer)
         all_sprites.add(archer)
@@ -181,6 +156,31 @@ def heal_buildings(buildings):
 def heal_allies(allies):
     for ally in allies:
         ally.health += 50
+def display_wave_start_effect(surface, wave):
+    font = pygame.font.Font("UI/Menu/Text/Press_Start_2P,Tiny5/Tiny5/Tiny5-Regular.ttf", 72)
+    text = font.render(f'Wave {wave} Starting!', True, (255, 0, 0))
+    text_rect = text.get_rect(center=(WINDOW_WIDTH // 2 + 300, WINDOW_HEIGHT // 2 - 300))
+    
+    # Load and play sound effect
+    sound_effect = pygame.mixer.Sound("SFX/SFX/goblin_laugh.wav")
+    sound_effect.play()
+    
+    for alpha in range(0, 255, 5):
+        text.set_alpha(alpha)
+        surface.fill((0, 0, 0, 0))  # Clear the surface
+        surface.blit(text, text_rect)
+        pygame.display.update()
+        pygame.time.delay(30)
+    
+    pygame.time.delay(1000)  # Keep the text fully visible for 1 second
+    
+    for alpha in range(255, 0, -5):
+        text.set_alpha(alpha)
+        surface.fill((0, 0, 0, 0))  # Clear the surface
+        surface.blit(text, text_rect)
+        pygame.display.update()
+        pygame.time.delay(30)
+
 # Load tile images
 tile_categories = ['Ground/Green', 'Bridges', 'Decorations', 'Ground/Yellow', 'Ground/Water']
 for category in tile_categories:
@@ -193,7 +193,7 @@ for category in tile_categories:
             img_list.append(img)
 
 # Create a House instance
-house = House(x=1500, y=500, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png', construction_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png')
+house = House(x=1500, y=500, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png', construction_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png',destroyed_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Destroyed.png')
 house.construction_status = "finished"
 buildings.add(house)
 houses.append(house)
@@ -234,6 +234,7 @@ for _ in range(1):
         else:
             print(f"Water tile detected at ({x}, {y}), looking for another spot")
     gold_mine = GoldMine(x, y, golds, reasources)
+    buildings.add(gold_mine)
     gold_mines.add(gold_mine)
     all_sprites.add(gold_mine)
 
@@ -267,6 +268,7 @@ game_started = False
 game_over = False
 show_help = False
 show_level_selection = False
+show_manual = False  # Add this line
 
 while running:
     if not game_started:
@@ -274,6 +276,8 @@ while running:
             menu.draw_help_page()
         elif show_level_selection:
             menu.draw_level_selection()
+        elif show_manual:  # Add this condition
+            menu.draw_manual_page()
         else:
             menu.draw_menu()
         for event in pygame.event.get():
@@ -290,6 +294,8 @@ while running:
                 # Initialize level 2
             elif action == 'help':
                 show_help = True
+            elif action == 'manual':  # Add this condition
+                show_manual = True
             elif action == 'quit' or (event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE)):
                 running = False
             elif action == 'back':
@@ -297,8 +303,9 @@ while running:
                     show_help = False
                 elif show_level_selection:
                     show_level_selection = False
+                elif show_manual:  # Add this condition
+                    show_manual = False
         continue
-
     if game_over:
         menu.draw_game_over()
         for event in pygame.event.get():
@@ -343,11 +350,11 @@ while running:
                         break
         if event.type == pygame.MOUSEWHEEL and grace_period_start_time is not None:
             if place_house_next:
-                building_to_place = House(x=0, y=0, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png', construction_image_path="Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png")
+                building_to_place = House(x=0, y=0, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png', construction_image_path="Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png", destroyed_image_path="Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Destroyed.png")
                 if counts['log'] < 10 or counts['gold'] <= 1:
                     building_to_place.image.set_alpha(128)  # Greyed out
             else:
-                building_to_place = Tower(x=0, y=0, width=100, height=200, construction_image_path="Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Construction.png", finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Blue.png', total_waves=wave)
+                building_to_place = Tower(x=0, y=0, width=100, height=200, construction_image_path="Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Construction.png", finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Blue.png', total_waves=wave,destroyed_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/Tower/Tower_Destroyed.png')
                 if counts['log'] < 20 or counts['gold'] < 5:
                     building_to_place.image.set_alpha(128)  # Greyed out
             place_house_next = not place_house_next
@@ -370,8 +377,6 @@ while running:
                         update_counts(counts, log_change=-20, gold_change=-5)
                 placing_building = False
     camera.update(player)
-    draw_grid(display_surface, camera)
-    draw_grid_coordinates(display_surface, camera)
     draw_level(display_surface, level_data, img_list, camera.camera.x, camera.camera.y)
     camera.custom_draw(display_surface, all_sprites)
     rps_manager.draw_marker(display_surface)
@@ -431,11 +436,13 @@ while running:
         meat.update()
 
     for house in houses:
+        house.update()
         house.draw(display_surface, camera.camera.topleft)
     for caste in castles:
         Castle.draw(display_surface, camera.camera.topleft)
 
     for tower in towers:
+        tower.update()
         tower.draw(display_surface, camera.camera.topleft)
         tower.draw_tower(display_surface, camera.camera.topleft)
 
@@ -447,10 +454,11 @@ while running:
             heal_buildings(buildings)
             heal_allies(alive_allies)
             wave += 1
+            display_wave_start_effect(display_surface, wave)
             spawn_wave(wave, all_sprites, projectiles, houses, towers)
             grace_period_start_time = None
 
-    font = pygame.font.SysFont(None, 36)
+    font = pygame.font.Font("UI/Menu/Text/Press_Start_2P,Tiny5/Tiny5/Tiny5-Regular.ttf", 36)
     wave_text = font.render(f'Wave: {wave}', True, (255, 255, 255))
     display_surface.blit(wave_text, (10, 10))
     if grace_period_start_time is not None:
@@ -476,9 +484,6 @@ while running:
             all_sprites.add(knight)
             placed_houses.remove((house, placement_time))
 
-    for house in houses:
-        if house.ui_visible:
-            house.show_spawn_ui(display_surface, pygame.font.SysFont(None, 24), camera.camera.topleft)
     ui.update_icons(display_surface, counts['log'], counts['gold'])
     pygame.display.update()
 

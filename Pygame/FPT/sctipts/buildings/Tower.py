@@ -1,7 +1,7 @@
 import pygame
 
 class Tower(pygame.sprite.Sprite):
-    def __init__(self, x, y, width, height, construction_image_path, finished_image_path, total_waves):
+    def __init__(self, x, y, width, height, construction_image_path, finished_image_path, total_waves, destroyed_image_path):
         super().__init__()
         self.x = x
         self.y = y
@@ -9,6 +9,7 @@ class Tower(pygame.sprite.Sprite):
         self.height = height
         self.construction_image = pygame.image.load(construction_image_path)
         self.finished_image = pygame.image.load(finished_image_path)
+        self.destroyed_image = pygame.image.load(destroyed_image_path)
         self.image = pygame.transform.scale(self.construction_image, (width, height))
         self.rect = self.image.get_rect(topleft=(x, y))
         self.units = []
@@ -41,6 +42,10 @@ class Tower(pygame.sprite.Sprite):
                 self.image = pygame.transform.scale(self.finished_image, (self.width, self.height))
                 self.construction_complete = True
                 self.is_fully_constructed()
+    def update(self):
+        if self.health <= 0:
+            self.image = self.destroyed_image
+        self.update_construction_status()
 
     def draw_tower(self, surface, camera_offset):
         adjusted_rect = self.rect.move(camera_offset)

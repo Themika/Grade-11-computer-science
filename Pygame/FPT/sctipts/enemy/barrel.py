@@ -69,9 +69,7 @@ class Barrel(pygame.sprite.Sprite):
 
         if self.health < 2000:
             allied_enemies.remove(self)
-            nearest_target = self.find_nearest_target(enemies)
-            if nearest_target:
-                self.attacking_target = nearest_target
+            self.attacking_target = self.find_nearest_target(enemies)
 
         if self.attacking_target:
             self.move_towards(self.attacking_target.rect.center)
@@ -96,31 +94,19 @@ class Barrel(pygame.sprite.Sprite):
         return False
 
     def find_nearest_target(self, targets):
-        nearest_target = None
-        min_distance = float('inf')
-        rect_centerx, rect_centery = self.rect.centerx, self.rect.centery
-        for target in targets:
-            distance = ((rect_centerx - target.rect.centerx) ** 2 + (rect_centery - target.rect.centery) ** 2) ** 0.5
-            if distance < min_distance:
-                min_distance = distance
-                nearest_target = target
-        return nearest_target
+        rect_center = pygame.Vector2(self.rect.center)
+        return min(targets, key=lambda target: rect_center.distance_to(pygame.Vector2(target.rect.center)), default=None)
 
     def move_towards(self, target):
-        dx, dy = target[0] - self.rect.centerx, target[1] - self.rect.centery
-        distance = (dx**2 + dy**2) ** 0.5
-        if distance != 0:
-            dx, dy = dx / distance, dy / distance
-            self.rect.centerx += dx * self.speed
-            self.rect.centery += dy * self.speed
-            self.update_facing_direction(dx)
+        target_vec = pygame.Vector2(target)
+        current_vec = pygame.Vector2(self.rect.center)
+        direction = (target_vec - current_vec).normalize()
+        self.rect.center += direction * self.speed
+        self.update_facing_direction(direction.x)
 
     def update_facing_direction(self, dx):
-        if dx > 0 and not self.facing_right:
-            self.facing_right = True
-            self.flip_image()
-        elif dx < 0 and self.facing_right:
-            self.facing_right = False
+        if (dx > 0 and not self.facing_right) or (dx < 0 and self.facing_right):
+            self.facing_right = not self.facing_right
             self.flip_image()
 
     def flip_image(self):
@@ -145,5 +131,4 @@ class Barrel(pygame.sprite.Sprite):
                 self.image = pygame.transform.flip(self.image, True, False)
 
     def distance_to(self, target):
-        dx, dy = self.rect.centerx - target[0], self.rect.centery - target[1]
-        return (dx**2 + dy**2) ** 0.5
+        return pygame.Vector2(self.rect.center).distance_to(pygame.Vector2(target))
