@@ -6,6 +6,8 @@ import random
 
 from utils.ui import UI
 from utils.camera import Camera
+from utils.menu import Menu
+
 from allies.knight import Knight
 from allies.archer import Archer
 from allies.pawn import Pawn
@@ -107,11 +109,10 @@ def spawn_wave(wave, all_sprites, projectiles, houses, towers):
             enemy_tnt = TNT(projectiles,level_data)
             enemy_tnt.rect.topleft = (corner[0] + random.randint(-50, 50), corner[1] + random.randint(-50, 50))
             all_sprites.add(enemy_tnt)
-
             barrel = Barrel()
             barrel.rect.topleft = (corner[0] + random.randint(-50, 50), corner[1] + random.randint(-50, 50))
             all_sprites.add(barrel)
-            
+                
             enemy_torch = Torch(level_data)
             enemy_torch.rect.topleft = (corner[0] + random.randint(-50, 50), corner[1] + random.randint(-50, 50))
             all_sprites.add(enemy_torch)
@@ -150,8 +151,10 @@ reasources = pygame.sprite.Group()
 logs = pygame.sprite.Group()
 meats = pygame.sprite.Group()
 golds = pygame.sprite.Group()
+buildings = pygame.sprite.Group()
+
 player = Player()
-camera = Camera(WINDOW_HEIGHT, WINDOW_WIDTH)
+camera = Camera(WINDOW_HEIGHT, WINDOW_WIDTH,18000,720)
 all_sprites = pygame.sprite.Group(player)
 projectiles = pygame.sprite.Group()
 houses = []
@@ -187,10 +190,12 @@ for category in tile_categories:
 # Create a House instance
 house = House(x=1500, y=500, finished_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Blue.png', construction_image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/House/House_Construction.png')
 house.construction_status = "finished"
+buildings.add(house)
 houses.append(house)
 
 Castle = Castle(x=2000, y=500, image_path='Tiny_Swords_Assets/Factions/Knights/Buildings/Castle/Castle_Blue.png')
 castles.append(Castle)
+buildings.add(Castle)
 def is_spawnable(x, y, level_data, TILE_SIZE=65):
     tile_x, tile_y = x // TILE_SIZE, y // TILE_SIZE
     if 0 <= tile_y < len(level_data) and 0 <= tile_x < len(level_data[0]):
@@ -216,8 +221,8 @@ for _ in range(250):
 
 for _ in range(1):
     while True:
-        x = random.randint(0, 2000)
-        y = random.randint(0, 2000)
+        x = random.randint(300, 1800)
+        y = random.randint(1000, 2000)
         if not is_spawnable(x, y, level_data):
             print(f"Spawning gold mine at ({x}, {y})")
             break
@@ -232,11 +237,11 @@ for i in range(10):
     pawn = Pawn(level_data)
     all_sprites.add(pawn)
 
-for _ in range(25):
+for _ in range(5):
     archer = Archer(tile_map=level_data)
     all_sprites.add(archer)
 
-for _ in range(25):
+for _ in range(5):
     knight = Knight(level_data)
     all_sprites.add(knight)
 
@@ -246,30 +251,60 @@ spawn_wave(wave, all_sprites, projectiles, houses, towers)
 running = True
 counts = {'log': 0, 'gold': 0}
 
-
 def update_counts(counts, log_change=0, gold_change=0):
     counts['log'] += log_change
     counts['gold'] += gold_change
 
-
+# Main game loop
+menu = Menu(display_surface, 1280, 720)
+running = True
+game_started = False
 game_over = False
+show_help = False
+show_level_selection = False
 
 while running:
+    if not game_started:
+        if show_help:
+            menu.draw_help_page()
+        elif show_level_selection:
+            menu.draw_level_selection()
+        else:
+            menu.draw_menu()
+        for event in pygame.event.get():
+            action = menu.handle_events(event)
+            if action == 'level_selection':
+                show_level_selection = True
+            elif action == 'level1':
+                game_started = True
+                show_level_selection = False
+                # Initialize level 1
+            elif action == 'level2':
+                game_started = True
+                show_level_selection = False
+                # Initialize level 2
+            elif action == 'help':
+                show_help = True
+            elif action == 'quit' or (event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE)):
+                running = False
+            elif action == 'back':
+                if show_help:
+                    show_help = False
+                elif show_level_selection:
+                    show_level_selection = False
+        continue
+
     if game_over:
-        display_surface.fill((0, 0, 0))
-        font = pygame.font.SysFont(None, 72)
-        game_over_text = font.render('Game Over', True, (255, 0, 0))
-        display_surface.blit(game_over_text, (WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2))
-        pygame.display.update()
+        menu.draw_game_over()
         for event in pygame.event.get():
             if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                running = False
+                game_started = False
         continue
 
     dt = clock.tick(60) / 1000
     keys = pygame.key.get_pressed()
-    alive_allies = [allies for allies in all_sprites if isinstance(allies, Knight) or isinstance(allies, Archer) and allies.health > 0 or isinstance(allies, Pawn) and allies.health > 0]
-    alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Torch) or isinstance(enemy, TNT) and enemy.health > 0]
+    alive_allies = [allies for allies in all_sprites if isinstance(allies, Knight) or isinstance(allies, Archer) and allies.health > 0]
+    alive_enemies = [enemy for enemy in all_sprites if isinstance(enemy, Torch) or isinstance(enemy, TNT) and enemy.health > 0 or isinstance(enemy, Barrel) and enemy.health > 0]
     alive_torch = [torch for torch in all_sprites if isinstance(torch, Torch) and torch.health > 0]
     alive_tnt = [tnt for tnt in all_sprites if isinstance(tnt, TNT) and tnt.health > 0]
     alive_pawns = [pawn for pawn in all_sprites if isinstance(pawn, Pawn) and pawn.health > 0]
@@ -281,8 +316,10 @@ while running:
         continue
 
     for event in pygame.event.get():
-        if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
+        if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            game_started = False
         elif event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.MOUSEMOTION or event.type == pygame.MOUSEBUTTONUP:
             rps_manager.handle_event(event, camera, alive_allies, alive_enemies)
             mouse_pos = pygame.mouse.get_pos()
@@ -326,7 +363,6 @@ while running:
                         towers.append(building_to_place)
                         update_counts(counts, log_change=-20, gold_change=-5)
                 placing_building = False
-
     camera.update(player)
     draw_grid(display_surface, camera)
     draw_grid_coordinates(display_surface, camera)
@@ -350,7 +386,7 @@ while running:
         elif isinstance(sprite, TNT):
             sprite.update(alive_knights,alive_archers,level_data,alive_enemies,alive_tnt)
         elif isinstance(sprite, Barrel):
-            sprite.update(houses,towers,level_data,alive_enemies)
+            sprite.update(buildings,alive_allies,level_data)
     projectiles.update(dt, alive_knights, alive_archers)
     for projectile in projectiles:
         projectile.draw(display_surface, camera.camera.topleft)
@@ -394,6 +430,7 @@ while running:
         Castle.draw(display_surface, camera.camera.topleft)
 
     for tower in towers:
+        tower.draw(display_surface, camera.camera.topleft)
         tower.draw_tower(display_surface, camera.camera.topleft)
 
     if not alive_enemies:

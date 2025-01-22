@@ -1,9 +1,11 @@
 import pygame
 
 class Camera:
-    def __init__(self, width, height):
+    def __init__(self, width, height, max_width, max_height):
         self.width = width
         self.height = height
+        self.max_width = max_width
+        self.max_height = max_height
         self.camera = pygame.Rect(0, 0, width, height)
         self.zoom_factor = 1.0
 
@@ -19,24 +21,24 @@ class Camera:
     def update(self, target):
         # Center the camera on the target
         self.camera = pygame.Rect(target.rect.centerx - self.width // 2,
-                                  target.rect.centery - self.height // 2,
+                                  target.rect.centery - self.height // 2 - 300,
                                   self.width, self.height)
+        if target.rect.centerx > 575:
+            target.rect.centerx = 575
+        if target.rect.centerx < -875:
+            target.rect.centerx = -875
+        if target.rect.centery > 640:
+            target.rect.centery = 640
+        if target.rect.centery < -1615:
+            target.rect.centery = -1615
+        self.clamp_camera()
 
     def move(self, dx, dy):
-        self.camera.x += dx * 2
-        self.camera.y += dy *2
+        self.camera.x += dx
+        self.camera.y += dy
+        self.clamp_camera()
 
-    def zoom(self, zoom_factor, mouse_pos, sprites):
-        self.zoom_factor *= zoom_factor
-        old_width, old_height = self.width, self.height
-        self.width = int(self.width * zoom_factor)
-        self.height = int(self.height * zoom_factor)
-
-        # Adjust camera position to zoom towards the mouse position
-        mouse_x, mouse_y = mouse_pos
-        self.camera.x = int(mouse_x - (mouse_x - self.camera.x) * zoom_factor)
-        self.camera.y = int(mouse_y - (mouse_y - self.camera.y) * zoom_factor)
-
-        for sprite in sprites:
-            sprite.image = pygame.transform.scale(sprite.image, (int(sprite.rect.width * zoom_factor), int(sprite.rect.height * zoom_factor)))
-            sprite.rect = sprite.image.get_rect(center=sprite.rect.center)
+    def clamp_camera(self):
+        # Clamp the camera's x and y coordinates
+        self.camera.x = max(-1515, min(self.camera.x, - 70))
+        self.camera.y = max(-2270, min(self.camera.y, -20))

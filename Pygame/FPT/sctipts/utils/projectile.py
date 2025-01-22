@@ -39,7 +39,7 @@ class Dynamite(Projectile):
         super().__init__(start_pos, target_pos, damage, image_path, *groups)
         self.angle = 0  # Initialize the angle for rotation
         self.explosion_images = [
-            pygame.image.load(f'Animations/Goblins/Explosion/Explosions_{i}.png') for i in range(1, 9)
+            pygame.image.load(f'Animations/Goblins/Explosion/Explosions_{i}.png') for i in range(3, 11)
         ]
         self.exploding = False
         self.explosion_index = 0

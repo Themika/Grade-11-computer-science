@@ -92,20 +92,6 @@ class Archer(pygame.sprite.Sprite):
         surface.blit(self.image, self.rect.move(camera_offset))
         for projectile in self.projectiles:
             projectile.draw(surface, camera_offset)
-        
-        # Draw the line to the target position if maintaining distance
-        if self.target and not self.on_tower:
-            distance = math.hypot(self.target.rect.centerx - self.rect.centerx, self.target.rect.centery - self.rect.centery)
-            if distance < self.DETECTION_RADIUS:
-                angle = math.atan2(self.target.rect.centery - self.rect.centery, self.target.rect.centerx - self.rect.centerx)
-                target_x = self.target.rect.centerx - math.cos(angle) * self.DETECTION_RADIUS
-                target_y = self.target.rect.centery - math.sin(angle) * self.DETECTION_RADIUS
-
-                if self.is_water_tile(target_x, target_y):
-                    # Find a detour if the target position is a water tile
-                    target_x, target_y = self.find_detour((self.rect.centerx, self.rect.centery), (target_x, target_y))
-
-                pygame.draw.line(surface, (255, 0, 0), self.rect.center, (target_x, target_y), 2)
 
     def movement(self):
         if self.on_tower:
@@ -118,7 +104,7 @@ class Archer(pygame.sprite.Sprite):
             return  
         if self.selected and self.target_position:
             self.move_towards(self.target_position)
-            self.move_towards_pathfinding(self.target_position)
+            self.move_towards_pathfinding(self.target_position,20)
             self.state = State.POS
             if self.rect.center == self.target_position or self.rect.colliderect(pygame.Rect(self.target_position, (25, 25))):
                 if self.state != State.WATCH:

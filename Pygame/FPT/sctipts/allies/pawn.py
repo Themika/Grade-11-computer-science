@@ -148,7 +148,7 @@ class Pawn(pygame.sprite.Sprite):
                         self.state = CHOPPING
                         break
             if self.state == MOVING_TO_DROP:
-                self.move_towards_drop_position(dt, counts)
+                self.move_towards_drop_position(counts)
             elif self.state == MOVING_TO_MINE:
                 self.handle_mining(current_time)
             else:
@@ -356,8 +356,8 @@ class Pawn(pygame.sprite.Sprite):
                 continue
             self.state = RUN
             target_position = pygame.math.Vector2(target_resource.rect.center)
-            self.move_towards_position(target_position, dt)
-            if self.rect.center == target_position:
+            self.move_towards_pathfinding(target_position, tolerance=0)
+            if abs(self.rect.centerx - target_position.x) <= 35 and abs(self.rect.centery - target_position.y) <= 35:
                 self.pick_up_resource(target_resource)
                 if len(self.holding_resources) >= 2 or not self.target_resources:
                     self.state = MOVING_TO_DROP
@@ -411,20 +411,13 @@ class Pawn(pygame.sprite.Sprite):
         self.drop_position = castle_position
         self.state = MOVING_TO_DROP
 
-    def move_towards_drop_position(self, dt, counts):
+    def move_towards_drop_position(self, counts):
         if self.drop_position:
             target_position = pygame.math.Vector2(self.drop_position)
-            self.move_towards_position(target_position, dt)
-            if self.rect.center == target_position:
+            self.move_towards_pathfinding(target_position, tolerance=0)
+            if abs(self.rect.centerx - target_position.x) <= 20 and abs(self.rect.centery - target_position.y) <= 20:
                 self.drop_resources(counts)
         self.update_held_resources_position()
-    def move_towards_position(self, target_position, dt):
-        direction = target_position - pygame.math.Vector2(self.rect.center)
-        if direction.length() != 0:
-            direction = direction.normalize() * 100 * dt
-            self.rect.move_ip(direction)
-            self.update_facing_direction(direction.x)
-
     def update_held_resources_position(self):
         for i, resource in enumerate(self.holding_resources):
             resource.rect.midbottom = (self.rect.midtop[0], self.rect.midtop[1] - i * 10)

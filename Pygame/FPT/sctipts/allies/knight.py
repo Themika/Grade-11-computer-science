@@ -164,6 +164,7 @@ class Knight(pygame.sprite.Sprite):
             self.state_timer = pygame.time.get_ticks()
 
     def update(self, dt, enemies, other_knights):
+        print(self.health)
         """Update knight's behavior and animations."""
         if self.state == State.DEAD:
             self.animate(dt)

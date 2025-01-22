@@ -17,6 +17,22 @@ class Tower(pygame.sprite.Sprite):
         self.construction_complete = False
         self.unit_on_tower = False
         self.construction_status = 'under_construction'
+        self.health = 1000
+        self.max_health = 1000
+    def draw(self, surface, camera_offset):
+        adjusted_rect = self.rect.move(camera_offset)
+        surface.blit(self.image, adjusted_rect)
+        self.draw_health_bar(surface, adjusted_rect.topleft)
+
+    def draw_health_bar(self, surface, position):
+        bar_width = 50
+        bar_height = 5
+        health_ratio = self.health / self.max_health
+        health_bar_rect = pygame.Rect(position[0] + self.rect.width // 2 - bar_width // 2, position[1] - 10, bar_width * health_ratio, bar_height)
+        border_rect = pygame.Rect(position[0] + self.rect.width // 2 - bar_width // 2, position[1] - 10, bar_width, bar_height)
+        pygame.draw.rect(surface, (255, 0, 0), health_bar_rect)
+        pygame.draw.rect(surface, (255, 255, 255), border_rect, 1)
+
 
     def update_construction_status(self, wave_ended):
         if wave_ended:
